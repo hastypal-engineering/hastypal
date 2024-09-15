@@ -39,7 +39,7 @@ func (s *HastypalApiServer) Start() {
 		Handler: MuxMiddleWareChain.ApplyOn(v1),
 	}
 
-	slog.Info("Starting the TibiaMktApiServer at " + s.address)
+	slog.Info("Starting the HastypalApiServer at " + s.address)
 
 	err := server.ListenAndServe()
 
