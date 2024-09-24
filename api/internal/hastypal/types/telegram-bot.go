@@ -5,3 +5,8 @@ type TelegramBotMessage struct {
 	To      string `json:"to"`
 	Content string `json:"content"`
 }
+
+type TelegramBotCommand struct {
+	Command     string `json:"command"`
+	Description string `json:"description"`
+}

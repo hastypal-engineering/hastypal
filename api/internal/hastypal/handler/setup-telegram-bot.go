@@ -8,22 +8,19 @@ import (
 	"net/http"
 )
 
-type CreateBusinessHandler struct {
-	bot     *types.TelegramBot
+type SetupTelegramBotHandler struct {
 	service *service.CreateBusinessService
 }
 
-func NewCreateBusinessHandler(
-	bot *types.TelegramBot,
+func NewSetupTelegramBotHandler(
 	service *service.CreateBusinessService,
-) *CreateBusinessHandler {
-	return &CreateBusinessHandler{
-		bot:     bot,
+) *SetupTelegramBotHandler {
+	return &SetupTelegramBotHandler{
 		service: service,
 	}
 }
 
-func (h *CreateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) error {
+func (h *SetupTelegramBotHandler) Handler(w http.ResponseWriter, r *http.Request) error {
 	var request types.Business
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {

@@ -26,6 +26,7 @@ func main() {
 		constants.ServerPort,
 		constants.WhatsappBusinessApiToken,
 		constants.TelegramApiToken,
+		constants.TelegramApiBotUrl,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {

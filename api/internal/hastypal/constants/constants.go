@@ -11,6 +11,7 @@ const (
 	Production               = "PRODUCTION"
 	WhatsappBusinessApiToken = "WHATSAPP_BUSINESS_API_TOKEN"
 	TelegramApiToken         = "TELEGRAM_API_TOKEN"
+	TelegramApiBotUrl        = "TELEGRAM_BOT_API_URL"
 )
 
 // Criteria
