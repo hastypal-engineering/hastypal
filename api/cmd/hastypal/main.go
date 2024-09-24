@@ -24,6 +24,8 @@ func main() {
 		constants.DatabasePassword,
 		constants.DatabaseName,
 		constants.ServerPort,
+		constants.WhatsappBusinessApiToken,
+		constants.TelegramApiToken,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {
