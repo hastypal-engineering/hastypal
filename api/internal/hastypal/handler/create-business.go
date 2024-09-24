@@ -18,7 +18,8 @@ func NewCreateBusinessHandler(
 	service *service.CreateBusinessService,
 ) *CreateBusinessHandler {
 	return &CreateBusinessHandler{
-		bot: bot,
+		bot:     bot,
+		service: service,
 	}
 }
 
