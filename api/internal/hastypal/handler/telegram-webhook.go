@@ -8,11 +8,11 @@ import (
 )
 
 type TelegramWebhookHandler struct {
-	service *service.CreateBusinessService
+	service *service.TelegramWebhookService
 }
 
 func NewTelegramWebhookHandler(
-	service *service.CreateBusinessService,
+	service *service.TelegramWebhookService,
 ) *TelegramWebhookHandler {
 	return &TelegramWebhookHandler{
 		service: service,
@@ -28,6 +28,10 @@ func (h *TelegramWebhookHandler) Handler(w http.ResponseWriter, r *http.Request)
 			Function: "Handler -> json.NewDecoder().Decode()",
 			File:     "telegram-webhook.go",
 		}
+	}
+
+	if serviceErr := h.service.Execute(update); serviceErr != nil {
+		return serviceErr
 	}
 
 	return nil
