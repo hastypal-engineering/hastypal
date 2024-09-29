@@ -22,16 +22,10 @@ func NewSetupTelegramBotService(
 func (s *SetupTelegramBotService) Execute(communicationPhoneNumber string, commands []types.TelegramBotCommand) error {
 	criteria := s.buildCommunicationPhoneNumberCriteria(communicationPhoneNumber)
 
-	//Seguir checkeando que pasa cuando no hay row?
-
-	business, findOneErr := s.repository.FindOne(criteria)
+	_, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return findOneErr
-	}
-
-	if err := s.repository.Save(request); err != nil {
-		return err
 	}
 
 	return nil

@@ -20,6 +20,10 @@ func NewTelegramBot(url string, token string) *TelegramBot {
 	}
 }
 
+func (tb *TelegramBot) SendMsg() error {
+
+}
+
 func (tb *TelegramBot) SetCommands(commands []types.TelegramBotCommand) error {
 	byteEncodedBody, jsonEncodeError := json.Marshal(commands)
 
