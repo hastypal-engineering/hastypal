@@ -5,27 +5,24 @@ import (
 )
 
 type SetupTelegramBotService struct {
-	bot        *TelegramBot
-	repository types.Repository[types.Business]
+	bot *TelegramBot
 }
 
 func NewSetupTelegramBotService(
 	bot *TelegramBot,
-	repository types.Repository[types.Business],
 ) *SetupTelegramBotService {
 	return &SetupTelegramBotService{
-		bot:        bot,
-		repository: repository,
+		bot: bot,
 	}
 }
 
-func (s *SetupTelegramBotService) Execute(communicationPhoneNumber string, commands []types.TelegramBotCommand) error {
-	criteria := s.buildCommunicationPhoneNumberCriteria(communicationPhoneNumber)
+func (s *SetupTelegramBotService) Execute(setup types.AdminTelegramBotSetup) error {
+	if setCommandsErr := s.bot.SetCommands(setup.Commands); setCommandsErr != nil {
+		return setCommandsErr
+	}
 
-	_, findOneErr := s.repository.FindOne(criteria)
-
-	if findOneErr != nil {
-		return findOneErr
+	if setWebhookErr := s.bot.SetWebhook(setup.Webhook); setWebhookErr != nil {
+		return setWebhookErr
 	}
 
 	return nil

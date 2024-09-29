@@ -9,11 +9,11 @@ import (
 )
 
 type SetupTelegramBotHandler struct {
-	service *service.CreateBusinessService
+	service *service.SetupTelegramBotService
 }
 
 func NewSetupTelegramBotHandler(
-	service *service.CreateBusinessService,
+	service *service.SetupTelegramBotService,
 ) *SetupTelegramBotHandler {
 	return &SetupTelegramBotHandler{
 		service: service,
@@ -21,13 +21,13 @@ func NewSetupTelegramBotHandler(
 }
 
 func (h *SetupTelegramBotHandler) Handler(w http.ResponseWriter, r *http.Request) error {
-	var request types.Business
+	var request types.AdminTelegramBotSetup
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {
 		return types.ApiError{
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
-			File:     "create-business.go",
+			File:     "handler/setup-telegram.bot.go",
 			Values:   []string{},
 		}
 	}
