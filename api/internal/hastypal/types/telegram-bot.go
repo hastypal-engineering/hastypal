@@ -10,3 +10,12 @@ type TelegramBotCommand struct {
 	Command     string `json:"command"`
 	Description string `json:"description"`
 }
+
+type TelegramWebhook struct {
+	Url string `json:"url"`
+}
+
+type AdminTelegramBotSetup struct {
+	Commands []TelegramBotCommand `json:"commands"`
+	Webhook  TelegramWebhook      `json:"webhook"`
+}

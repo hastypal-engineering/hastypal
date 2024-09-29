@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-
+	"errors"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 )
@@ -118,6 +118,16 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
+		if errors.As(err, &sql.ErrNoRows) {
+			return types.Business{}, types.ApiError{
+				Msg:      "Entity Business not found",
+				Function: "FindOne -> rows.Scan()",
+				File:     "pg-business-repository.go",
+				Values:   []string{query},
+				Domain:   true,
+			}
+		}
+
 		return types.Business{}, types.ApiError{
 			Msg:      scanErr.Error(),
 			Function: "FindOne -> rows.Scan()",

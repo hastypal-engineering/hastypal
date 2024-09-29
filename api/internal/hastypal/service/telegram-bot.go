@@ -20,8 +20,16 @@ func NewTelegramBot(url string, token string) *TelegramBot {
 	}
 }
 
+func (tb *TelegramBot) SendMsg() error {
+	return nil
+}
+
 func (tb *TelegramBot) SetCommands(commands []types.TelegramBotCommand) error {
-	byteEncodedBody, jsonEncodeError := json.Marshal(commands)
+	type SetCommand struct {
+		Commands []types.TelegramBotCommand `json:"commands"`
+	}
+
+	byteEncodedBody, jsonEncodeError := json.Marshal(SetCommand{Commands: commands})
 
 	if jsonEncodeError != nil {
 		return types.ApiError{
@@ -68,6 +76,61 @@ func (tb *TelegramBot) SetCommands(commands []types.TelegramBotCommand) error {
 		return types.ApiError{
 			Msg:      response.Status,
 			Function: "SetCommands -> client.Do()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	return nil
+}
+
+func (tb *TelegramBot) SetWebhook(webhook types.TelegramWebhook) error {
+	byteEncodedBody, jsonEncodeError := json.Marshal(webhook)
+
+	if jsonEncodeError != nil {
+		return types.ApiError{
+			Msg:      jsonEncodeError.Error(),
+			Function: "SetWebhook -> json.Marshal()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	request, requestCreationError := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf(
+			"%s/bot%s/setWebhook",
+			tb.url,
+			tb.token,
+		),
+		bytes.NewBuffer(byteEncodedBody),
+	)
+
+	if requestCreationError != nil {
+		return types.ApiError{
+			Msg:      requestCreationError.Error(),
+			Function: "SetWebhook -> http.NewRequest()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	request.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, requestError := client.Do(request)
+
+	if requestError != nil {
+		return types.ApiError{
+			Msg:      requestError.Error(),
+			Function: "SetWebhook -> client.Do()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return types.ApiError{
+			Msg:      response.Status,
+			Function: "SetWebhook -> client.Do()",
 			File:     "service/telegram-bot.go",
 		}
 	}
