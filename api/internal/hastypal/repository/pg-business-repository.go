@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 )
@@ -45,10 +46,13 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	defer rows.Close()
 
 	var (
-		id         string
-		name       string
-		created_at string
-		updated_at string
+		id                  string
+		name                string
+		communication_phone string
+		email               string
+		password            string
+		created_at          string
+		updated_at          string
 	)
 
 	var results []types.Business
@@ -57,6 +61,9 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		if scanErr := rows.Scan(
 			&id,
 			&name,
+			&communication_phone,
+			&email,
+			&password,
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
@@ -68,10 +75,13 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		}
 
 		results = append(results, types.Business{
-			Id:        id,
-			Name:      name,
-			CreatedAt: created_at,
-			UpdatedAt: updated_at,
+			Id:                 id,
+			Name:               name,
+			CommunicationPhone: communication_phone,
+			Email:              email,
+			Password:           password,
+			CreatedAt:          created_at,
+			UpdatedAt:          updated_at,
 		})
 	}
 
@@ -90,15 +100,21 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	var (
-		id         string
-		name       string
-		created_at string
-		updated_at string
+		id                  string
+		name                string
+		communication_phone string
+		email               string
+		password            string
+		created_at          string
+		updated_at          string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
 		&id,
 		&name,
+		&communication_phone,
+		&email,
+		&password,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
@@ -111,20 +127,26 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	return types.Business{
-		Id:        id,
-		Name:      name,
-		CreatedAt: created_at,
-		UpdatedAt: updated_at,
+		Id:                 id,
+		Name:               name,
+		CommunicationPhone: communication_phone,
+		Email:              email,
+		Password:           password,
+		CreatedAt:          created_at,
+		UpdatedAt:          updated_at,
 	}, nil
 }
 
 func (r *PgBusinessRepository) Save(entity types.Business) error {
-	var query = `INSERT INTO business (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4)`
+	var query = `INSERT INTO business (id, name, communication_phone, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err := r.connection.Exec(
 		query,
 		entity.Id,
 		entity.Name,
+		entity.CommunicationPhone,
+		entity.Email,
+		entity.Password,
 		entity.CreatedAt,
 		entity.UpdatedAt,
 	)
@@ -138,6 +160,9 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 				query,
 				entity.Id,
 				entity.Name,
+				entity.CommunicationPhone,
+				entity.Email,
+				entity.Password,
 				entity.CreatedAt,
 				entity.UpdatedAt,
 			},
