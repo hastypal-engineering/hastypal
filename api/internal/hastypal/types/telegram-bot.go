@@ -19,3 +19,27 @@ type AdminTelegramBotSetup struct {
 	Commands []TelegramBotCommand `json:"commands"`
 	Webhook  TelegramWebhook      `json:"webhook"`
 }
+
+type TelegramMessageUpdate struct {
+	MessageId string `json:"message_id"`
+	From      struct {
+		Id           string `json:"id"`
+		IsBot        bool   `json:"is_bot"`
+		FirstName    string `json:"first_name"`
+		LastName     string `json:"last_name"`
+		LanguageCode string `json:"language_code"`
+	}
+	Chat struct {
+		Id        string `json:"id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Type      string `json:"type"`
+	}
+	Date string `json:"date"`
+	Text string `json:"text"`
+}
+
+type TelegramUpdate struct {
+	UpdateId string                `json:"update_id"`
+	Message  TelegramMessageUpdate `json:"message"`
+}
