@@ -23,6 +23,7 @@ func (s *SetupTelegramBotService) Execute(communicationPhoneNumber string, comma
 	criteria := s.buildCommunicationPhoneNumberCriteria(communicationPhoneNumber)
 
 	//Seguir checkeando que pasa cuando no hay row?
+
 	business, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
