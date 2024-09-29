@@ -4,11 +4,14 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
+	"github.com/adriein/hastypal/internal/hastypal/handler"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/server"
+	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
+	"net/http"
 	"os"
 )
 
@@ -52,7 +55,19 @@ func main() {
 		log.Fatal(dbConnErr.Error())
 	}
 
+	api.Route("POST /bot-setup", constructBotSetupHandler(api, database))
+
 	api.Start()
 
 	defer database.Close()
+}
+
+func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	bot := service.NewTelegramBot("", "")
+
+	setupBotService := service.NewSetupTelegramBotService(bot)
+
+	controller := handler.NewSetupTelegramBotHandler(setupBotService)
+
+	return api.NewHandler(controller.Handler)
 }
