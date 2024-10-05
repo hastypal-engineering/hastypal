@@ -56,6 +56,7 @@ func main() {
 	}
 
 	api.Route("POST /bot-setup", constructBotSetupHandler(api, database))
+	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
 
 	api.Start()
 
@@ -68,6 +69,16 @@ func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) h
 	setupBotService := service.NewSetupTelegramBotService(bot)
 
 	controller := handler.NewSetupTelegramBotHandler(setupBotService)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	bot := service.NewTelegramBot("", "")
+
+	webhookService := service.NewTelegramWebhookService(bot)
+
+	controller := handler.NewTelegramWebhookHandler(webhookService)
 
 	return api.NewHandler(controller.Handler)
 }

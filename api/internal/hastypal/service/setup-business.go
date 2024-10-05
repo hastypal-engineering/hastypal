@@ -16,7 +16,7 @@ func NewSetupBusinessService(
 	}
 }
 
-func (s *SetupBusinessService) Execute(update types.TelegramUpdate) error {
+func (s *SetupBusinessService) Execute(update types.AdminTelegramBotSetup) error {
 	return nil
 }
 

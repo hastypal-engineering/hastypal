@@ -1,5 +1,9 @@
 package types
 
+//Domain Services
+
+//Domain objects
+
 type TelegramBotMessage struct {
 	From    string `json:"from"`
 	To      string `json:"to"`
@@ -20,8 +24,10 @@ type AdminTelegramBotSetup struct {
 	Webhook  TelegramWebhook      `json:"webhook"`
 }
 
+// Telegram API doc objects
+
 type TelegramUser struct {
-	Id           string `json:"id"`
+	Id           int    `json:"id"`
 	IsBot        bool   `json:"is_bot"`
 	FirstName    string `json:"first_name"`
 	LastName     string `json:"last_name"`
@@ -29,7 +35,7 @@ type TelegramUser struct {
 }
 
 type TelegramChat struct {
-	Id        string `json:"id"`
+	Id        int    `json:"id"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Type      string `json:"type"`
@@ -51,19 +57,19 @@ type TelegramMessageUpdate struct {
 	MessageId string       `json:"message_id"`
 	From      TelegramUser `json:"from"`
 	Chat      TelegramChat `json:"chat"`
-	Date      string       `json:"date"`
+	Date      int          `json:"date"`
 	Text      string       `json:"text"`
 }
 
 type BotMemberUpdated struct {
 	Chat          TelegramChat                    `json:"chat"`
 	From          TelegramUser                    `json:"from"`
-	Date          string                          `json:"date"`
+	Date          int                             `json:"date"`
 	NewChatMember TelegramChatMemberAdministrator `json:"new_chat_member"`
 }
 
 type TelegramUpdate struct {
-	UpdateId     string                `json:"update_id"`
+	UpdateId     int                   `json:"update_id"`
 	Message      TelegramMessageUpdate `json:"message,omitempty"`
 	MyChatMember BotMemberUpdated      `json:"my_chat_member,omitempty"`
 }
