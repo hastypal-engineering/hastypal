@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"reflect"
 )
@@ -19,11 +19,22 @@ func NewTelegramWebhookService(
 }
 
 func (s *TelegramWebhookService) Execute(update types.TelegramUpdate) error {
-	s.serviceFactory(update)
+	pipe := [1]types.ParseTelegramUpdate{s.parseBotCommand}
+
+	for i := 0; i < len(pipe); i++ {
+		parseFunc := pipe[i]
+
+		if err := parseFunc(update); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
-func (s *TelegramWebhookService) serviceFactory(update types.TelegramUpdate) types.WebhookService {
+func (s *TelegramWebhookService) isChatMessage(update types.TelegramUpdate) bool {
+	isChatMessage := false
+
 	structType := reflect.TypeOf(update)
 
 	structVal := reflect.ValueOf(update)
@@ -33,8 +44,21 @@ func (s *TelegramWebhookService) serviceFactory(update types.TelegramUpdate) typ
 		field := structVal.Field(i)
 		fieldName := structType.Field(i).Name
 
-		fmt.Println(field.IsZero())
-		fmt.Println(fieldName)
+		if fieldName == constants.TelegramMessageField && field.IsZero() {
+			isChatMessage = false
+
+			break
+		}
+
+		isChatMessage = true
+	}
+
+	return isChatMessage
+}
+
+func (s *TelegramWebhookService) parseBotCommand(update types.TelegramUpdate) error {
+	if !s.isChatMessage(update) {
+		return nil
 	}
 
 	return nil

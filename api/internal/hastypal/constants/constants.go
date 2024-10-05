@@ -27,3 +27,9 @@ const (
 const (
 	ServerGenericError = "SERVER_ERROR"
 )
+
+// Domain constants
+
+const (
+	TelegramMessageField string = "Message"
+)

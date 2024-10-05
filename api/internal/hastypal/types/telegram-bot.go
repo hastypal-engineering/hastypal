@@ -2,6 +2,8 @@ package types
 
 //Domain Services
 
+type ParseTelegramUpdate func(update TelegramUpdate) error
+
 //Domain objects
 
 type TelegramBotMessage struct {
