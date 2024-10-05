@@ -9,16 +9,16 @@ import (
 )
 
 type CreateBusinessHandler struct {
-	bot     *types.TelegramBot
+	// bot     *types.TelegramBot
 	service *service.CreateBusinessService
 }
 
 func NewCreateBusinessHandler(
-	bot *types.TelegramBot,
+	// bot *types.TelegramBot,
 	service *service.CreateBusinessService,
 ) *CreateBusinessHandler {
 	return &CreateBusinessHandler{
-		bot:     bot,
+		// bot:     bot,
 		service: service,
 	}
 }
