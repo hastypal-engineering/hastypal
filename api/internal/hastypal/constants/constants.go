@@ -33,3 +33,9 @@ const (
 const (
 	TelegramMessageField string = "Message"
 )
+
+// Telegram commands
+
+const (
+	StartCommand string = "/start"
+)

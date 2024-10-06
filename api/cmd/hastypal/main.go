@@ -6,6 +6,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/handler"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
+	"github.com/adriein/hastypal/internal/hastypal/repository"
 	"github.com/adriein/hastypal/internal/hastypal/server"
 	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/joho/godotenv"
@@ -64,7 +65,7 @@ func main() {
 }
 
 func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	bot := service.NewTelegramBot("", "")
+	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
 
 	setupBotService := service.NewSetupTelegramBotService(bot)
 
@@ -74,9 +75,12 @@ func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) h
 }
 
 func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	bot := service.NewTelegramBot("", "")
+	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
+	businessRepository := repository.NewPgBusinessRepository(database)
 
-	webhookService := service.NewTelegramWebhookService(bot)
+	startCommandHandler := service.NewTelegramStartCommandService(bot)
+
+	webhookService := service.NewTelegramWebhookService(businessRepository, startCommandHandler)
 
 	controller := handler.NewTelegramWebhookHandler(webhookService)
 

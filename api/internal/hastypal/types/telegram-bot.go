@@ -2,7 +2,11 @@ package types
 
 //Domain Services
 
-type ParseTelegramUpdate func(update TelegramUpdate) error
+type ResolveTelegramUpdate func(update TelegramUpdate) error
+
+type TelegramCommandHandler interface {
+	Execute(business Business, update TelegramUpdate) error
+}
 
 //Domain objects
 

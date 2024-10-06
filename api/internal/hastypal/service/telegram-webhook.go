@@ -4,22 +4,26 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"reflect"
+	"strings"
 )
 
 type TelegramWebhookService struct {
-	bot *TelegramBot
+	repository          types.Repository[types.Business]
+	startCommandHandler types.TelegramCommandHandler
 }
 
 func NewTelegramWebhookService(
-	bot *TelegramBot,
+	repository types.Repository[types.Business],
+	startCommandHandler types.TelegramCommandHandler,
 ) *TelegramWebhookService {
 	return &TelegramWebhookService{
-		bot: bot,
+		repository:          repository,
+		startCommandHandler: startCommandHandler,
 	}
 }
 
 func (s *TelegramWebhookService) Execute(update types.TelegramUpdate) error {
-	pipe := [1]types.ParseTelegramUpdate{s.parseBotCommand}
+	pipe := [1]types.ResolveTelegramUpdate{s.resolveBotCommand}
 
 	for i := 0; i < len(pipe); i++ {
 		parseFunc := pipe[i]
@@ -56,9 +60,34 @@ func (s *TelegramWebhookService) isChatMessage(update types.TelegramUpdate) bool
 	return isChatMessage
 }
 
-func (s *TelegramWebhookService) parseBotCommand(update types.TelegramUpdate) error {
+func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) error {
 	if !s.isChatMessage(update) {
 		return nil
+	}
+
+	text := strings.Split(update.Message.Text, " ")
+
+	var filters []types.Filter
+
+	filters = make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "diffusion_channel", Value: text[1]}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.repository.FindOne(criteria)
+
+	if err != nil {
+		return err
+	}
+
+	switch text[0] {
+	case constants.StartCommand:
+		handlerErr := s.startCommandHandler.Execute(business, update)
+
+		if handlerErr != nil {
+			return handlerErr
+		}
 	}
 
 	return nil
