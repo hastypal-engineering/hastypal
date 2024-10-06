@@ -80,9 +80,21 @@ type TelegramUpdate struct {
 	MyChatMember BotMemberUpdated      `json:"my_chat_member,omitempty"`
 }
 
+type KeyboardButton struct {
+	Text                         string `json:"text"`
+	Url                          string `json:"url"`
+	CallbackData                 string `json:"callback_data"`
+	SwitchInlineQueryCurrentChat string `json:"switch_inline_query_current_chat"`
+}
+
+type ReplyMarkup struct {
+	InlineKeyboard [][]KeyboardButton `json:"inline_keyboard"`
+}
+
 type SendTelegramMessage struct {
-	ChatId         int    `json:"chat_id"`
-	Text           string `json:"text"`
-	ParseMode      string `json:"parse_mode"`
-	ProtectContent bool   `json:"protect_content"`
+	ChatId         int         `json:"chat_id"`
+	Text           string      `json:"text"`
+	ParseMode      string      `json:"parse_mode"`
+	ProtectContent bool        `json:"protect_content"`
+	ReplyMarkup    ReplyMarkup `json:"reply_markup"`
 }
