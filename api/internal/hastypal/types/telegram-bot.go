@@ -60,7 +60,7 @@ type TelegramChatMemberAdministrator struct {
 }
 
 type TelegramMessageUpdate struct {
-	MessageId string       `json:"message_id"`
+	MessageId int          `json:"message_id"`
 	From      TelegramUser `json:"from"`
 	Chat      TelegramChat `json:"chat"`
 	Date      int          `json:"date"`
@@ -78,4 +78,11 @@ type TelegramUpdate struct {
 	UpdateId     int                   `json:"update_id"`
 	Message      TelegramMessageUpdate `json:"message,omitempty"`
 	MyChatMember BotMemberUpdated      `json:"my_chat_member,omitempty"`
+}
+
+type SendTelegramMessage struct {
+	ChatId         int    `json:"chat_id"`
+	Text           string `json:"text"`
+	ParseMode      string `json:"parse_mode"`
+	ProtectContent bool   `json:"protect_content"`
 }

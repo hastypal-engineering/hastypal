@@ -20,7 +20,58 @@ func NewTelegramBot(url string, token string) *TelegramBot {
 	}
 }
 
-func (tb *TelegramBot) SendMsg() error {
+func (tb *TelegramBot) SendMsg(msg types.SendTelegramMessage) error {
+	byteEncodedBody, jsonEncodeError := json.Marshal(msg)
+
+	if jsonEncodeError != nil {
+		return types.ApiError{
+			Msg:      jsonEncodeError.Error(),
+			Function: "SendMsg -> json.Marshal()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	request, requestCreationError := http.NewRequest(
+		http.MethodPost,
+		fmt.Sprintf(
+			"%s/bot%s/sendMessage",
+			tb.url,
+			tb.token,
+		),
+		bytes.NewBuffer(byteEncodedBody),
+	)
+
+	if requestCreationError != nil {
+		return types.ApiError{
+			Msg:      requestCreationError.Error(),
+			Function: "SendMsg -> http.NewRequest()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	request.Header.Add("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, requestError := client.Do(request)
+
+	if requestError != nil {
+		return types.ApiError{
+			Msg:      requestError.Error(),
+			Function: "SendMsg -> client.Do()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		return types.ApiError{
+			Msg:      response.Status,
+			Function: "SendMsg -> client.Do()",
+			File:     "service/telegram-bot.go",
+		}
+	}
+
 	return nil
 }
 

@@ -28,10 +28,11 @@ const (
 	ServerGenericError = "SERVER_ERROR"
 )
 
-// Domain constants
+// Telegram
 
 const (
 	TelegramMessageField string = "Message"
+	TelegramMarkdown     string = "MarkdownV2"
 )
 
 // Telegram commands

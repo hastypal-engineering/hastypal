@@ -67,9 +67,7 @@ func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) 
 
 	text := strings.Split(update.Message.Text, " ")
 
-	var filters []types.Filter
-
-	filters = make([]types.Filter, 1)
+	/*filters := make([]types.Filter, 1)
 
 	filters[0] = types.Filter{Name: "diffusion_channel", Value: text[1]}
 
@@ -79,11 +77,11 @@ func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) 
 
 	if err != nil {
 		return err
-	}
+	}*/
 
 	switch text[0] {
 	case constants.StartCommand:
-		handlerErr := s.startCommandHandler.Execute(business, update)
+		handlerErr := s.startCommandHandler.Execute(types.Business{}, update)
 
 		if handlerErr != nil {
 			return handlerErr
