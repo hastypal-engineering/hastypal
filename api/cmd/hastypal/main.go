@@ -3,13 +3,18 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/adriein/hastypal/internal/hastypal/constants"
+	"github.com/adriein/hastypal/internal/hastypal/handler"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
+	"github.com/adriein/hastypal/internal/hastypal/repository"
 	"github.com/adriein/hastypal/internal/hastypal/server"
+	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"log"
-	"os"
 )
 
 func main() {
@@ -52,7 +57,19 @@ func main() {
 		log.Fatal(dbConnErr.Error())
 	}
 
+	api.Route("POST /business", constructCreateBusinessHandler(api, database))
+
 	api.Start()
 
 	defer database.Close()
+}
+
+func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	businessRepository := repository.NewPgBusinessRepository(database)
+
+	createBusinessService := service.NewCreateBusinessService(businessRepository)
+
+	controller := handler.NewCreateBusinessHandler(createBusinessService)
+
+	return api.NewHandler(controller.Handler)
 }
