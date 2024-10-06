@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 )
@@ -18,7 +19,12 @@ func NewTelegramStartCommandService(
 }
 
 func (s *TelegramStartCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
-	markdownText := "*Los servicios ofrecidos por Hastypal Business test son:*\n\n" +
+	welcome := fmt.Sprintf(
+		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s*\n\n",
+		update.Message.From.FirstName,
+		"Hastypal Business test",
+	)
+	markdownText := welcome + "*Te muestro a continuación los servicios que ofrecemos:*\n\n" +
 		"![🔸](tg://emoji?id=5368324170671202286) Corte de pelo y barba express 18€\n\n" +
 		"![🔸](tg://emoji?id=5368324170671202286) Corte de pelo y barba premium 22€\n\n"
 
