@@ -41,6 +41,19 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 	markdownText.WriteString(commandInformation)
 	markdownText.WriteString(processInstructions)
 
+	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
+
+	if loadLocationErr != nil {
+		return types.ApiError{
+			Msg:      loadLocationErr.Error(),
+			Function: "Execute -> time.LoadLocation()",
+			File:     "telegram-book-command.go",
+			Values:   []string{"Europe/Madrid"},
+		}
+	}
+
+	time.Local = location
+
 	today := time.Now()
 
 	buttons := make([]types.KeyboardButton, 15)
@@ -48,9 +61,13 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 	for i := 0; i < 15; i++ {
 		newDate := today.AddDate(0, 0, i)
 
+		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
+
+		day := dateParts[0]
+		month := dateParts[1]
+
 		buttons[i] = types.KeyboardButton{
-			Text: fmt.Sprintf("%s",
-				newDate.Weekday().String()),
+			Text:         fmt.Sprintf("%s %s", day, month),
 			CallbackData: fmt.Sprintf("inspect %d", i),
 		}
 	}
