@@ -26,7 +26,7 @@ func (h *TelegramWebhookHandler) Handler(w http.ResponseWriter, r *http.Request)
 		return types.ApiError{
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
-			File:     "telegram-webhook.go",
+			File:     "handler/telegram-webhook.go",
 		}
 	}
 

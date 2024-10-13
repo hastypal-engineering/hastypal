@@ -1,9 +1,10 @@
 package service
 
 import (
+	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
+	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
-	"reflect"
 	"strings"
 )
 
@@ -26,7 +27,7 @@ func NewTelegramWebhookService(
 }
 
 func (s *TelegramWebhookService) Execute(update types.TelegramUpdate) error {
-	pipe := [1]types.ResolveTelegramUpdate{s.resolveBotCommand}
+	pipe := [2]types.ResolveTelegramUpdate{s.resolveBotCommand, s.resolveCallbackQueryCommand}
 
 	for i := 0; i < len(pipe); i++ {
 		parseFunc := pipe[i]
@@ -39,56 +40,8 @@ func (s *TelegramWebhookService) Execute(update types.TelegramUpdate) error {
 	return nil
 }
 
-func (s *TelegramWebhookService) isChatMessage(update types.TelegramUpdate) bool {
-	isChatMessage := false
-
-	structType := reflect.TypeOf(update)
-
-	structVal := reflect.ValueOf(update)
-	fieldNum := structVal.NumField()
-
-	for i := 0; i < fieldNum; i++ {
-		field := structVal.Field(i)
-		fieldName := structType.Field(i).Name
-
-		if fieldName == constants.TelegramMessageField && field.IsZero() {
-			isChatMessage = false
-
-			break
-		}
-
-		isChatMessage = true
-	}
-
-	return isChatMessage
-}
-
-func (s *TelegramWebhookService) isCallbackQuery(update types.TelegramUpdate) bool {
-	isCallbackQuery := false
-
-	structType := reflect.TypeOf(update)
-
-	structVal := reflect.ValueOf(update)
-	fieldNum := structVal.NumField()
-
-	for i := 0; i < fieldNum; i++ {
-		field := structVal.Field(i)
-		fieldName := structType.Field(i).Name
-
-		if fieldName == constants.TelegramCallbackQueryField && field.IsZero() {
-			isCallbackQuery = false
-
-			break
-		}
-
-		isCallbackQuery = true
-	}
-
-	return isCallbackQuery
-}
-
 func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) error {
-	if !s.isChatMessage(update) {
+	if !helper.HasField(update, constants.TelegramMessageField) {
 		return nil
 	}
 
@@ -106,26 +59,21 @@ func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) 
 		return err
 	}*/
 
-	switch text[0] {
-	case constants.StartCommand:
-		handlerErr := s.startCommandHandler.Execute(types.Business{}, update)
+	handler, err := s.resolveHandler(text[0])
 
-		if handlerErr != nil {
-			return handlerErr
-		}
-	case constants.BookCommand:
-		handlerErr := s.bookCommandHandler.Execute(types.Business{}, update)
+	if err != nil {
+		return err
+	}
 
-		if handlerErr != nil {
-			return handlerErr
-		}
+	if handlerErr := handler.Execute(types.Business{}, update); handlerErr != nil {
+		return handlerErr
 	}
 
 	return nil
 }
 
 func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types.TelegramUpdate) error {
-	if !s.isCallbackQuery(update) {
+	if !helper.HasField(update, constants.TelegramCallbackQueryField) {
 		return nil
 	}
 
@@ -143,14 +91,30 @@ func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types.Telegr
 		return err
 	}*/
 
-	switch text[0] {
-	case constants.BookCommand:
-		handlerErr := s.bookCommandHandler.Execute(types.Business{}, update)
+	handler, err := s.resolveHandler(text[0])
 
-		if handlerErr != nil {
-			return handlerErr
-		}
+	if err != nil {
+		return err
+	}
+
+	if handlerErr := handler.Execute(types.Business{}, update); handlerErr != nil {
+		return handlerErr
 	}
 
 	return nil
+}
+
+func (s *TelegramWebhookService) resolveHandler(command string) (types.TelegramCommandHandler, error) {
+	switch command {
+	case constants.StartCommand:
+		return s.startCommandHandler, nil
+	case constants.BookCommand:
+		return s.bookCommandHandler, nil
+	}
+
+	return nil, types.ApiError{
+		Msg:      fmt.Sprintf("Hanlder not found for command: %s", command),
+		Function: "Execute -> resolveHandler()",
+		File:     "service/telegram-webhook.go",
+	}
 }
