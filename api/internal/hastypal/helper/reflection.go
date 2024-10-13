@@ -5,6 +5,8 @@ import (
 )
 
 func HasField[T interface{}](obj T, name string) bool {
+	hasField := false
+
 	structType := reflect.TypeOf(obj)
 
 	structVal := reflect.ValueOf(obj)
@@ -15,11 +17,13 @@ func HasField[T interface{}](obj T, name string) bool {
 		fieldName := structType.Field(i).Name
 
 		if fieldName == name && field.IsZero() {
-			return false
+			hasField = false
+
+			break
 		}
 
-		return true
+		hasField = true
 	}
 
-	return false
+	return hasField
 }
