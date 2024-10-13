@@ -26,7 +26,7 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 
 	welcome := fmt.Sprintf(
 		"*%s, estas son las fechas ![📅](tg://emoji?id=5368324170671202286) ",
-		update.Message.From.FirstName,
+		update.CallbackQuery.From.FirstName,
 	)
 
 	commandInformation := fmt.Sprintf(
@@ -58,7 +58,7 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 	inlineKeyboard := s.chunkKeyboardButtons(buttons, 5)
 
 	message := types.SendTelegramMessage{
-		ChatId:         update.Message.Chat.Id,
+		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,

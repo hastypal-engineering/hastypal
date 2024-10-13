@@ -31,8 +31,9 @@ const (
 // Telegram
 
 const (
-	TelegramMessageField string = "Message"
-	TelegramMarkdown     string = "MarkdownV2"
+	TelegramMessageField       string = "Message"
+	TelegramCallbackQueryField string = "CallbackQuery"
+	TelegramMarkdown           string = "MarkdownV2"
 )
 
 // Telegram commands

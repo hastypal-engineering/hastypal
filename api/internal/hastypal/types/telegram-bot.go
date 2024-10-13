@@ -80,10 +80,17 @@ type BotMemberUpdated struct {
 	NewChatMember TelegramChatMemberAdministrator `json:"new_chat_member"`
 }
 
+type CallbackQuery struct {
+	Id   string       `json:"id"`
+	From TelegramUser `json:"from"`
+	Data string       `json:"data"`
+}
+
 type TelegramUpdate struct {
-	UpdateId     int                   `json:"update_id"`
-	Message      TelegramMessageUpdate `json:"message,omitempty"`
-	MyChatMember BotMemberUpdated      `json:"my_chat_member,omitempty"`
+	UpdateId      int                   `json:"update_id"`
+	Message       TelegramMessageUpdate `json:"message,omitempty"`
+	MyChatMember  BotMemberUpdated      `json:"my_chat_member,omitempty"`
+	CallbackQuery CallbackQuery         `json:"callback_query,omitempty"`
 }
 
 type KeyboardButton struct {

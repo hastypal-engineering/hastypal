@@ -63,6 +63,30 @@ func (s *TelegramWebhookService) isChatMessage(update types.TelegramUpdate) bool
 	return isChatMessage
 }
 
+func (s *TelegramWebhookService) isCallbackQuery(update types.TelegramUpdate) bool {
+	isCallbackQuery := false
+
+	structType := reflect.TypeOf(update)
+
+	structVal := reflect.ValueOf(update)
+	fieldNum := structVal.NumField()
+
+	for i := 0; i < fieldNum; i++ {
+		field := structVal.Field(i)
+		fieldName := structType.Field(i).Name
+
+		if fieldName == constants.TelegramCallbackQueryField && field.IsZero() {
+			isCallbackQuery = false
+
+			break
+		}
+
+		isCallbackQuery = true
+	}
+
+	return isCallbackQuery
+}
+
 func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) error {
 	if !s.isChatMessage(update) {
 		return nil
@@ -89,6 +113,37 @@ func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) 
 		if handlerErr != nil {
 			return handlerErr
 		}
+	case constants.BookCommand:
+		handlerErr := s.bookCommandHandler.Execute(types.Business{}, update)
+
+		if handlerErr != nil {
+			return handlerErr
+		}
+	}
+
+	return nil
+}
+
+func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types.TelegramUpdate) error {
+	if !s.isCallbackQuery(update) {
+		return nil
+	}
+
+	text := strings.Split(update.CallbackQuery.Data, " ")
+
+	/*filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "diffusion_channel", Value: text[1]}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.repository.FindOne(criteria)
+
+	if err != nil {
+		return err
+	}*/
+
+	switch text[0] {
 	case constants.BookCommand:
 		handlerErr := s.bookCommandHandler.Execute(types.Business{}, update)
 
