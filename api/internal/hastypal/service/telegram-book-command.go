@@ -3,8 +3,8 @@ package service
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
+	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
-	"math"
 	"strings"
 	"time"
 )
@@ -55,7 +55,7 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 		}
 	}
 
-	inlineKeyboard := s.chunkKeyboardButtons(buttons, 5)
+	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 5)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
@@ -70,18 +70,4 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 	}
 
 	return nil
-}
-
-func (s *TelegramBookCommandService) chunkKeyboardButtons(
-	buttons []types.KeyboardButton,
-	chunkSize int,
-) [][]types.KeyboardButton {
-	var chunked [][]types.KeyboardButton
-
-	for i := 0; i < len(buttons); i += chunkSize {
-		end := int(math.Min(float64(i+chunkSize), float64(len(buttons))))
-		chunked = append(chunked, buttons[i:end])
-	}
-
-	return chunked
 }
