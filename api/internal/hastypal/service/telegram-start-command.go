@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"strings"
 )
 
 type TelegramStartCommandService struct {
@@ -19,36 +20,43 @@ func NewTelegramStartCommandService(
 }
 
 func (s *TelegramStartCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
+	var markdownText strings.Builder
+
 	welcome := fmt.Sprintf(
 		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s*\n\n",
 		update.Message.From.FirstName,
-		"Hastypal Business test",
+		"Hastypal Business Test",
 	)
-	markdownText := welcome + "*Te muestro a continuación los servicios que ofrecemos:*\n\n" +
-		"![🔸](tg://emoji?id=5368324170671202286) Corte de pelo y barba express 18€\n\n" +
-		"![🔸](tg://emoji?id=5368324170671202286) Corte de pelo y barba premium 22€\n\n"
 
-	service1 := make([]types.KeyboardButton, 1)
-	service1[0] = types.KeyboardButton{Text: "Corte de pelo y barba express 18€", CallbackData: "/book 1"}
-	service2 := make([]types.KeyboardButton, 1)
-	service2[0] = types.KeyboardButton{Text: "Corte de pelo y barba premium 22€", CallbackData: "/book 2"}
+	services := []string{
+		"Corte de pelo y barba express 18€",
+		"Corte de pelo y barba premium 22€",
+	}
 
-	inlineKeyboard := make([][]types.KeyboardButton, 2)
+	emoji := "![🔸](tg://emoji?id=5368324170671202286)"
 
-	inlineKeyboard[0] = service1
-	inlineKeyboard[1] = service2
+	markdownText.WriteString(welcome)
+	markdownText.WriteString("*Te muestro a continuación los servicios que ofrecemos:*\n\n")
+
+	for _, service := range services {
+		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, service))
+	}
+
+	inlineKeyboard := [][]types.KeyboardButton{
+		{{Text: "Corte de pelo y barba express 18€", CallbackData: "/book 1"}},
+		{{Text: "Corte de pelo y barba premium 22€", CallbackData: "/book 2"}},
+	}
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.Message.Chat.Id,
-		Text:           markdownText,
+		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
-	err := s.bot.SendMsg(message)
 
-	if err != nil {
-		return err
+	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+		return botSendMsgErr
 	}
 
 	return nil
