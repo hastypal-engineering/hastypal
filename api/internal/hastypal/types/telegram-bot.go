@@ -32,6 +32,12 @@ type AdminTelegramBotSetup struct {
 
 // Telegram API doc objects
 
+type TelegramHttpResponse struct {
+	Ok          bool   `json:"ok"`
+	ErrorCode   int    `json:"error_code"`
+	Description string `json:"description"`
+}
+
 type TelegramUser struct {
 	Id           int    `json:"id"`
 	IsBot        bool   `json:"is_bot"`

@@ -23,7 +23,7 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	var markdownText strings.Builder
 
 	welcome := fmt.Sprintf(
-		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s.*\n\n",
+		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s\\.*\n\n",
 		update.Message.From.FirstName,
 		"Hastypal Business Test",
 	)
@@ -43,8 +43,8 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	}
 
 	inlineKeyboard := [][]types.KeyboardButton{
-		{{Text: fmt.Sprintf("%s ![📅](tg://emoji?id=5368324170671202286)", services[0]), CallbackData: "/book 1"}},
-		{{Text: fmt.Sprintf("%s ![📅](tg://emoji?id=5368324170671202286)", services[1]), CallbackData: "/book 2"}},
+		{{Text: fmt.Sprintf("%s 📅", services[0]), CallbackData: "/book 1"}},
+		{{Text: fmt.Sprintf("%s 📅", services[1]), CallbackData: "/book 2"}},
 	}
 
 	message := types.SendTelegramMessage{

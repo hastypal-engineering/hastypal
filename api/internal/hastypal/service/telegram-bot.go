@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"io"
 	"net/http"
 )
 
@@ -65,9 +66,28 @@ func (tb *TelegramBot) SendMsg(msg types.SendTelegramMessage) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
+		body, ioReaderErr := io.ReadAll(response.Body)
+
+		if ioReaderErr != nil {
+			return types.ApiError{
+				Msg:      response.Status,
+				Function: "SendMsg -> io.ReadAll()",
+				File:     "service/telegram-bot.go",
+			}
+		}
+
+		var data types.TelegramHttpResponse
+		if unmarshalErr := json.Unmarshal(body, &data); unmarshalErr != nil {
+			return types.ApiError{
+				Msg:      unmarshalErr.Error(),
+				Function: "SendMsg -> json.Unmarshal()",
+				File:     "service/telegram-bot.go",
+			}
+		}
+
 		return types.ApiError{
-			Msg:      response.Status,
-			Function: "SendMsg -> client.Do()",
+			Msg:      fmt.Sprintf("Error code: %d, Description: %s", data.ErrorCode, data.Description),
+			Function: "SendMsg",
 			File:     "service/telegram-bot.go",
 		}
 	}
