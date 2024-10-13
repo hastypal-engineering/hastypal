@@ -39,4 +39,5 @@ const (
 
 const (
 	StartCommand string = "/start"
+	BookCommand  string = "/book"
 )

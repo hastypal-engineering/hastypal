@@ -10,15 +10,18 @@ import (
 type TelegramWebhookService struct {
 	repository          types.Repository[types.Business]
 	startCommandHandler types.TelegramCommandHandler
+	bookCommandHandler  types.TelegramCommandHandler
 }
 
 func NewTelegramWebhookService(
 	repository types.Repository[types.Business],
 	startCommandHandler types.TelegramCommandHandler,
+	bookCommandHandler types.TelegramCommandHandler,
 ) *TelegramWebhookService {
 	return &TelegramWebhookService{
 		repository:          repository,
 		startCommandHandler: startCommandHandler,
+		bookCommandHandler:  bookCommandHandler,
 	}
 }
 
@@ -82,6 +85,12 @@ func (s *TelegramWebhookService) resolveBotCommand(update types.TelegramUpdate) 
 	switch text[0] {
 	case constants.StartCommand:
 		handlerErr := s.startCommandHandler.Execute(types.Business{}, update)
+
+		if handlerErr != nil {
+			return handlerErr
+		}
+	case constants.BookCommand:
+		handlerErr := s.bookCommandHandler.Execute(types.Business{}, update)
 
 		if handlerErr != nil {
 			return handlerErr
