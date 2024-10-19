@@ -77,7 +77,7 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 	month := dateParts[1]
 
 	welcome := fmt.Sprintf(
-		"*![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para el servicio %s en día %s son:*\n\n",
+		"*![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para el servicio %s el día %s son:*\n\n",
 		"Corte de pelo y barba express 18€",
 		fmt.Sprintf("%s %s", day, month),
 	)
