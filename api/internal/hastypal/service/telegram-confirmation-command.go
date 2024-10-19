@@ -99,7 +99,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 
 	buttons := make([]types.KeyboardButton, 2)
 
-	availableButtons := make([]string, 2)
+	availableButtons := [2]string{"Confirmar", "Cancelar"}
 
 	for i := 0; i <= len(availableButtons); i++ {
 		buttons[i] = types.KeyboardButton{
