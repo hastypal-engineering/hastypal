@@ -57,7 +57,8 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 
 	queryParams := parsedUrl.Query()
 
-	stringSelectedDate := strings.ReplaceAll(queryParams.Get("date"), "_", " ")
+	stringSelectedDate := fmt.Sprintf("%s %s", queryParams.Get("date"), "07:00:00")
+	service := queryParams.Get("service")
 
 	selectedDate, timeParseErr := time.Parse(time.DateTime, stringSelectedDate)
 
@@ -92,8 +93,13 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 		hour := fmt.Sprintf("%02d:00", i)
 
 		buttons[i-8] = types.KeyboardButton{
-			Text:         fmt.Sprintf("%s", hour),
-			CallbackData: fmt.Sprintf("/hours %s", hour),
+			Text: fmt.Sprintf("%s", hour),
+			CallbackData: fmt.Sprintf(
+				"/confirmation?service=%s&date=%s&hour=%s",
+				service,
+				selectedDate.Format(time.DateOnly),
+				hour,
+			),
 		}
 	}
 

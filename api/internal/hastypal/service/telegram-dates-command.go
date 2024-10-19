@@ -49,7 +49,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	commandInformation := fmt.Sprintf(
 		"%s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Hastypal Business Test",
-		strings.ReplaceAll(service, "_", " "),
+		"Corte de pelo y barba express 18€",
 	)
 
 	processInstructions := "*Selecciona un día y te responderé con las horas disponibles:*\n\n"
@@ -83,14 +83,12 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		day := dateParts[0]
 		month := dateParts[1]
 
-		queryDate := strings.ReplaceAll(newDate.Format(time.DateTime), " ", "_")
-
-		byteCount := len([]byte(fmt.Sprintf("/hours?service=%s&date=%s", service, queryDate)))
+		byteCount := len([]byte(fmt.Sprintf("/hours?service=%s&date=%s", service, newDate.Format(time.DateOnly))))
 		fmt.Println("Byte count:", byteCount)
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("/hours?service=%s&date=%s", service, queryDate),
+			CallbackData: fmt.Sprintf("/hours?service=%s&date=%s", service, newDate.Format(time.DateOnly)),
 		}
 	}
 
