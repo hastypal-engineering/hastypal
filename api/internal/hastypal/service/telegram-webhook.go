@@ -11,18 +11,21 @@ import (
 type TelegramWebhookService struct {
 	repository          types.Repository[types.Business]
 	startCommandHandler types.TelegramCommandHandler
-	bookCommandHandler  types.TelegramCommandHandler
+	datesCommandHandler types.TelegramCommandHandler
+	hoursCommandHandler types.TelegramCommandHandler
 }
 
 func NewTelegramWebhookService(
 	repository types.Repository[types.Business],
 	startCommandHandler types.TelegramCommandHandler,
-	bookCommandHandler types.TelegramCommandHandler,
+	datesCommandHandler types.TelegramCommandHandler,
+	hoursCommandHandler types.TelegramCommandHandler,
 ) *TelegramWebhookService {
 	return &TelegramWebhookService{
 		repository:          repository,
 		startCommandHandler: startCommandHandler,
-		bookCommandHandler:  bookCommandHandler,
+		datesCommandHandler: datesCommandHandler,
+		hoursCommandHandler: hoursCommandHandler,
 	}
 }
 
@@ -109,7 +112,9 @@ func (s *TelegramWebhookService) resolveHandler(command string) (types.TelegramC
 	case constants.StartCommand:
 		return s.startCommandHandler, nil
 	case constants.DatesCommand:
-		return s.bookCommandHandler, nil
+		return s.datesCommandHandler, nil
+	case constants.HoursCommand:
+		return s.hoursCommandHandler, nil
 	}
 
 	return nil, types.ApiError{

@@ -41,4 +41,5 @@ const (
 const (
 	StartCommand string = "/start"
 	DatesCommand string = "/dates"
+	HoursCommand string = "/hours"
 )

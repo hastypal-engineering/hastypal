@@ -9,19 +9,19 @@ import (
 	"time"
 )
 
-type TelegramDatesCommandService struct {
+type TelegramHoursCommandService struct {
 	bot *TelegramBot
 }
 
-func NewTelegramDatesCommandService(
+func NewTelegramHoursCommandService(
 	bot *TelegramBot,
-) *TelegramDatesCommandService {
-	return &TelegramDatesCommandService{
+) *TelegramHoursCommandService {
+	return &TelegramHoursCommandService{
 		bot: bot,
 	}
 }
 
-func (s *TelegramDatesCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *TelegramHoursCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
 	answerCbErr := s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id})
 
 	if answerCbErr != nil {
@@ -30,16 +30,15 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 	var markdownText strings.Builder
 
-	commandInformation := fmt.Sprintf(
-		"%s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
-		"Hastypal Business Test",
+	welcome := fmt.Sprintf(
+		"*![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para el servicio %s en día %s son:*\n\n",
 		"Corte de pelo y barba express 18€",
+		"aaaa",
 	)
 
-	processInstructions := "*Selecciona un día y te responderé con las horas disponibles:*\n\n"
+	processInstructions := "*Selecciona una hora y te escribiré un resumen para que puedas confirmar*\n\n"
 
-	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) *A continuación puedes ver las fechas que ")
-	markdownText.WriteString(commandInformation)
+	markdownText.WriteString(welcome)
 	markdownText.WriteString(processInstructions)
 
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")

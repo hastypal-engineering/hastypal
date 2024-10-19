@@ -79,9 +79,15 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	businessRepository := repository.NewPgBusinessRepository(database)
 
 	startCommandHandler := service.NewTelegramStartCommandService(bot)
-	bookCommandHandler := service.NewTelegramDatesCommandService(bot)
+	datesCommandHandler := service.NewTelegramDatesCommandService(bot)
+	hoursCommandHandler := service.NewTelegramHoursCommandService(bot)
 
-	webhookService := service.NewTelegramWebhookService(businessRepository, startCommandHandler, bookCommandHandler)
+	webhookService := service.NewTelegramWebhookService(
+		businessRepository,
+		startCommandHandler,
+		datesCommandHandler,
+		hoursCommandHandler,
+	)
 
 	controller := handler.NewTelegramWebhookHandler(webhookService)
 
