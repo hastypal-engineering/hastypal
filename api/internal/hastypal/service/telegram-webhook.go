@@ -5,6 +5,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"net/url"
 	"strings"
 )
 
@@ -80,7 +81,16 @@ func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types.Telegr
 		return nil
 	}
 
-	text := strings.Split(update.CallbackQuery.Data, " ")
+	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
+
+	if parseUrlErr != nil {
+		return types.ApiError{
+			Msg:      parseUrlErr.Error(),
+			Function: "Execute -> url.Parse()",
+			File:     "telegram-webhook.go",
+			Values:   []string{update.CallbackQuery.Data},
+		}
+	}
 
 	/*filters := make([]types.Filter, 1)
 
@@ -94,7 +104,7 @@ func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types.Telegr
 		return err
 	}*/
 
-	handler, err := s.resolveHandler(text[0])
+	handler, err := s.resolveHandler(parsedUrl.Path)
 
 	if err != nil {
 		return err

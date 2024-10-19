@@ -5,6 +5,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -30,10 +31,25 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 	var markdownText strings.Builder
 
+	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
+
+	if parseUrlErr != nil {
+		return types.ApiError{
+			Msg:      parseUrlErr.Error(),
+			Function: "Execute -> url.Parse()",
+			File:     "telegram-dates-command.go",
+			Values:   []string{update.CallbackQuery.Data},
+		}
+	}
+
+	queryParams := parsedUrl.Query()
+
+	service := queryParams.Get("service")
+
 	commandInformation := fmt.Sprintf(
 		"%s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Hastypal Business Test",
-		"Corte de pelo y barba express 18€",
+		strings.ReplaceAll(service, "_", " "),
 	)
 
 	processInstructions := "*Selecciona un día y te responderé con las horas disponibles:*\n\n"
@@ -67,9 +83,14 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		day := dateParts[0]
 		month := dateParts[1]
 
+		queryDate := strings.ReplaceAll(newDate.Format(time.DateTime), " ", "_")
+
+		byteCount := len([]byte(fmt.Sprintf("/hours?service=%s&date=%s", service, queryDate)))
+		fmt.Println("Byte count:", byteCount)
+
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("/hours %s", newDate.Format(time.DateTime)),
+			CallbackData: fmt.Sprintf("/hours?service=%s&date=%s", service, queryDate),
 		}
 	}
 

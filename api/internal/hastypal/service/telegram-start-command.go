@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
+	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"strings"
 )
@@ -38,14 +39,18 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	markdownText.WriteString(welcome)
 	markdownText.WriteString("*Te muestro a continuación los servicios que ofrecemos:*\n\n")
 
-	for _, service := range services {
+	buttons := make([]types.KeyboardButton, len(services))
+
+	for i, service := range services {
 		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, service))
+
+		buttons[i] = types.KeyboardButton{
+			Text:         fmt.Sprintf("%s 📅", services[i]),
+			CallbackData: fmt.Sprintf("/dates?service=%s", strings.ReplaceAll(service, " ", "_")),
+		}
 	}
 
-	inlineKeyboard := [][]types.KeyboardButton{
-		{{Text: fmt.Sprintf("%s 📅", services[0]), CallbackData: "/dates 1"}},
-		{{Text: fmt.Sprintf("%s 📅", services[1]), CallbackData: "/dates 2"}},
-	}
+	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 1)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.Message.Chat.Id,

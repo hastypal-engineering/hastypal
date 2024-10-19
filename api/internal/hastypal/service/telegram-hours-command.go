@@ -5,6 +5,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -43,16 +44,29 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 
 	time.Local = location
 
-	stringSelectedDate := strings.Split(update.CallbackQuery.Data, " ")
+	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
-	selectedDate, timeParseErr := time.Parse(time.DateTime, fmt.Sprintf("%s %s", stringSelectedDate[1], stringSelectedDate[2]))
+	if parseUrlErr != nil {
+		return types.ApiError{
+			Msg:      parseUrlErr.Error(),
+			Function: "Execute -> url.Parse()",
+			File:     "telegram-hours-command.go",
+			Values:   []string{update.CallbackQuery.Data},
+		}
+	}
+
+	queryParams := parsedUrl.Query()
+
+	stringSelectedDate := strings.ReplaceAll(queryParams.Get("date"), "_", " ")
+
+	selectedDate, timeParseErr := time.Parse(time.DateTime, stringSelectedDate)
 
 	if timeParseErr != nil {
 		return types.ApiError{
 			Msg:      timeParseErr.Error(),
 			Function: "Execute -> time.Parse()",
 			File:     "telegram-hours-command.go",
-			Values:   []string{stringSelectedDate[1]},
+			Values:   []string{stringSelectedDate},
 		}
 	}
 
