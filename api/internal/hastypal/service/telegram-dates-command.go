@@ -68,7 +68,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("inspect %d", i),
+			CallbackData: fmt.Sprintf("hours %d", i),
 		}
 	}
 
