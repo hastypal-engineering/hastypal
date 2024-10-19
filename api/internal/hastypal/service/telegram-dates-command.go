@@ -9,28 +9,28 @@ import (
 	"time"
 )
 
-type TelegramBookCommandService struct {
+type TelegramDatesCommandService struct {
 	bot *TelegramBot
 }
 
-func NewTelegramBookCommandService(
+func NewTelegramDatesCommandService(
 	bot *TelegramBot,
-) *TelegramBookCommandService {
-	return &TelegramBookCommandService{
+) *TelegramDatesCommandService {
+	return &TelegramDatesCommandService{
 		bot: bot,
 	}
 }
 
-func (s *TelegramBookCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *TelegramDatesCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
 	var markdownText strings.Builder
 
 	welcome := fmt.Sprintf(
-		"*%s, estas son las fechas ![📅](tg://emoji?id=5368324170671202286) ",
+		"*%s, las ![📅](tg://emoji?id=5368324170671202286) fechas ",
 		update.CallbackQuery.From.FirstName,
 	)
 
 	commandInformation := fmt.Sprintf(
-		"que %s tiene disponibles para el servicio %s*\n\n",
+		"que %s tiene disponibles para el servicio:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s",
 		"Hastypal Business Test",
 		"Corte de pelo y barba express 18€",
 	)
@@ -47,7 +47,7 @@ func (s *TelegramBookCommandService) Execute(business types.Business, update typ
 		return types.ApiError{
 			Msg:      loadLocationErr.Error(),
 			Function: "Execute -> time.LoadLocation()",
-			File:     "telegram-book-command.go",
+			File:     "telegram-dates-command.go",
 			Values:   []string{"Europe/Madrid"},
 		}
 	}

@@ -43,8 +43,8 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	}
 
 	inlineKeyboard := [][]types.KeyboardButton{
-		{{Text: fmt.Sprintf("%s 📅", services[0]), CallbackData: "/book 1"}},
-		{{Text: fmt.Sprintf("%s 📅", services[1]), CallbackData: "/book 2"}},
+		{{Text: fmt.Sprintf("%s 📅", services[0]), CallbackData: "/dates 1"}},
+		{{Text: fmt.Sprintf("%s 📅", services[1]), CallbackData: "/dates 2"}},
 	}
 
 	message := types.SendTelegramMessage{

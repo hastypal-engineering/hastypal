@@ -108,7 +108,7 @@ func (s *TelegramWebhookService) resolveHandler(command string) (types.TelegramC
 	switch command {
 	case constants.StartCommand:
 		return s.startCommandHandler, nil
-	case constants.BookCommand:
+	case constants.DatesCommand:
 		return s.bookCommandHandler, nil
 	}
 

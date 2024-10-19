@@ -40,5 +40,5 @@ const (
 
 const (
 	StartCommand string = "/start"
-	BookCommand  string = "/book"
+	DatesCommand string = "/dates"
 )
