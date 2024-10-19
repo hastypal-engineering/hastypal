@@ -39,7 +39,8 @@ const (
 // Telegram commands
 
 const (
-	StartCommand string = "/start"
-	DatesCommand string = "/dates"
-	HoursCommand string = "/hours"
+	StartCommand        string = "/start"
+	DatesCommand        string = "/dates"
+	HoursCommand        string = "/hours"
+	ConfirmationCommand string = "/confirmation"
 )
