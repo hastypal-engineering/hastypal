@@ -30,17 +30,6 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 
 	var markdownText strings.Builder
 
-	welcome := fmt.Sprintf(
-		"*![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para el servicio %s en día %s son:*\n\n",
-		"Corte de pelo y barba express 18€",
-		"aaaa",
-	)
-
-	processInstructions := "*Selecciona una hora y te escribiré un resumen para que puedas confirmar*\n\n"
-
-	markdownText.WriteString(welcome)
-	markdownText.WriteString(processInstructions)
-
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
 
 	if loadLocationErr != nil {
@@ -54,25 +43,47 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 
 	time.Local = location
 
-	today := time.Now()
+	stringSelectedDate := strings.Split(update.CallbackQuery.Data, " ")
 
-	buttons := make([]types.KeyboardButton, 15)
+	selectedDate, timeParseErr := time.Parse(time.DateTime, fmt.Sprintf("%s %s", stringSelectedDate[1], stringSelectedDate[2]))
 
-	for i := 0; i < 15; i++ {
-		newDate := today.AddDate(0, 0, i)
-
-		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
-
-		day := dateParts[0]
-		month := dateParts[1]
-
-		buttons[i] = types.KeyboardButton{
-			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("/hours %s", newDate.Format(time.DateTime)),
+	if timeParseErr != nil {
+		return types.ApiError{
+			Msg:      timeParseErr.Error(),
+			Function: "Execute -> time.Parse()",
+			File:     "telegram-hours-command.go",
+			Values:   []string{stringSelectedDate[1]},
 		}
 	}
 
-	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 5)
+	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
+
+	day := dateParts[0]
+	month := dateParts[1]
+
+	welcome := fmt.Sprintf(
+		"*![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para el servicio %s en día %s son:*\n\n",
+		"Corte de pelo y barba express 18€",
+		fmt.Sprintf("%s %s", day, month),
+	)
+
+	processInstructions := "*Selecciona una hora y te escribiré un resumen para que puedas confirmar la reserva*\n\n"
+
+	markdownText.WriteString(welcome)
+	markdownText.WriteString(processInstructions)
+
+	buttons := make([]types.KeyboardButton, 12)
+
+	for i := 8; i <= len(buttons)+7; i++ {
+		hour := fmt.Sprintf("%02d:00", i)
+
+		buttons[i-8] = types.KeyboardButton{
+			Text:         fmt.Sprintf("%s", hour),
+			CallbackData: fmt.Sprintf("/hours %s", hour),
+		}
+	}
+
+	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 3)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
