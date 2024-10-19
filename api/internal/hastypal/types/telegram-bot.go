@@ -111,3 +111,8 @@ type SendTelegramMessage struct {
 	ProtectContent bool        `json:"protect_content"`
 	ReplyMarkup    ReplyMarkup `json:"reply_markup"`
 }
+
+type AnswerCallbackQuery struct {
+	CallbackQueryId string `json:"callback_query_id"`
+	Text            string `json:"text"`
+}

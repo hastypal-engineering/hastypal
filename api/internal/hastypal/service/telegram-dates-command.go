@@ -22,6 +22,12 @@ func NewTelegramDatesCommandService(
 }
 
 func (s *TelegramDatesCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
+	answerCbErr := s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id})
+
+	if answerCbErr != nil {
+		return answerCbErr
+	}
+
 	var markdownText strings.Builder
 
 	welcome := fmt.Sprintf(
@@ -30,7 +36,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	)
 
 	commandInformation := fmt.Sprintf(
-		"que %s tiene disponibles para el servicio:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s",
+		"que %s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Hastypal Business Test",
 		"Corte de pelo y barba express 18€",
 	)
@@ -68,7 +74,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("hours %d", i),
+			CallbackData: fmt.Sprintf("/hours %s", newDate.Format(time.DateTime)),
 		}
 	}
 
