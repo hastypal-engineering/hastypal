@@ -75,14 +75,14 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	day := dateParts[0]
 	month := dateParts[1]
 
-	welcome := "*![🙂](tg://emoji?id=5368324170671202286) Último paso te lo prometo! Confirma que todo esta correcto:\n\n"
+	welcome := "![🙂](tg://emoji?id=5368324170671202286) Último paso te lo prometo\\! Confirma que todo esta correcto:\n\n"
 
 	service := fmt.Sprintf(
 		"![🟢](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Corte de pelo y barba express 18€",
 	)
 
-	date := fmt.Sprintf("![📅](tg://emoji?id=5368324170671202286) %s %s", day, month)
+	date := fmt.Sprintf("![📅](tg://emoji?id=5368324170671202286) %s %s\n\n", day, month)
 
 	hour := fmt.Sprintf(
 		"![⌚️](tg://emoji?id=5368324170671202286) %s\n\n",
@@ -101,9 +101,9 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 
 	availableButtons := [2]string{"Confirmar", "Cancelar"}
 
-	for i := 0; i <= len(availableButtons); i++ {
+	for i, text := range availableButtons {
 		buttons[i] = types.KeyboardButton{
-			Text: availableButtons[i],
+			Text: text,
 			CallbackData: fmt.Sprintf(
 				"/book?service=%s&date=%s&hour=%s",
 				"1",
