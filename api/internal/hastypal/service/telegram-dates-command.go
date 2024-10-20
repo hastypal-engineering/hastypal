@@ -83,9 +83,6 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		day := dateParts[0]
 		month := dateParts[1]
 
-		byteCount := len([]byte(fmt.Sprintf("/hours?service=%s&date=%s", service, newDate.Format(time.DateOnly))))
-		fmt.Println("Byte count:", byteCount)
-
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
 			CallbackData: fmt.Sprintf("/hours?service=%s&date=%s", service, newDate.Format(time.DateOnly)),
