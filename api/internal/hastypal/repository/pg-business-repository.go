@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 )
@@ -46,13 +47,17 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	defer rows.Close()
 
 	var (
-		id                  string
-		name                string
-		communication_phone string
-		email               string
-		password            string
-		created_at          string
-		updated_at          string
+		id              string
+		name            string
+		contact_phone   string
+		email           string
+		password        string
+		service_catalog []types.ServiceCatalog
+		opening_hours   map[string][]string
+		channel_name    string
+		location        string
+		created_at      string
+		updated_at      string
 	)
 
 	var results []types.Business
@@ -61,9 +66,13 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		if scanErr := rows.Scan(
 			&id,
 			&name,
-			&communication_phone,
+			&contact_phone,
 			&email,
 			&password,
+			&service_catalog,
+			&opening_hours,
+			&channel_name,
+			&location,
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
@@ -75,13 +84,17 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		}
 
 		results = append(results, types.Business{
-			Id:                 id,
-			Name:               name,
-			CommunicationPhone: communication_phone,
-			Email:              email,
-			Password:           password,
-			CreatedAt:          created_at,
-			UpdatedAt:          updated_at,
+			Id:             id,
+			Name:           name,
+			ContactPhone:   contact_phone,
+			Email:          email,
+			Password:       password,
+			ServiceCatalog: service_catalog,
+			OpeningHours:   opening_hours,
+			ChannelName:    channel_name,
+			Location:       location,
+			CreatedAt:      created_at,
+			UpdatedAt:      updated_at,
 		})
 	}
 
@@ -105,6 +118,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		communication_phone string
 		email               string
 		password            string
+		service_catalog     []types.ServiceCatalog
+		opening_hours       map[string][]string
+		channel_name        string
+		location            string
 		created_at          string
 		updated_at          string
 	)
@@ -115,6 +132,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&communication_phone,
 		&email,
 		&password,
+		&service_catalog,
+		&opening_hours,
+		&channel_name,
+		&location,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
@@ -137,26 +158,34 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	return types.Business{
-		Id:                 id,
-		Name:               name,
-		CommunicationPhone: communication_phone,
-		Email:              email,
-		Password:           password,
-		CreatedAt:          created_at,
-		UpdatedAt:          updated_at,
+		Id:             id,
+		Name:           name,
+		ContactPhone:   communication_phone,
+		Email:          email,
+		Password:       password,
+		ServiceCatalog: service_catalog,
+		OpeningHours:   opening_hours,
+		ChannelName:    channel_name,
+		Location:       location,
+		CreatedAt:      created_at,
+		UpdatedAt:      updated_at,
 	}, nil
 }
 
 func (r *PgBusinessRepository) Save(entity types.Business) error {
-	var query = `INSERT INTO business (id, name, communication_phone, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	var query = `INSERT INTO business (id, name, communication_phone, email, password, service_catalog, opening_hours, holidays, channel_name, location, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	_, err := r.connection.Exec(
 		query,
 		entity.Id,
 		entity.Name,
-		entity.CommunicationPhone,
+		entity.ContactPhone,
 		entity.Email,
 		entity.Password,
+		entity.ServiceCatalog,
+		entity.OpeningHours,
+		entity.ChannelName,
+		entity.Location,
 		entity.CreatedAt,
 		entity.UpdatedAt,
 	)
@@ -170,11 +199,8 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 				query,
 				entity.Id,
 				entity.Name,
-				entity.CommunicationPhone,
+				entity.ContactPhone,
 				entity.Email,
-				entity.Password,
-				entity.CreatedAt,
-				entity.UpdatedAt,
 			},
 		}
 	}
