@@ -9,16 +9,13 @@ import (
 )
 
 type CreateBusinessHandler struct {
-	bot     *types.TelegramBot
 	service *service.CreateBusinessService
 }
 
 func NewCreateBusinessHandler(
-	bot *types.TelegramBot,
 	service *service.CreateBusinessService,
 ) *CreateBusinessHandler {
 	return &CreateBusinessHandler{
-		bot:     bot,
 		service: service,
 	}
 }
@@ -31,7 +28,6 @@ func (h *CreateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) 
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
 			File:     "create-business.go",
-			Values:   []string{},
 		}
 	}
 

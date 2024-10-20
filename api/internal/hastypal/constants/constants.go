@@ -27,3 +27,20 @@ const (
 const (
 	ServerGenericError = "SERVER_ERROR"
 )
+
+// Telegram
+
+const (
+	TelegramMessageField       string = "Message"
+	TelegramCallbackQueryField string = "CallbackQuery"
+	TelegramMarkdown           string = "MarkdownV2"
+)
+
+// Telegram commands
+
+const (
+	StartCommand        string = "/start"
+	DatesCommand        string = "/dates"
+	HoursCommand        string = "/hours"
+	ConfirmationCommand string = "/confirmation"
+)
