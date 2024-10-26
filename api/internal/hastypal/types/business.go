@@ -19,6 +19,7 @@ type ServiceCatalog struct {
 	Name     string `json:"name"`
 	Price    int    `json:"price"`
 	Currency string `json:"currency"`
+	Duration string `json:"duration"`
 }
 
 type BusinessConfig struct {
