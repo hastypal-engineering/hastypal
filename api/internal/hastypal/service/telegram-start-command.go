@@ -11,17 +11,17 @@ import (
 )
 
 type TelegramStartCommandService struct {
-	bot            *TelegramBot
-	sessionManager *ManageBookingSessionService
+	bot        *TelegramBot
+	repository types.Repository[types.BookingSession]
 }
 
 func NewTelegramStartCommandService(
 	bot *TelegramBot,
-	sessionManager *ManageBookingSessionService,
+	repository types.Repository[types.BookingSession],
 ) *TelegramStartCommandService {
 	return &TelegramStartCommandService{
-		bot:            bot,
-		sessionManager: sessionManager,
+		bot:        bot,
+		repository: repository,
 	}
 }
 
@@ -41,8 +41,8 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 		Ttl:        time.Minute.Milliseconds() * 5,
 	}
 
-	if sessionErr := s.sessionManager.Execute(session); sessionErr != nil {
-		return sessionErr
+	if err := s.repository.Save(session); err != nil {
+		return err
 	}
 
 	welcome := fmt.Sprintf(

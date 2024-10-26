@@ -11,20 +11,17 @@ import (
 )
 
 type TelegramDatesCommandService struct {
-	bot            *TelegramBot
-	repository     types.Repository[types.BookingSession]
-	sessionManager *ManageBookingSessionService
+	bot        *TelegramBot
+	repository types.Repository[types.BookingSession]
 }
 
 func NewTelegramDatesCommandService(
 	bot *TelegramBot,
 	repository types.Repository[types.BookingSession],
-	sessionManager *ManageBookingSessionService,
 ) *TelegramDatesCommandService {
 	return &TelegramDatesCommandService{
-		bot:            bot,
-		repository:     repository,
-		sessionManager: sessionManager,
+		bot:        bot,
+		repository: repository,
 	}
 }
 
@@ -77,8 +74,12 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		Ttl:        0,
 	}
 
-	if sessionManagerErr := s.sessionManager.Execute(updatedSession); sessionManagerErr != nil {
-		return sessionManagerErr
+	reflection := helper.NewReflectionHelper[types.BookingSession]()
+
+	mergedSession := reflection.Merge(session, updatedSession)
+
+	if err := s.repository.Update(mergedSession); err != nil {
+		return err
 	}
 
 	commandInformation := fmt.Sprintf(

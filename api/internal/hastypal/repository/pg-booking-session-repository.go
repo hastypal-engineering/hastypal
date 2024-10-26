@@ -190,3 +190,11 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 
 	return nil
 }
+
+func (r *PgBookingSessionRepository) Update(_ types.BookingSession) error {
+	return types.ApiError{
+		Msg:      "Method not implemented yet",
+		Function: "Update",
+		File:     "pg-booking-session-repository.go",
+	}
+}
