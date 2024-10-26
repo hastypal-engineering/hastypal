@@ -9,12 +9,9 @@ import (
 
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/handler"
-	"github.com/adriein/hastypal/internal/hastypal/handler"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/repository"
-	"github.com/adriein/hastypal/internal/hastypal/repository"
 	"github.com/adriein/hastypal/internal/hastypal/server"
-	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
