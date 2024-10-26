@@ -27,23 +27,10 @@ func NewTelegramStartCommandService(
 func (s *TelegramStartCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
 	var markdownText strings.Builder
 
-	uuidHelper := helper.NewUuidHelper()
+	session, createSessionErr := s.createSession(business.Id, update.Message.Chat.Id)
 
-	sessionId := uuidHelper.GenerateShort()
-
-	session := types.BookingSession{
-		Id:         sessionId,
-		BusinessId: business.Id,
-		ChatId:     update.Message.Chat.Id,
-		ServiceId:  "",
-		Date:       "",
-		Hour:       "",
-		CreatedAt:  time.Now().Format(time.DateTime),
-		Ttl:        time.Minute.Milliseconds() * 5,
-	}
-
-	if err := s.repository.Save(session); err != nil {
-		return err
+	if createSessionErr != nil {
+		return createSessionErr
 	}
 
 	welcome := fmt.Sprintf(
@@ -69,7 +56,7 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", sessionId, "test-short"),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
 		}
 	}
 
@@ -90,4 +77,27 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	}
 
 	return nil
+}
+
+func (s *TelegramStartCommandService) createSession(businessId string, chatId int) (types.BookingSession, error) {
+	uuidHelper := helper.NewUuidHelper()
+
+	sessionId := uuidHelper.GenerateShort()
+
+	session := types.BookingSession{
+		Id:         sessionId,
+		BusinessId: businessId,
+		ChatId:     chatId,
+		ServiceId:  "",
+		Date:       "",
+		Hour:       "",
+		CreatedAt:  time.Now().Format(time.DateTime),
+		Ttl:        time.Minute.Milliseconds() * 5,
+	}
+
+	if err := s.repository.Save(session); err != nil {
+		return types.BookingSession{}, err
+	}
+
+	return session, nil
 }
