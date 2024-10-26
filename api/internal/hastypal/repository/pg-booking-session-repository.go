@@ -158,7 +158,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 	var query strings.Builder
 
-	query.WriteString(`INSERT INTO business `)
+	query.WriteString(`INSERT INTO booking_session `)
 	query.WriteString(`(id, business_id, chat_id, service_id, date, hour, created_at, ttl) `)
 	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
 
