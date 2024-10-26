@@ -113,7 +113,9 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 		}
 	}
 
-	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 1)
+	array := helper.NewArrayHelper[types.KeyboardButton]()
+
+	inlineKeyboard := array.Chunk(buttons, 1)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,

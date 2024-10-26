@@ -27,3 +27,25 @@ func HasField[T interface{}](obj T, name string) bool {
 
 	return hasField
 }
+
+func Merge[T interface{}](actual T, updated T) T {
+	merged := actual
+
+	structType := reflect.TypeOf(actual)
+
+	structVal := reflect.ValueOf(actual)
+	fieldNum := structVal.NumField()
+
+	for i := 0; i < fieldNum; i++ {
+		field := structVal.Field(i)
+		fieldName := structType.Field(i).Name
+
+		newValue := reflect.ValueOf(updated).FieldByName(fieldName)
+
+		if !field.IsZero() {
+			reflect.ValueOf(&merged).Elem().FieldByName(fieldName).Set(newValue)
+		}
+	}
+
+	return merged
+}

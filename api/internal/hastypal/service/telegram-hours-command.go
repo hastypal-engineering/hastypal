@@ -103,7 +103,9 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 		}
 	}
 
-	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 3)
+	array := helper.NewArrayHelper[types.KeyboardButton]()
+
+	inlineKeyboard := array.Chunk(buttons, 3)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
