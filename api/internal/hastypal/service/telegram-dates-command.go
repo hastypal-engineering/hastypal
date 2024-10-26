@@ -26,10 +26,8 @@ func NewTelegramDatesCommandService(
 }
 
 func (s *TelegramDatesCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
-	answerCbErr := s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id})
-
-	if answerCbErr != nil {
-		return answerCbErr
+	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
+		return ackErr
 	}
 
 	var markdownText strings.Builder
@@ -50,18 +48,10 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	sessionId := queryParams.Get("session")
 	service := queryParams.Get("service")
 
-	filter := types.Filter{
-		Name:    "id",
-		Operand: constants.Equal,
-		Value:   sessionId,
-	}
+	session, getSessionErr := s.getCurrentSession(sessionId)
 
-	criteria := types.Criteria{Filters: []types.Filter{filter}}
-
-	session, findOneErr := s.repository.FindOne(criteria)
-
-	if findOneErr != nil {
-		return findOneErr
+	if getSessionErr != nil {
+		return getSessionErr
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
@@ -75,7 +65,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		ServiceId:  service,
 		Date:       "",
 		Hour:       "",
-		CreatedAt:  time.Now().Format(time.DateTime),
+		CreatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
 		Ttl:        session.Ttl,
 	}
 
@@ -147,4 +137,26 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	}
 
 	return nil
+}
+
+func (s *TelegramDatesCommandService) getCurrentSession(sessionId string) (types.BookingSession, error) {
+	filter := types.Filter{
+		Name:    "id",
+		Operand: constants.Equal,
+		Value:   sessionId,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+	session, findOneErr := s.repository.FindOne(criteria)
+
+	if findOneErr != nil {
+		return types.BookingSession{}, findOneErr
+	}
+
+	return session, nil
+}
+
+func (s *TelegramDatesCommandService) ackToTelegramClient(callbackQueryId string) error {
+	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
 }
