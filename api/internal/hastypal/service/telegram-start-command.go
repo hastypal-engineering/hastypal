@@ -5,7 +5,6 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
-	"github.com/google/uuid"
 	"strings"
 	"time"
 )
@@ -28,7 +27,9 @@ func NewTelegramStartCommandService(
 func (s *TelegramStartCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
 	var markdownText strings.Builder
 
-	sessionId := uuid.New().String()
+	uuidHelper := helper.NewUuidHelper()
+
+	sessionId := uuidHelper.GenerateShort()
 
 	session := types.BookingSession{
 		Id:         sessionId,
