@@ -37,7 +37,7 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 		ServiceId:  "",
 		Date:       "",
 		Hour:       "",
-		CreatedAt:  time.Now().String(),
+		CreatedAt:  time.Now().Format(time.DateTime),
 		Ttl:        time.Minute.Milliseconds() * 5,
 	}
 
