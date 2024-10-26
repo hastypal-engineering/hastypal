@@ -191,10 +191,38 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 	return nil
 }
 
-func (r *PgBookingSessionRepository) Update(_ types.BookingSession) error {
-	return types.ApiError{
-		Msg:      "Method not implemented yet",
-		Function: "Update",
-		File:     "pg-booking-session-repository.go",
+func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
+	var query strings.Builder
+
+	query.WriteString(`UPDATE booking_session `)
+	query.WriteString(`SET COLUMN id = ?, business_id = ?, chat_id = ?, service_id = ?, date = ?, hour = ?, `)
+	query.WriteString(`created_at = ?, ttl = ? WHERE id = ?`)
+
+	_, err := r.connection.Exec(
+		query.String(),
+		entity.Id,
+		entity.BusinessId,
+		entity.ChatId,
+		entity.ServiceId,
+		entity.Date,
+		entity.Hour,
+		entity.CreatedAt,
+		entity.Ttl,
+	)
+
+	if err != nil {
+		return types.ApiError{
+			Msg:      err.Error(),
+			Function: "Update -> r.connection.Exec()",
+			File:     "pg-booking-session-repository.go",
+			Values: []string{
+				query.String(),
+				entity.Id,
+				entity.BusinessId,
+				strconv.Itoa(entity.ChatId),
+			},
+		}
 	}
+
+	return nil
 }
