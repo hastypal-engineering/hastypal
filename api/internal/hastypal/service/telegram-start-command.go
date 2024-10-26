@@ -68,7 +68,7 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?session=%s", sessionId),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", sessionId, "test-short"),
 		}
 	}
 
