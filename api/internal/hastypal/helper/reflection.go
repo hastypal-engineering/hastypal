@@ -4,7 +4,13 @@ import (
 	"reflect"
 )
 
-func HasField[T interface{}](obj T, name string) bool {
+type ReflectionHelper[T interface{}] struct{}
+
+func NewReflectionHelper[T interface{}]() *ReflectionHelper[T] {
+	return &ReflectionHelper[T]{}
+}
+
+func (*ReflectionHelper[T]) HasField(obj T, name string) bool {
 	hasField := false
 
 	structType := reflect.TypeOf(obj)
@@ -28,7 +34,7 @@ func HasField[T interface{}](obj T, name string) bool {
 	return hasField
 }
 
-func Merge[T interface{}](actual T, updated T) T {
+func (*ReflectionHelper[T]) Merge(actual T, updated T) T {
 	merged := actual
 
 	structType := reflect.TypeOf(actual)

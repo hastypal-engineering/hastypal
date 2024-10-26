@@ -37,7 +37,9 @@ func (s *ManageBookingSessionService) Execute(updatedSession types.BookingSessio
 		return nil
 	}
 
-	mergedSession := helper.Merge[types.BookingSession](currentSession, updatedSession)
+	reflection := helper.NewReflectionHelper[types.BookingSession]()
+
+	mergedSession := reflection.Merge(currentSession, updatedSession)
 
 	if err := s.sessionRepository.Update(mergedSession); err != nil {
 		return err
