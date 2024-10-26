@@ -5,23 +5,45 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/google/uuid"
 	"strings"
+	"time"
 )
 
 type TelegramStartCommandService struct {
-	bot *TelegramBot
+	bot            *TelegramBot
+	sessionManager *ManageBookingSessionService
 }
 
 func NewTelegramStartCommandService(
 	bot *TelegramBot,
+	sessionManager *ManageBookingSessionService,
 ) *TelegramStartCommandService {
 	return &TelegramStartCommandService{
-		bot: bot,
+		bot:            bot,
+		sessionManager: sessionManager,
 	}
 }
 
 func (s *TelegramStartCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
 	var markdownText strings.Builder
+
+	sessionId := uuid.New().String()
+
+	session := types.BookingSession{
+		Id:         sessionId,
+		BusinessId: business.Id,
+		ChatId:     update.Message.Chat.Id,
+		ServiceId:  "",
+		Date:       "",
+		Hour:       "",
+		CreatedAt:  time.Now().String(),
+		Ttl:        time.Minute.Milliseconds() * 5,
+	}
+
+	if sessionErr := s.sessionManager.Execute(session); sessionErr != nil {
+		return sessionErr
+	}
 
 	welcome := fmt.Sprintf(
 		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s\\.*\n\n",
@@ -46,7 +68,7 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?service=%d", 1),
+			CallbackData: fmt.Sprintf("/dates?session=%s", sessionId),
 		}
 	}
 

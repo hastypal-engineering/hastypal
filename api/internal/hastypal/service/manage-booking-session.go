@@ -4,6 +4,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"time"
 )
 
 type ManageBookingSessionService struct {
@@ -19,13 +20,51 @@ func NewManageBookingSessionService(
 }
 
 func (s *ManageBookingSessionService) Execute(updatedSession types.BookingSession) error {
-	filter := types.Filter{
-		Name:    "id",
+	businessFilter := types.Filter{
+		Name:    "business_id",
 		Operand: constants.Equal,
-		Value:   updatedSession.Id,
+		Value:   updatedSession.BusinessId,
 	}
 
-	criteria := types.Criteria{Filters: []types.Filter{filter}}
+	chatFilter := types.Filter{
+		Name:    "chat_id",
+		Operand: constants.Equal,
+		Value:   updatedSession.ChatId,
+	}
+
+	sessionTimestamp, timeParseErr := time.Parse(time.DateTime, updatedSession.CreatedAt)
+
+	if timeParseErr != nil {
+		return types.ApiError{
+			Msg:      timeParseErr.Error(),
+			Function: "time.Parse()",
+			File:     "service/manage-booking-session.go",
+			Values:   []string{updatedSession.CreatedAt},
+		}
+	}
+
+	createdAtLessThanOrEqualFilter := types.Filter{
+		Name:    "created_at",
+		Operand: constants.LessThanOrEqual,
+		Value:   sessionTimestamp.Add(time.Duration(updatedSession.Ttl)).String(),
+	}
+
+	createdAtGreaterThanOrEqualFilter := types.Filter{
+		Name:    "created_at",
+		Operand: constants.GreaterThanOrEqual,
+		Value:   updatedSession.CreatedAt,
+	}
+
+	// created -> 12:25, valid until -> 12:30, now is -> 12:26
+
+	// created -> 12:25, valid until -> 12:30, now is -> 12:31
+
+	criteria := types.Criteria{Filters: []types.Filter{
+		businessFilter,
+		chatFilter,
+		createdAtLessThanOrEqualFilter,
+		createdAtGreaterThanOrEqualFilter,
+	}}
 
 	currentSession, findOneErr := s.sessionRepository.FindOne(criteria)
 

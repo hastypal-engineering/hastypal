@@ -11,14 +11,20 @@ import (
 )
 
 type TelegramDatesCommandService struct {
-	bot *TelegramBot
+	bot            *TelegramBot
+	repository     types.Repository[types.BookingSession]
+	sessionManager *ManageBookingSessionService
 }
 
 func NewTelegramDatesCommandService(
 	bot *TelegramBot,
+	repository types.Repository[types.BookingSession],
+	sessionManager *ManageBookingSessionService,
 ) *TelegramDatesCommandService {
 	return &TelegramDatesCommandService{
-		bot: bot,
+		bot:            bot,
+		repository:     repository,
+		sessionManager: sessionManager,
 	}
 }
 
@@ -44,7 +50,36 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 	queryParams := parsedUrl.Query()
 
-	service := queryParams.Get("service")
+	sessionId := queryParams.Get("session")
+
+	filter := types.Filter{
+		Name:    "id",
+		Operand: constants.Equal,
+		Value:   sessionId,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+	session, findOneErr := s.repository.FindOne(criteria)
+
+	if findOneErr != nil {
+		return findOneErr
+	}
+
+	updatedSession := types.BookingSession{
+		Id:         sessionId,
+		BusinessId: session.BusinessId,
+		ChatId:     session.ChatId,
+		ServiceId:  session.ServiceId,
+		Date:       "",
+		Hour:       "",
+		CreatedAt:  "",
+		Ttl:        0,
+	}
+
+	if sessionManagerErr := s.sessionManager.Execute(updatedSession); sessionManagerErr != nil {
+		return sessionManagerErr
+	}
 
 	commandInformation := fmt.Sprintf(
 		"%s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
@@ -52,7 +87,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		"Corte de pelo y barba express 18€",
 	)
 
-	processInstructions := "*Selecciona un día y te responderé con las horas disponibles:*\n\n"
+	processInstructions := "*Selecciona un día para ver las horas disponibles:*\n\n"
 
 	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) *A continuación puedes ver las fechas que ")
 	markdownText.WriteString(commandInformation)
@@ -85,7 +120,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("/hours?service=%s&date=%s", service, newDate.Format(time.DateOnly)),
+			CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, newDate.Format(time.DateOnly)),
 		}
 	}
 

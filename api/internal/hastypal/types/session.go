@@ -3,7 +3,7 @@ package types
 type BookingSession struct {
 	Id         string `json:"id"`
 	BusinessId string `json:"business_id"`
-	ChatId     string `json:"chat_id"`
+	ChatId     int    `json:"chat_id"`
 	ServiceId  string `json:"service"`
 	Date       string `json:"date"`
 	Hour       string `json:"hour"`

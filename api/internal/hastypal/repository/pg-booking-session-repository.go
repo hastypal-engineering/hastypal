@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"strconv"
 	"strings"
 )
 
@@ -49,7 +50,7 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 	var (
 		id          string
 		business_id string
-		chat_id     string
+		chat_id     int
 		service_id  string
 		date        string
 		hour        string
@@ -106,7 +107,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 	var (
 		id          string
 		business_id string
-		chat_id     string
+		chat_id     int
 		service_id  string
 		date        string
 		hour        string
@@ -182,7 +183,7 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 				query.String(),
 				entity.Id,
 				entity.BusinessId,
-				entity.ChatId,
+				strconv.Itoa(entity.ChatId),
 			},
 		}
 	}
