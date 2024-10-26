@@ -48,6 +48,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	queryParams := parsedUrl.Query()
 
 	sessionId := queryParams.Get("session")
+	service := queryParams.Get("service")
 
 	filter := types.Filter{
 		Name:    "id",
@@ -63,15 +64,19 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		return findOneErr
 	}
 
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		return invalidSession
+	}
+
 	updatedSession := types.BookingSession{
 		Id:         sessionId,
 		BusinessId: session.BusinessId,
 		ChatId:     session.ChatId,
-		ServiceId:  session.ServiceId,
+		ServiceId:  service,
 		Date:       "",
 		Hour:       "",
-		CreatedAt:  "",
-		Ttl:        0,
+		CreatedAt:  time.Now().Format(time.DateTime),
+		Ttl:        session.Ttl,
 	}
 
 	reflection := helper.NewReflectionHelper[types.BookingSession]()
