@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS business (
     location VARCHAR(36),
     opening_hours JSON,
     created_at VARCHAR(60) NOT NULL,
-    updated_at VARCHAR(60) NOT NULL,
+    updated_at VARCHAR(60) NOT NULL
 );
 CREATE TABLE IF NOT EXISTS service_catalog (
     id VARCHAR(36) PRIMARY key,
