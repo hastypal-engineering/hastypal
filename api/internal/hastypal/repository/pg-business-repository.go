@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"strings"
 
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
@@ -173,10 +174,14 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 }
 
 func (r *PgBusinessRepository) Save(entity types.Business) error {
-	var query = `INSERT INTO business (id, name, communication_phone, email, password, service_catalog, opening_hours, holidays, channel_name, location, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)`
+	var query strings.Builder
+
+	query.WriteString(`INSERT INTO business `)
+	query.WriteString(`(id, name, communication_phone, email, password, service_catalog, opening_hours, holidays, channel_name, location, created_at, updated_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7);`)
 
 	_, err := r.connection.Exec(
-		query,
+		query.String(),
 		entity.Id,
 		entity.Name,
 		entity.ContactPhone,
@@ -196,7 +201,7 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-business-repository.go",
 			Values: []string{
-				query,
+				query.String(),
 				entity.Id,
 				entity.Name,
 				entity.ContactPhone,

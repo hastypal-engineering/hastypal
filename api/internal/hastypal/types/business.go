@@ -15,11 +15,12 @@ type Business struct {
 }
 
 type ServiceCatalog struct {
-	Id       string `json:"id"`
-	Name     string `json:"name"`
-	Price    int    `json:"price"`
-	Currency string `json:"currency"`
-	Duration string `json:"duration"`
+	Id         string `json:"id"`
+	Name       string `json:"name"`
+	Price      int    `json:"price"`
+	Currency   string `json:"currency"`
+	Duration   string `json:"duration"`
+	BusinessId string `json:"businessId"`
 }
 
 type BusinessConfig struct {
