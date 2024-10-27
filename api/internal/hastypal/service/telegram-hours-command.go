@@ -38,7 +38,7 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 		return types.ApiError{
 			Msg:      loadLocationErr.Error(),
 			Function: "Execute -> time.LoadLocation()",
-			File:     "telegram-dates-command.go",
+			File:     "telegram-hours-command.go",
 			Values:   []string{"Europe/Madrid"},
 		}
 	}

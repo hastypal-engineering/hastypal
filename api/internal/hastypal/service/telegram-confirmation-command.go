@@ -38,7 +38,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 		return types.ApiError{
 			Msg:      loadLocationErr.Error(),
 			Function: "Execute -> time.LoadLocation()",
-			File:     "telegram-dates-command.go",
+			File:     "telegram-confirmation-command.go",
 			Values:   []string{"Europe/Madrid"},
 		}
 	}
@@ -51,7 +51,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 		return types.ApiError{
 			Msg:      parseUrlErr.Error(),
 			Function: "Execute -> url.Parse()",
-			File:     "telegram-hours-command.go",
+			File:     "telegram-confirmation-command.go",
 			Values:   []string{update.CallbackQuery.Data},
 		}
 	}
@@ -74,16 +74,14 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 		return updateSessionErr
 	}
 
-	stringSelectedDate := fmt.Sprintf("%s %s", queryParams.Get("date"), "07:00:00")
-
-	selectedDate, timeParseErr := time.Parse(time.DateTime, stringSelectedDate)
+	selectedDate, timeParseErr := time.Parse(time.DateTime, session.Date)
 
 	if timeParseErr != nil {
 		return types.ApiError{
 			Msg:      timeParseErr.Error(),
 			Function: "Execute -> time.Parse()",
-			File:     "telegram-hours-command.go",
-			Values:   []string{stringSelectedDate},
+			File:     "telegram-confirmation-command.go",
+			Values:   []string{session.Date},
 		}
 	}
 
@@ -122,10 +120,8 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 		buttons[i] = types.KeyboardButton{
 			Text: text,
 			CallbackData: fmt.Sprintf(
-				"/book?service=%s&date=%s&hour=%s",
-				"1",
-				selectedDate.Format(time.DateOnly),
-				queryParams.Get("hour"),
+				"/book?session=%s",
+				sessionId,
 			),
 		}
 	}

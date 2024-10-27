@@ -195,7 +195,7 @@ func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
 	var query strings.Builder
 
 	query.WriteString(`UPDATE booking_session `)
-	query.WriteString(`SET COLUMN id = $1, business_id = $2, chat_id = $3, service_id = $4, date = $5, hour = $6, `)
+	query.WriteString(`SET business_id = $2, chat_id = $3, service_id = $4, date = $5, hour = $6, `)
 	query.WriteString(`created_at = $7, ttl = $8 WHERE id = $1;`)
 
 	_, err := r.connection.Exec(

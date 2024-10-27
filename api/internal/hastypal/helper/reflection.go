@@ -39,16 +39,17 @@ func (*ReflectionHelper[T]) Merge(actual T, updated T) T {
 
 	structType := reflect.TypeOf(actual)
 
-	structVal := reflect.ValueOf(actual)
-	fieldNum := structVal.NumField()
+	actualStructVal := reflect.ValueOf(actual)
+	updatedStructVal := reflect.ValueOf(updated)
+	fieldNum := actualStructVal.NumField()
 
 	for i := 0; i < fieldNum; i++ {
-		field := structVal.Field(i)
+		field := actualStructVal.Field(i)
 		fieldName := structType.Field(i).Name
 
 		newValue := reflect.ValueOf(updated).FieldByName(fieldName)
 
-		if !field.IsZero() {
+		if field.IsZero() && !updatedStructVal.Field(i).IsZero() {
 			reflect.ValueOf(&merged).Elem().FieldByName(fieldName).Set(newValue)
 		}
 	}

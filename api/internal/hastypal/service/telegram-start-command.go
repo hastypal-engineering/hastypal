@@ -91,7 +91,7 @@ func (s *TelegramStartCommandService) createSession(businessId string, chatId in
 		ServiceId:  "",
 		Date:       "",
 		Hour:       "",
-		CreatedAt:  time.Now().Format(time.DateTime),
+		CreatedAt:  time.Now().UTC().Format(time.DateTime),
 		Ttl:        time.Minute.Milliseconds() * 5,
 	}
 

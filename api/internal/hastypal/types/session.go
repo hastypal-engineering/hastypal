@@ -27,7 +27,7 @@ func (s *BookingSession) EnsureIsValid() error {
 
 	maxAllowedDate := createdAt.Add(time.Duration(300000) * time.Millisecond)
 
-	if !maxAllowedDate.Before(time.Now()) {
+	if maxAllowedDate.Before(time.Now().UTC()) {
 		return ApiError{
 			Msg:      "The session has expired",
 			Function: "maxAllowedDate.Before",
