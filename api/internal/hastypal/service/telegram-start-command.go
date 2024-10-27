@@ -34,7 +34,7 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	}
 
 	welcome := fmt.Sprintf(
-		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s\\.*\n\n",
+		"Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s\\.\n\n",
 		update.Message.From.FirstName,
 		"Hastypal Business Test",
 	)

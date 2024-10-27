@@ -63,14 +63,14 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	}
 
 	commandInformation := fmt.Sprintf(
-		"%s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
+		"%s tiene disponibles para:\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Hastypal Business Test",
 		"Corte de pelo y barba express 18€",
 	)
 
 	processInstructions := "*Selecciona un día para ver las horas disponibles:*\n\n"
 
-	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) *A continuación puedes ver las fechas que ")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) A continuación puedes ver las fechas que ")
 	markdownText.WriteString(commandInformation)
 	markdownText.WriteString(processInstructions)
 
