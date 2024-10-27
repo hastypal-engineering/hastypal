@@ -212,3 +212,11 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 
 	return nil
 }
+
+func (r *PgBusinessRepository) Update(_ types.Business) error {
+	return types.ApiError{
+		Msg:      "Method not implemented yet",
+		Function: "Update",
+		File:     "pg-business-repository.go",
+	}
+}

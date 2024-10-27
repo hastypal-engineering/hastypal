@@ -11,22 +11,23 @@ import (
 )
 
 type TelegramDatesCommandService struct {
-	bot *TelegramBot
+	bot        *TelegramBot
+	repository types.Repository[types.BookingSession]
 }
 
 func NewTelegramDatesCommandService(
 	bot *TelegramBot,
+	repository types.Repository[types.BookingSession],
 ) *TelegramDatesCommandService {
 	return &TelegramDatesCommandService{
-		bot: bot,
+		bot:        bot,
+		repository: repository,
 	}
 }
 
 func (s *TelegramDatesCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
-	answerCbErr := s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id})
-
-	if answerCbErr != nil {
-		return answerCbErr
+	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
+		return ackErr
 	}
 
 	var markdownText strings.Builder
@@ -44,17 +45,32 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 	queryParams := parsedUrl.Query()
 
-	service := queryParams.Get("service")
+	sessionId := queryParams.Get("session")
+	serviceId := queryParams.Get("service")
+
+	session, getSessionErr := s.getCurrentSession(sessionId)
+
+	if getSessionErr != nil {
+		return getSessionErr
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		return invalidSession
+	}
+
+	if updateSessionErr := s.updateSession(session, serviceId); updateSessionErr != nil {
+		return updateSessionErr
+	}
 
 	commandInformation := fmt.Sprintf(
-		"%s tiene disponibles para:*\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
+		"%s tiene disponibles para:\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Hastypal Business Test",
 		"Corte de pelo y barba express 18€",
 	)
 
-	processInstructions := "*Selecciona un día y te responderé con las horas disponibles:*\n\n"
+	processInstructions := "*Selecciona un día para ver las horas disponibles:*\n\n"
 
-	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) *A continuación puedes ver las fechas que ")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) A continuación puedes ver las fechas que ")
 	markdownText.WriteString(commandInformation)
 	markdownText.WriteString(processInstructions)
 
@@ -85,11 +101,13 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("/hours?service=%s&date=%s", service, newDate.Format(time.DateOnly)),
+			CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, newDate.Format(time.DateOnly)),
 		}
 	}
 
-	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 5)
+	array := helper.NewArrayHelper[types.KeyboardButton]()
+
+	inlineKeyboard := array.Chunk(buttons, 5)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
@@ -101,6 +119,51 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
 		return botSendMsgErr
+	}
+
+	return nil
+}
+
+func (s *TelegramDatesCommandService) getCurrentSession(sessionId string) (types.BookingSession, error) {
+	filter := types.Filter{
+		Name:    "id",
+		Operand: constants.Equal,
+		Value:   sessionId,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+	session, findOneErr := s.repository.FindOne(criteria)
+
+	if findOneErr != nil {
+		return types.BookingSession{}, findOneErr
+	}
+
+	return session, nil
+}
+
+func (s *TelegramDatesCommandService) ackToTelegramClient(callbackQueryId string) error {
+	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+}
+
+func (s *TelegramDatesCommandService) updateSession(actualSession types.BookingSession, serviceId string) error {
+	updatedSession := types.BookingSession{
+		Id:         actualSession.Id,
+		BusinessId: actualSession.BusinessId,
+		ChatId:     actualSession.ChatId,
+		ServiceId:  serviceId,
+		Date:       "",
+		Hour:       "",
+		CreatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		Ttl:        actualSession.Ttl,
+	}
+
+	reflection := helper.NewReflectionHelper[types.BookingSession]()
+
+	mergedSession := reflection.Merge(actualSession, updatedSession)
+
+	if err := s.repository.Update(mergedSession); err != nil {
+		return err
 	}
 
 	return nil

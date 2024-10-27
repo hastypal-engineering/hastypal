@@ -6,25 +6,35 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"strings"
+	"time"
 )
 
 type TelegramStartCommandService struct {
-	bot *TelegramBot
+	bot        *TelegramBot
+	repository types.Repository[types.BookingSession]
 }
 
 func NewTelegramStartCommandService(
 	bot *TelegramBot,
+	repository types.Repository[types.BookingSession],
 ) *TelegramStartCommandService {
 	return &TelegramStartCommandService{
-		bot: bot,
+		bot:        bot,
+		repository: repository,
 	}
 }
 
 func (s *TelegramStartCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
 	var markdownText strings.Builder
 
+	session, createSessionErr := s.createSession(business.Id, update.Message.Chat.Id)
+
+	if createSessionErr != nil {
+		return createSessionErr
+	}
+
 	welcome := fmt.Sprintf(
-		"*Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s\\.*\n\n",
+		"Hola %s ![👋](tg://emoji?id=5368324170671202286), soy HastypalBot el ayudante de %s\\.\n\n",
 		update.Message.From.FirstName,
 		"Hastypal Business Test",
 	)
@@ -46,11 +56,13 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?service=%d", 1),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
 		}
 	}
 
-	inlineKeyboard := helper.Chunk[types.KeyboardButton](buttons, 1)
+	array := helper.NewArrayHelper[types.KeyboardButton]()
+
+	inlineKeyboard := array.Chunk(buttons, 1)
 
 	message := types.SendTelegramMessage{
 		ChatId:         update.Message.Chat.Id,
@@ -65,4 +77,27 @@ func (s *TelegramStartCommandService) Execute(business types.Business, update ty
 	}
 
 	return nil
+}
+
+func (s *TelegramStartCommandService) createSession(businessId string, chatId int) (types.BookingSession, error) {
+	uuidHelper := helper.NewUuidHelper()
+
+	sessionId := uuidHelper.GenerateShort()
+
+	session := types.BookingSession{
+		Id:         sessionId,
+		BusinessId: businessId,
+		ChatId:     chatId,
+		ServiceId:  "",
+		Date:       "",
+		Hour:       "",
+		CreatedAt:  time.Now().UTC().Format(time.DateTime),
+		Ttl:        time.Minute.Milliseconds() * 5,
+	}
+
+	if err := s.repository.Save(session); err != nil {
+		return types.BookingSession{}, err
+	}
+
+	return session, nil
 }

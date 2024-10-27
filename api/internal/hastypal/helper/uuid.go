@@ -19,7 +19,7 @@ func (helper *UuidHelper) Generate() uuid.UUID {
 func (helper *UuidHelper) GenerateShort() string {
 	googleUuid := uuid.New()
 
-	b64 := base64.RawURLEncoding.EncodeToString(googleUuid[:8])
+	b64 := base64.RawURLEncoding.EncodeToString(googleUuid[:6])
 
 	return strings.TrimRight(b64, "=")
 }
