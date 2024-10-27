@@ -46,7 +46,7 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 	queryParams := parsedUrl.Query()
 
 	sessionId := queryParams.Get("session")
-	service := queryParams.Get("service")
+	serviceId := queryParams.Get("service")
 
 	session, getSessionErr := s.getCurrentSession(sessionId)
 
@@ -58,23 +58,8 @@ func (s *TelegramDatesCommandService) Execute(business types.Business, update ty
 		return invalidSession
 	}
 
-	updatedSession := types.BookingSession{
-		Id:         sessionId,
-		BusinessId: session.BusinessId,
-		ChatId:     session.ChatId,
-		ServiceId:  service,
-		Date:       "",
-		Hour:       "",
-		CreatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
-		Ttl:        session.Ttl,
-	}
-
-	reflection := helper.NewReflectionHelper[types.BookingSession]()
-
-	mergedSession := reflection.Merge(session, updatedSession)
-
-	if err := s.repository.Update(mergedSession); err != nil {
-		return err
+	if updateSessionErr := s.updateSession(session, serviceId); updateSessionErr != nil {
+		return updateSessionErr
 	}
 
 	commandInformation := fmt.Sprintf(
@@ -159,4 +144,27 @@ func (s *TelegramDatesCommandService) getCurrentSession(sessionId string) (types
 
 func (s *TelegramDatesCommandService) ackToTelegramClient(callbackQueryId string) error {
 	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+}
+
+func (s *TelegramDatesCommandService) updateSession(actualSession types.BookingSession, serviceId string) error {
+	updatedSession := types.BookingSession{
+		Id:         actualSession.Id,
+		BusinessId: actualSession.BusinessId,
+		ChatId:     actualSession.ChatId,
+		ServiceId:  serviceId,
+		Date:       "",
+		Hour:       "",
+		CreatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		Ttl:        actualSession.Ttl,
+	}
+
+	reflection := helper.NewReflectionHelper[types.BookingSession]()
+
+	mergedSession := reflection.Merge(actualSession, updatedSession)
+
+	if err := s.repository.Update(mergedSession); err != nil {
+		return err
+	}
+
+	return nil
 }

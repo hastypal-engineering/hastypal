@@ -11,22 +11,23 @@ import (
 )
 
 type TelegramConfirmationCommandService struct {
-	bot *TelegramBot
+	bot        *TelegramBot
+	repository types.Repository[types.BookingSession]
 }
 
 func NewTelegramConfirmationCommandService(
 	bot *TelegramBot,
+	repository types.Repository[types.BookingSession],
 ) *TelegramConfirmationCommandService {
 	return &TelegramConfirmationCommandService{
-		bot: bot,
+		bot:        bot,
+		repository: repository,
 	}
 }
 
 func (s *TelegramConfirmationCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
-	answerCbErr := s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id})
-
-	if answerCbErr != nil {
-		return answerCbErr
+	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
+		return ackErr
 	}
 
 	var markdownText strings.Builder
@@ -56,6 +57,22 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	}
 
 	queryParams := parsedUrl.Query()
+	sessionId := queryParams.Get("session")
+	hour := queryParams.Get("hour")
+
+	session, getSessionErr := s.getCurrentSession(sessionId)
+
+	if getSessionErr != nil {
+		return getSessionErr
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		return invalidSession
+	}
+
+	if updateSessionErr := s.updateSession(session, hour); updateSessionErr != nil {
+		return updateSessionErr
+	}
 
 	stringSelectedDate := fmt.Sprintf("%s %s", queryParams.Get("date"), "07:00:00")
 
@@ -84,9 +101,9 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 
 	date := fmt.Sprintf("![📅](tg://emoji?id=5368324170671202286) %s %s\n\n", day, month)
 
-	hour := fmt.Sprintf(
+	hourMarkdown := fmt.Sprintf(
 		"![⌚️](tg://emoji?id=5368324170671202286) %s\n\n",
-		queryParams.Get("hour"),
+		hour,
 	)
 
 	processInstructions := "*Pulsa confirmar si todo es correcto o cancelar de lo contrario*\n\n"
@@ -94,7 +111,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	markdownText.WriteString(welcome)
 	markdownText.WriteString(service)
 	markdownText.WriteString(date)
-	markdownText.WriteString(hour)
+	markdownText.WriteString(hourMarkdown)
 	markdownText.WriteString(processInstructions)
 
 	buttons := make([]types.KeyboardButton, 2)
@@ -127,6 +144,51 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
 		return botSendMsgErr
+	}
+
+	return nil
+}
+
+func (s *TelegramConfirmationCommandService) ackToTelegramClient(callbackQueryId string) error {
+	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+}
+
+func (s *TelegramConfirmationCommandService) getCurrentSession(sessionId string) (types.BookingSession, error) {
+	filter := types.Filter{
+		Name:    "id",
+		Operand: constants.Equal,
+		Value:   sessionId,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+	session, findOneErr := s.repository.FindOne(criteria)
+
+	if findOneErr != nil {
+		return types.BookingSession{}, findOneErr
+	}
+
+	return session, nil
+}
+
+func (s *TelegramConfirmationCommandService) updateSession(actualSession types.BookingSession, hour string) error {
+	updatedSession := types.BookingSession{
+		Id:         actualSession.Id,
+		BusinessId: actualSession.BusinessId,
+		ChatId:     actualSession.ChatId,
+		ServiceId:  actualSession.ServiceId,
+		Date:       actualSession.Date,
+		Hour:       hour,
+		CreatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		Ttl:        actualSession.Ttl,
+	}
+
+	reflection := helper.NewReflectionHelper[types.BookingSession]()
+
+	mergedSession := reflection.Merge(actualSession, updatedSession)
+
+	if err := s.repository.Update(mergedSession); err != nil {
+		return err
 	}
 
 	return nil
