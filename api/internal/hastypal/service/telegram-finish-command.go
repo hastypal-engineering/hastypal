@@ -63,11 +63,18 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return registerErr
 	}
 
+	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
+	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286)")
+
+	buttons := make([][]types.KeyboardButton, 0)
+
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
+		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: buttons},
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {

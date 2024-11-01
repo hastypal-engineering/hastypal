@@ -46,11 +46,11 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 	defer rows.Close()
 
 	var (
-		id           string
-		scheduled_at string
-		chat_id      int
-		from         string
-		created_at   string
+		id            string
+		scheduled_at  string
+		chat_id       int
+		business_name string
+		created_at    string
 	)
 
 	var results []types.TelegramNotification
@@ -60,7 +60,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			&id,
 			&scheduled_at,
 			&chat_id,
-			&from,
+			&business_name,
 			&created_at,
 		); scanErr != nil {
 			return nil, types.ApiError{
@@ -74,7 +74,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			Id:          id,
 			ScheduledAt: scheduled_at,
 			ChatId:      chat_id,
-			From:        from,
+			From:        business_name,
 			CreatedAt:   created_at,
 		})
 	}
@@ -94,18 +94,18 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 	}
 
 	var (
-		id           string
-		scheduled_at string
-		chat_id      int
-		from         string
-		created_at   string
+		id            string
+		scheduled_at  string
+		chat_id       int
+		business_name string
+		created_at    string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
 		&id,
 		&scheduled_at,
 		&chat_id,
-		&from,
+		&business_name,
 		&created_at,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
@@ -130,13 +130,13 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		Id:          id,
 		ScheduledAt: scheduled_at,
 		ChatId:      chat_id,
-		From:        from,
+		From:        business_name,
 		CreatedAt:   created_at,
 	}, nil
 }
 
 func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotification) error {
-	var query = `INSERT INTO notification (id, scheduled_at, chat_id, from, created_at) VALUES ($1, $2, $3, $4, $5)`
+	var query = `INSERT INTO telegram_notification (id, scheduled_at, chat_id, business_name, created_at) VALUES ($1, $2, $3, $4, $5)`
 
 	_, err := r.connection.Exec(
 		query,
