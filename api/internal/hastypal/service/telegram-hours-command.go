@@ -92,14 +92,24 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 	month := dateParts[1]
 
 	welcome := fmt.Sprintf(
-		"![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para el servicio %s el día %s son:\n\n",
+		"![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para:\n\n",
+	)
+
+	service := fmt.Sprintf(
+		"![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Corte de pelo y barba express 18€",
+	)
+
+	date := fmt.Sprintf(
+		"![📅](tg://emoji?id=5368324170671202286) %s\n\n",
 		fmt.Sprintf("%s %s", day, month),
 	)
 
 	processInstructions := "*Selecciona una hora y te escribiré un resumen para que puedas confirmar la reserva*\n\n"
 
 	markdownText.WriteString(welcome)
+	markdownText.WriteString(service)
+	markdownText.WriteString(date)
 	markdownText.WriteString(processInstructions)
 
 	buttons := make([]types.KeyboardButton, 12)
