@@ -43,4 +43,5 @@ const (
 	DatesCommand        string = "/dates"
 	HoursCommand        string = "/hours"
 	ConfirmationCommand string = "/confirmation"
+	FinishCommand       string = "/book"
 )

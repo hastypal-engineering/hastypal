@@ -15,6 +15,7 @@ type TelegramWebhookService struct {
 	datesCommandHandler        types.TelegramCommandHandler
 	hoursCommandHandler        types.TelegramCommandHandler
 	confirmationCommandHandler types.TelegramCommandHandler
+	finishCommandHandler       types.TelegramCommandHandler
 }
 
 func NewTelegramWebhookService(
@@ -23,6 +24,7 @@ func NewTelegramWebhookService(
 	datesCommandHandler types.TelegramCommandHandler,
 	hoursCommandHandler types.TelegramCommandHandler,
 	confirmationCommandHandler types.TelegramCommandHandler,
+	finishCommandHandler types.TelegramCommandHandler,
 ) *TelegramWebhookService {
 	return &TelegramWebhookService{
 		repository:                 repository,
@@ -30,6 +32,7 @@ func NewTelegramWebhookService(
 		datesCommandHandler:        datesCommandHandler,
 		hoursCommandHandler:        hoursCommandHandler,
 		confirmationCommandHandler: confirmationCommandHandler,
+		finishCommandHandler:       finishCommandHandler,
 	}
 }
 
@@ -134,6 +137,8 @@ func (s *TelegramWebhookService) resolveHandler(command string) (types.TelegramC
 		return s.hoursCommandHandler, nil
 	case constants.ConfirmationCommand:
 		return s.confirmationCommandHandler, nil
+	case constants.FinishCommand:
+		return s.finishCommandHandler, nil
 	}
 
 	return nil, types.ApiError{
