@@ -3,22 +3,27 @@ package service
 import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/google/uuid"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type TelegramFinishCommandService struct {
-	bot        *TelegramBot
-	repository types.Repository[types.BookingSession]
+	bot                    *TelegramBot
+	sessionRepository      types.Repository[types.BookingSession]
+	notificationRepository types.Repository[types.TelegramNotification]
 }
 
 func NewTelegramFinishCommandService(
 	bot *TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	notificationRepository types.Repository[types.TelegramNotification],
 ) *TelegramFinishCommandService {
 	return &TelegramFinishCommandService{
-		bot:        bot,
-		repository: repository,
+		bot:                    bot,
+		sessionRepository:      sessionRepository,
+		notificationRepository: notificationRepository,
 	}
 }
 
@@ -54,6 +59,10 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return invalidSession
 	}
 
+	if registerErr := s.registerNotification(session, update, business); registerErr != nil {
+		return registerErr
+	}
+
 	message := types.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
@@ -77,7 +86,7 @@ func (s *TelegramFinishCommandService) getCurrentSession(sessionId string) (type
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, findOneErr
@@ -88,4 +97,24 @@ func (s *TelegramFinishCommandService) getCurrentSession(sessionId string) (type
 
 func (s *TelegramFinishCommandService) ackToTelegramClient(callbackQueryId string) error {
 	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+}
+
+func (s *TelegramFinishCommandService) registerNotification(
+	session types.BookingSession,
+	update types.TelegramUpdate,
+	business types.Business,
+) error {
+	notification := types.TelegramNotification{
+		Id:          uuid.New().String(),
+		ScheduledAt: session.Date,
+		ChatId:      update.CallbackQuery.From.Id,
+		From:        business.Name,
+		CreatedAt:   time.Now().Format(time.DateTime),
+	}
+
+	if err := s.notificationRepository.Save(notification); err != nil {
+		return err
+	}
+
+	return nil
 }
