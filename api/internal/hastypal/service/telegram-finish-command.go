@@ -111,9 +111,29 @@ func (s *TelegramFinishCommandService) registerNotification(
 	update types.TelegramUpdate,
 	business types.Business,
 ) error {
+	bookingDate, timeParseErr := time.Parse(time.DateTime, session.Date)
+
+	if timeParseErr != nil {
+		return types.ApiError{
+			Msg:      timeParseErr.Error(),
+			Function: "Execute -> time.Parse()",
+			File:     "service/telegram-finish-command.go",
+			Values:   []string{session.Date},
+		}
+	}
+
+	oneDayBefore := bookingDate.Add(-24 * time.Hour)
+
+	notificationDate := time.Date(
+		oneDayBefore.Year(),
+		oneDayBefore.Month(),
+		oneDayBefore.Day(),
+		10, 0, 0, 0, time.UTC,
+	)
+
 	notification := types.TelegramNotification{
 		Id:          uuid.New().String(),
-		ScheduledAt: session.Date,
+		ScheduledAt: notificationDate.Format(time.DateTime),
 		ChatId:      update.CallbackQuery.From.Id,
 		From:        business.Name,
 		CreatedAt:   time.Now().Format(time.DateTime),
