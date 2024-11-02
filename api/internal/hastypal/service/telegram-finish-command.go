@@ -59,6 +59,10 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return invalidSession
 	}
 
+	if duplicatedErr := s.ensureNotDuplicatedNotification(session); duplicatedErr != nil {
+		return duplicatedErr
+	}
+
 	if registerErr := s.registerNotification(session, update, business); registerErr != nil {
 		return registerErr
 	}
@@ -106,6 +110,33 @@ func (s *TelegramFinishCommandService) ackToTelegramClient(callbackQueryId strin
 	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
 }
 
+func (s *TelegramFinishCommandService) ensureNotDuplicatedNotification(session types.BookingSession) error {
+	filter := types.Filter{
+		Name:    "session_id",
+		Operand: constants.Equal,
+		Value:   session.Id,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+	result, err := s.notificationRepository.Find(criteria)
+
+	if err != nil {
+		return err
+	}
+
+	if len(result) > 0 {
+		return types.ApiError{
+			Msg:      "Already saved notification for this booking",
+			Function: "ensureNotDuplicatedNotification",
+			File:     "service/telegram-finish-command.go",
+			Values:   []string{session.Id},
+		}
+	}
+
+	return nil
+}
+
 func (s *TelegramFinishCommandService) registerNotification(
 	session types.BookingSession,
 	update types.TelegramUpdate,
@@ -116,7 +147,7 @@ func (s *TelegramFinishCommandService) registerNotification(
 	if timeParseErr != nil {
 		return types.ApiError{
 			Msg:      timeParseErr.Error(),
-			Function: "Execute -> time.Parse()",
+			Function: "registerNotification -> time.Parse()",
 			File:     "service/telegram-finish-command.go",
 			Values:   []string{session.Date},
 		}
@@ -133,6 +164,7 @@ func (s *TelegramFinishCommandService) registerNotification(
 
 	notification := types.TelegramNotification{
 		Id:          uuid.New().String(),
+		SessionId:   session.Id,
 		ScheduledAt: notificationDate.Format(time.DateTime),
 		ChatId:      update.CallbackQuery.From.Id,
 		From:        business.Name,

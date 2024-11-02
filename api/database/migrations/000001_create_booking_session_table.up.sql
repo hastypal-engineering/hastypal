@@ -6,5 +6,6 @@ CREATE TABLE IF NOT EXISTS booking_session (
     date VARCHAR(60) NOT NULL,
     hour VARCHAR(5) NOT NULL,
     created_at VARCHAR(60) NOT NULL,
+    updated_at VARCHAR(60) NOT NULL,
     ttl INTEGER NOT NULL
 );

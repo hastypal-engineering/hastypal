@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
+	"strings"
 )
 
 type PgTelegramNotificationRepository struct {
@@ -47,6 +48,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 
 	var (
 		id            string
+		session_id    string
 		scheduled_at  string
 		chat_id       int
 		business_name string
@@ -58,6 +60,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 	for rows.Next() {
 		if scanErr := rows.Scan(
 			&id,
+			&session_id,
 			&scheduled_at,
 			&chat_id,
 			&business_name,
@@ -72,6 +75,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 
 		results = append(results, types.TelegramNotification{
 			Id:          id,
+			SessionId:   session_id,
 			ScheduledAt: scheduled_at,
 			ChatId:      chat_id,
 			From:        business_name,
@@ -95,6 +99,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 
 	var (
 		id            string
+		session_id    string
 		scheduled_at  string
 		chat_id       int
 		business_name string
@@ -103,6 +108,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 
 	if scanErr := r.connection.QueryRow(query).Scan(
 		&id,
+		&session_id,
 		&scheduled_at,
 		&chat_id,
 		&business_name,
@@ -128,6 +134,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 
 	return types.TelegramNotification{
 		Id:          id,
+		SessionId:   session_id,
 		ScheduledAt: scheduled_at,
 		ChatId:      chat_id,
 		From:        business_name,
@@ -136,11 +143,16 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 }
 
 func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotification) error {
-	var query = `INSERT INTO telegram_notification (id, scheduled_at, chat_id, business_name, created_at) VALUES ($1, $2, $3, $4, $5)`
+	var query strings.Builder
+
+	query.WriteString(`INSERT INTO telegram_notification `)
+	query.WriteString(`(id, session_id, scheduled_at, chat_id, business_name, created_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6);`)
 
 	_, err := r.connection.Exec(
-		query,
+		query.String(),
 		entity.Id,
+		entity.SessionId,
 		entity.ScheduledAt,
 		entity.ChatId,
 		entity.From,
@@ -153,7 +165,7 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-telegram-notification-repository.go",
 			Values: []string{
-				query,
+				query.String(),
 				entity.Id,
 				entity.ScheduledAt,
 				entity.From,

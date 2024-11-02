@@ -176,7 +176,8 @@ func (s *TelegramHoursCommandService) updateSession(actualSession types.BookingS
 		ServiceId:  actualSession.ServiceId,
 		Date:       date,
 		Hour:       "",
-		CreatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		CreatedAt:  actualSession.CreatedAt,
+		UpdatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
 		Ttl:        actualSession.Ttl,
 	}
 
