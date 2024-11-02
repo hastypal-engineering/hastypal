@@ -47,12 +47,12 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 	defer rows.Close()
 
 	var (
-		id          string
-		session_id  string
-		business_id string
-		service_id  string
-		when        string
-		created_at  string
+		id           string
+		session_id   string
+		business_id  string
+		service_id   string
+		booking_date string
+		created_at   string
 	)
 
 	var results []types.Booking
@@ -63,7 +63,7 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 			&session_id,
 			&business_id,
 			&service_id,
-			&when,
+			&booking_date,
 			&created_at,
 		); scanErr != nil {
 			return nil, types.ApiError{
@@ -78,7 +78,7 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 			SessionId:  session_id,
 			BusinessId: business_id,
 			ServiceId:  service_id,
-			When:       when,
+			When:       booking_date,
 			CreatedAt:  created_at,
 		})
 	}
@@ -98,12 +98,12 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 	}
 
 	var (
-		id          string
-		session_id  string
-		business_id string
-		service_id  string
-		when        string
-		created_at  string
+		id           string
+		session_id   string
+		business_id  string
+		service_id   string
+		booking_date string
+		created_at   string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
@@ -111,7 +111,7 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 		&session_id,
 		&business_id,
 		&service_id,
-		&when,
+		&booking_date,
 		&created_at,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
@@ -137,7 +137,7 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 		SessionId:  session_id,
 		BusinessId: business_id,
 		ServiceId:  service_id,
-		When:       when,
+		When:       booking_date,
 		CreatedAt:  created_at,
 	}, nil
 }
@@ -146,7 +146,7 @@ func (r *PgBookingRepository) Save(entity types.Booking) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO booking `)
-	query.WriteString(`(id, session_id, business_id, service_id, when, created_at) `)
+	query.WriteString(`(id, session_id, business_id, service_id, booking_date, created_at) `)
 	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6);`)
 
 	_, err := r.connection.Exec(

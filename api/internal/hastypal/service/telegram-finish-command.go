@@ -198,14 +198,27 @@ func (s *TelegramFinishCommandService) createBooking(session types.BookingSessio
 		}
 	}
 
-	bookingHour, hourConversionErr := strconv.Atoi(session.Hour)
+	stringHours := strings.Split(session.Hour, ":")
+
+	bookingHour, hourConversionErr := strconv.Atoi(stringHours[0])
 
 	if hourConversionErr != nil {
 		return types.ApiError{
 			Msg:      hourConversionErr.Error(),
 			Function: "createBooking -> strconv.Atoi()",
 			File:     "service/telegram-finish-command.go",
-			Values:   []string{session.Hour},
+			Values:   []string{stringHours[0]},
+		}
+	}
+
+	bookingMinutes, minutesConversionErr := strconv.Atoi(stringHours[1])
+
+	if minutesConversionErr != nil {
+		return types.ApiError{
+			Msg:      minutesConversionErr.Error(),
+			Function: "createBooking -> strconv.Atoi()",
+			File:     "service/telegram-finish-command.go",
+			Values:   []string{stringHours[1]},
 		}
 	}
 
@@ -213,7 +226,7 @@ func (s *TelegramFinishCommandService) createBooking(session types.BookingSessio
 		bookingDate.Year(),
 		bookingDate.Month(),
 		bookingDate.Day(),
-		bookingHour, 0, 0, 0, time.UTC,
+		bookingHour, bookingMinutes, 0, 0, time.UTC,
 	)
 
 	booking := types.Booking{
