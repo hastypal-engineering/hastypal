@@ -5,6 +5,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"github.com/google/uuid"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -13,17 +14,20 @@ type TelegramFinishCommandService struct {
 	bot                    *TelegramBot
 	sessionRepository      types.Repository[types.BookingSession]
 	notificationRepository types.Repository[types.TelegramNotification]
+	bookingRepository      types.Repository[types.Booking]
 }
 
 func NewTelegramFinishCommandService(
 	bot *TelegramBot,
 	sessionRepository types.Repository[types.BookingSession],
 	notificationRepository types.Repository[types.TelegramNotification],
+	bookingRepository types.Repository[types.Booking],
 ) *TelegramFinishCommandService {
 	return &TelegramFinishCommandService{
 		bot:                    bot,
 		sessionRepository:      sessionRepository,
 		notificationRepository: notificationRepository,
+		bookingRepository:      bookingRepository,
 	}
 }
 
@@ -65,6 +69,10 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 
 	if registerErr := s.registerNotification(session, update, business); registerErr != nil {
 		return registerErr
+	}
+
+	if createBookingErr := s.createBooking(session, business); createBookingErr != nil {
+		return createBookingErr
 	}
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
@@ -173,6 +181,65 @@ func (s *TelegramFinishCommandService) registerNotification(
 
 	if err := s.notificationRepository.Save(notification); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *TelegramFinishCommandService) createBooking(session types.BookingSession, business types.Business) error {
+	bookingDate, timeParseErr := time.Parse(time.DateTime, session.Date)
+
+	if timeParseErr != nil {
+		return types.ApiError{
+			Msg:      timeParseErr.Error(),
+			Function: "createBooking -> time.Parse()",
+			File:     "service/telegram-finish-command.go",
+			Values:   []string{session.Date},
+		}
+	}
+
+	stringHours := strings.Split(session.Hour, ":")
+
+	bookingHour, hourConversionErr := strconv.Atoi(stringHours[0])
+
+	if hourConversionErr != nil {
+		return types.ApiError{
+			Msg:      hourConversionErr.Error(),
+			Function: "createBooking -> strconv.Atoi()",
+			File:     "service/telegram-finish-command.go",
+			Values:   []string{stringHours[0]},
+		}
+	}
+
+	bookingMinutes, minutesConversionErr := strconv.Atoi(stringHours[1])
+
+	if minutesConversionErr != nil {
+		return types.ApiError{
+			Msg:      minutesConversionErr.Error(),
+			Function: "createBooking -> strconv.Atoi()",
+			File:     "service/telegram-finish-command.go",
+			Values:   []string{stringHours[1]},
+		}
+	}
+
+	bookingDateWithHour := time.Date(
+		bookingDate.Year(),
+		bookingDate.Month(),
+		bookingDate.Day(),
+		bookingHour, bookingMinutes, 0, 0, time.UTC,
+	)
+
+	booking := types.Booking{
+		Id:         uuid.New().String(),
+		SessionId:  session.Id,
+		BusinessId: business.Id,
+		ServiceId:  session.ServiceId,
+		When:       bookingDateWithHour.Format(time.DateTime),
+		CreatedAt:  time.Now().Format(time.DateTime),
+	}
+
+	if saveErr := s.bookingRepository.Save(booking); saveErr != nil {
+		return saveErr
 	}
 
 	return nil
