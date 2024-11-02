@@ -1,9 +1,8 @@
 package helper
 
 import (
-	"encoding/base64"
+	"crypto/rand"
 	"github.com/google/uuid"
-	"strings"
 )
 
 type UuidHelper struct{}
@@ -17,9 +16,22 @@ func (helper *UuidHelper) Generate() uuid.UUID {
 }
 
 func (helper *UuidHelper) GenerateShort() string {
-	googleUuid := uuid.New()
+	const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const length = 8
 
-	b64 := base64.RawURLEncoding.EncodeToString(googleUuid[:6])
+	bytes := make([]byte, length)
 
-	return strings.TrimRight(b64, "=")
+	randomBytes := make([]byte, length)
+
+	if _, err := rand.Read(randomBytes); err != nil {
+		panic(err)
+	}
+
+	alphabetLen := byte(len(alphabet))
+
+	for i := 0; i < length; i++ {
+		bytes[i] = alphabet[randomBytes[i]%alphabetLen]
+	}
+
+	return string(bytes)
 }

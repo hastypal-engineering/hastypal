@@ -10,11 +10,12 @@ type BookingSession struct {
 	Date       string `json:"date"`
 	Hour       string `json:"hour"`
 	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
 	Ttl        int64  `json:"ttl"`
 }
 
 func (s *BookingSession) EnsureIsValid() error {
-	createdAt, err := time.Parse(time.DateTime, s.CreatedAt)
+	updatedAt, err := time.Parse(time.DateTime, s.UpdatedAt)
 
 	if err != nil {
 		return ApiError{
@@ -25,7 +26,7 @@ func (s *BookingSession) EnsureIsValid() error {
 		}
 	}
 
-	maxAllowedDate := createdAt.Add(time.Duration(300000) * time.Millisecond)
+	maxAllowedDate := updatedAt.Add(time.Duration(300000) * time.Millisecond)
 
 	if maxAllowedDate.Before(time.Now().UTC()) {
 		return ApiError{

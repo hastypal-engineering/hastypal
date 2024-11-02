@@ -77,6 +77,7 @@ func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) h
 func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	businessRepository := repository.NewPgBusinessRepository(database)
 	sessionRepository := repository.NewPgBookingSessionRepository(database)
+	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
 
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
 
@@ -84,6 +85,7 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	datesCommandHandler := service.NewTelegramDatesCommandService(bot, sessionRepository)
 	hoursCommandHandler := service.NewTelegramHoursCommandService(bot, sessionRepository)
 	confirmationCommandHandler := service.NewTelegramConfirmationCommandService(bot, sessionRepository)
+	finishCommandHandler := service.NewTelegramFinishCommandService(bot, sessionRepository, notificationRepository)
 
 	webhookService := service.NewTelegramWebhookService(
 		businessRepository,
@@ -91,6 +93,7 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 		datesCommandHandler,
 		hoursCommandHandler,
 		confirmationCommandHandler,
+		finishCommandHandler,
 	)
 
 	controller := handler.NewTelegramWebhookHandler(webhookService)
