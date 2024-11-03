@@ -31,6 +31,8 @@ func main() {
 		constants.WhatsappBusinessApiToken,
 		constants.TelegramApiToken,
 		constants.TelegramApiBotUrl,
+		constants.GoogleClientId,
+		constants.GoogleClientSecret,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {
@@ -58,6 +60,9 @@ func main() {
 
 	api.Route("POST /bot-setup", constructBotSetupHandler(api, database))
 	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
+
+	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
+	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api))
 
 	api.Start()
 
@@ -98,6 +103,22 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	)
 
 	controller := handler.NewTelegramWebhookHandler(webhookService)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructGoogleAuthHandler(api *server.HastypalApiServer) http.HandlerFunc {
+	googleApi := service.NewGoogleApi()
+
+	controller := handler.NewGoogleAuthHandler(googleApi)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer) http.HandlerFunc {
+	googleApi := service.NewGoogleApi()
+
+	controller := handler.NewGoogleAuthCallbackHandler(googleApi)
 
 	return api.NewHandler(controller.Handler)
 }
