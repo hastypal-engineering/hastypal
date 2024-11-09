@@ -8,11 +8,11 @@ import (
 )
 
 type GoogleAuthCallbackHandler struct {
-	service service.GoogleAuthCallbackService
+	service *service.GoogleAuthCallbackService
 }
 
 func NewGoogleAuthCallbackHandler(
-	service service.GoogleAuthCallbackService,
+	service *service.GoogleAuthCallbackService,
 ) *GoogleAuthCallbackHandler {
 	return &GoogleAuthCallbackHandler{
 		service: service,

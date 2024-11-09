@@ -31,7 +31,7 @@ func (g *GoogleApi) GetOauth2Config() *oauth2.Config {
 func (g *GoogleApi) GetAuthCodeUrl() string {
 	config := g.GetOauth2Config()
 
-	verifier := oauth2.GenerateVerifier()
+	verifier := "testId"
 
 	return config.AuthCodeURL(verifier, oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(verifier))
 }

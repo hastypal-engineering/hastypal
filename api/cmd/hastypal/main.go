@@ -62,7 +62,7 @@ func main() {
 	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
 
 	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
-	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api))
+	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
 
 	api.Start()
 
@@ -115,10 +115,13 @@ func constructGoogleAuthHandler(api *server.HastypalApiServer) http.HandlerFunc 
 	return api.NewHandler(controller.Handler)
 }
 
-func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer) http.HandlerFunc {
+func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	googleApi := service.NewGoogleApi()
+	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
 
-	controller := handler.NewGoogleAuthCallbackHandler(googleApi)
+	callbackService := service.NewGoogleAuthCallbackService(googleTokenRepository, googleApi)
+
+	controller := handler.NewGoogleAuthCallbackHandler(callbackService)
 
 	return api.NewHandler(controller.Handler)
 }
