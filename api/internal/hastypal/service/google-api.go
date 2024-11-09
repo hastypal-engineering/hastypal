@@ -9,6 +9,7 @@ import (
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
 	"os"
+	"time"
 )
 
 type GoogleApi struct{}
@@ -35,7 +36,33 @@ func (g *GoogleApi) GetAuthCodeUrl() string {
 	return config.AuthCodeURL(verifier, oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(verifier))
 }
 
-func (g *GoogleApi) Client(businessToken types.GoogleToken) (*calendar.Service, error) {
+func (g *GoogleApi) ExchangeToken(state string, code string) (types.GoogleToken, error) {
+	ctx := context.Background()
+	config := g.GetOauth2Config()
+
+	token, exchangeErr := config.Exchange(ctx, code, oauth2.VerifierOption(state))
+
+	if exchangeErr != nil {
+		return types.GoogleToken{}, types.ApiError{
+			Msg:      exchangeErr.Error(),
+			Function: "Handler -> config.Exchange()",
+			File:     "service/google-api.go",
+		}
+	}
+
+	googleToken := types.GoogleToken{
+		BusinessId:   state,
+		AccessToken:  token.AccessToken,
+		TokenType:    token.TokenType,
+		RefreshToken: token.RefreshToken,
+		CreatedAt:    time.Now().Format(time.DateTime),
+		UpdatedAt:    time.Now().Format(time.DateTime),
+	}
+
+	return googleToken, nil
+}
+
+func (g *GoogleApi) CalendarClient(businessToken types.GoogleToken) (*calendar.Service, error) {
 	ctx := context.Background()
 
 	config := g.GetOauth2Config()
@@ -51,7 +78,7 @@ func (g *GoogleApi) Client(businessToken types.GoogleToken) (*calendar.Service, 
 	if newServiceErr != nil {
 		return nil, types.ApiError{
 			Msg:      newServiceErr.Error(),
-			Function: "Client -> calendar.NewService()",
+			Function: "CalendarClient -> calendar.NewService()",
 			File:     "service/google-api.go",
 		}
 	}

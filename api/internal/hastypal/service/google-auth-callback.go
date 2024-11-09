@@ -1,11 +1,8 @@
 package service
 
 import (
-	"context"
 	"github.com/adriein/hastypal/internal/hastypal/types"
-	"golang.org/x/oauth2"
 	"net/url"
-	"time"
 )
 
 type GoogleAuthCallbackService struct {
@@ -24,9 +21,6 @@ func NewGoogleAuthCallbackService(
 }
 
 func (s *GoogleAuthCallbackService) Execute(request string) error {
-	ctx := context.Background()
-	config := s.googleApi.GetOauth2Config()
-
 	parsedUrl, parseUrlErr := url.Parse(request)
 
 	if parseUrlErr != nil {
@@ -41,23 +35,10 @@ func (s *GoogleAuthCallbackService) Execute(request string) error {
 	code := parsedUrl.Query().Get("code")
 	state := parsedUrl.Query().Get("state")
 
-	token, exchangeErr := config.Exchange(ctx, code, oauth2.VerifierOption(state))
+	googleToken, exchangeTokenErr := s.googleApi.ExchangeToken(state, code)
 
-	if exchangeErr != nil {
-		return types.ApiError{
-			Msg:      exchangeErr.Error(),
-			Function: "Handler -> config.Exchange()",
-			File:     "handler/google-auth-callback.go",
-		}
-	}
-
-	googleToken := types.GoogleToken{
-		BusinessId:   state,
-		AccessToken:  token.AccessToken,
-		TokenType:    token.TokenType,
-		RefreshToken: token.RefreshToken,
-		CreatedAt:    time.Now().Format(time.DateTime),
-		UpdatedAt:    time.Now().Format(time.DateTime),
+	if exchangeTokenErr != nil {
+		return exchangeTokenErr
 	}
 
 	if err := s.repository.Save(googleToken); err != nil {
