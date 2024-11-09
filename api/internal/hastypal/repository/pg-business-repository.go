@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"strings"
 
@@ -177,8 +178,40 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO business `)
-	query.WriteString(`(id, name, communication_phone, email, password, service_catalog, opening_hours, holidays, channel_name, location, created_at, updated_at) `)
-	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7);`)
+	query.WriteString(`(id, name, contact_phone, email, password, opening_hours, holidays, channel_name, location, created_at, updated_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`)
+
+	opening_hours, opening_hours_err := json.Marshal(entity.OpeningHours)
+	if opening_hours_err != nil {
+		return types.ApiError{
+			Msg:      opening_hours_err.Error(),
+			Function: "Save -> json.Marshal(entity.OpeningHours)",
+			File:     "pg-business-repository.go",
+			Values: []string{
+				query.String(),
+				entity.Id,
+				entity.Name,
+				entity.ContactPhone,
+				entity.Email,
+			},
+		}
+	}
+
+	holidays, holidays_err := json.Marshal(entity.Holidays)
+	if holidays_err != nil {
+		return types.ApiError{
+			Msg:      holidays_err.Error(),
+			Function: "Save -> json.Marshal(entity.Holidays)",
+			File:     "pg-business-repository.go",
+			Values: []string{
+				query.String(),
+				entity.Id,
+				entity.Name,
+				entity.ContactPhone,
+				entity.Email,
+			},
+		}
+	}
 
 	_, err := r.connection.Exec(
 		query.String(),
@@ -187,8 +220,8 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 		entity.ContactPhone,
 		entity.Email,
 		entity.Password,
-		entity.ServiceCatalog,
-		entity.OpeningHours,
+		opening_hours,
+		holidays,
 		entity.ChannelName,
 		entity.Location,
 		entity.CreatedAt,

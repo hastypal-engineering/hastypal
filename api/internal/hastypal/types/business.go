@@ -8,6 +8,7 @@ type Business struct {
 	Password       string              `json:"password"`
 	ServiceCatalog []ServiceCatalog    `json:"serviceCatalog"`
 	OpeningHours   map[string][]string `json:"openingHours"`
+	Holidays       map[string][]string `json:"holidays"`
 	ChannelName    string              `json:"channelName"`
 	Location       string              `json:"location"`
 	CreatedAt      string              `json:"createdAt"`

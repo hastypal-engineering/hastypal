@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS business (
     channel_name VARCHAR(255),
     location VARCHAR(36),
     opening_hours JSON,
+    holidays JSON,
     created_at VARCHAR(60) NOT NULL,
     updated_at VARCHAR(60) NOT NULL
 );
