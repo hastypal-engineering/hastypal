@@ -4,6 +4,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"github.com/google/uuid"
+	"google.golang.org/api/calendar/v3"
 	"net/url"
 	"strconv"
 	"strings"
@@ -12,22 +13,28 @@ import (
 
 type TelegramFinishCommandService struct {
 	bot                    *TelegramBot
+	googleApi              *GoogleApi
 	sessionRepository      types.Repository[types.BookingSession]
 	notificationRepository types.Repository[types.TelegramNotification]
 	bookingRepository      types.Repository[types.Booking]
+	googleTokenRepository  types.Repository[types.GoogleToken]
 }
 
 func NewTelegramFinishCommandService(
 	bot *TelegramBot,
+	googleApi *GoogleApi,
 	sessionRepository types.Repository[types.BookingSession],
 	notificationRepository types.Repository[types.TelegramNotification],
 	bookingRepository types.Repository[types.Booking],
+	googleTokenRepository types.Repository[types.GoogleToken],
 ) *TelegramFinishCommandService {
 	return &TelegramFinishCommandService{
 		bot:                    bot,
+		googleApi:              googleApi,
 		sessionRepository:      sessionRepository,
 		notificationRepository: notificationRepository,
 		bookingRepository:      bookingRepository,
+		googleTokenRepository:  googleTokenRepository,
 	}
 }
 
@@ -74,6 +81,14 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 	if createBookingErr := s.createBooking(session, business); createBookingErr != nil {
 		return createBookingErr
 	}
+
+	client, getClientErr := s.getGoogleCalendarClient(business)
+
+	if getClientErr != nil {
+		return getClientErr
+	}
+
+	client.CalendarList.List()
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
 	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
@@ -243,4 +258,38 @@ func (s *TelegramFinishCommandService) createBooking(session types.BookingSessio
 	}
 
 	return nil
+}
+
+func (s *TelegramFinishCommandService) getBusinessGoogleToken(business types.Business) (types.GoogleToken, error) {
+	filter := types.Filter{
+		Name:    "business_id",
+		Operand: constants.Equal,
+		Value:   business.Id,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+	result, err := s.googleTokenRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.GoogleToken{}, err
+	}
+
+	return result, nil
+}
+
+func (s *TelegramFinishCommandService) getGoogleCalendarClient(business types.Business) (*calendar.Service, error) {
+	token, getTokenErr := s.getBusinessGoogleToken(business)
+
+	if getTokenErr != nil {
+		return nil, getTokenErr
+	}
+
+	client, calendarClientErr := s.googleApi.CalendarClient(token)
+
+	if calendarClientErr != nil {
+		return nil, calendarClientErr
+	}
+
+	return client, nil
 }
