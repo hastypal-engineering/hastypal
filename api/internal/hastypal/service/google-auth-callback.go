@@ -52,7 +52,7 @@ func (s *GoogleAuthCallbackService) Execute(request string) error {
 	}
 
 	googleToken := types.GoogleToken{
-		BusinessId:   "",
+		BusinessId:   state,
 		AccessToken:  token.AccessToken,
 		TokenType:    token.TokenType,
 		RefreshToken: token.RefreshToken,
