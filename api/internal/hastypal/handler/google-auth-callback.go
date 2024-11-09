@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/adriein/hastypal/internal/hastypal/types"
@@ -9,19 +8,21 @@ import (
 )
 
 type GoogleAuthCallbackHandler struct {
-	googleApi *service.GoogleApi
+	service service.GoogleAuthCallbackService
 }
 
 func NewGoogleAuthCallbackHandler(
-	googleApi *service.GoogleApi,
+	service service.GoogleAuthCallbackService,
 ) *GoogleAuthCallbackHandler {
 	return &GoogleAuthCallbackHandler{
-		googleApi: googleApi,
+		service: service,
 	}
 }
 
 func (h *GoogleAuthCallbackHandler) Handler(w http.ResponseWriter, r *http.Request) error {
-	fmt.Println(r)
+	if err := h.service.Execute(r.RequestURI); err != nil {
+		return err
+	}
 
 	response := types.ServerResponse{
 		Ok:   true,
