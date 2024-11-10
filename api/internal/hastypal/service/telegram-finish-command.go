@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"github.com/google/uuid"
@@ -88,7 +89,27 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return getClientErr
 	}
 
-	client.CalendarList.List()
+	event := &calendar.Event{
+		Summary:     "Google I/O 2015",
+		Location:    "800 Howard St., San Francisco, CA 94103",
+		Description: "A chance to hear more about Google's developer products.",
+		Start: &calendar.EventDateTime{
+			DateTime: "2024-11-11T09:00:00-07:00",
+			TimeZone: "America/Los_Angeles",
+		},
+		End: &calendar.EventDateTime{
+			DateTime: "2024-11-11T17:00:00-07:00",
+			TimeZone: "America/Los_Angeles",
+		},
+		Attendees: []*calendar.EventAttendee{
+			&calendar.EventAttendee{Email: "adria.claret@gmail.com"},
+		},
+	}
+
+	calendarId := "primary"
+	_, insertErr := client.Events.Insert(calendarId, event).Do()
+
+	fmt.Println(insertErr)
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
 	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
@@ -264,7 +285,7 @@ func (s *TelegramFinishCommandService) getBusinessGoogleToken(business types.Bus
 	filter := types.Filter{
 		Name:    "business_id",
 		Operand: constants.Equal,
-		Value:   business.Id,
+		Value:   "testId",
 	}
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
