@@ -67,9 +67,9 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return getSessionErr
 	}
 
-	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+	/*if invalidSession := session.EnsureIsValid(); invalidSession != nil {
 		return invalidSession
-	}
+	}*/
 
 	if duplicatedErr := s.ensureNotDuplicatedNotification(session); duplicatedErr != nil {
 		return duplicatedErr
@@ -83,37 +83,21 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return createBookingErr
 	}
 
-	client, getClientErr := s.getGoogleCalendarClient(business)
+	iCalUid, registerEventErr := s.registerEventInBusinessCalendar(business)
 
-	if getClientErr != nil {
-		return getClientErr
+	if registerEventErr != nil {
+		return registerEventErr
 	}
 
-	event := &calendar.Event{
-		Summary:     "Google I/O 2015",
-		Location:    "800 Howard St., San Francisco, CA 94103",
-		Description: "A chance to hear more about Google's developer products.",
-		Start: &calendar.EventDateTime{
-			DateTime: "2024-11-11T09:00:00-07:00",
-			TimeZone: "America/Los_Angeles",
-		},
-		End: &calendar.EventDateTime{
-			DateTime: "2024-11-11T17:00:00-07:00",
-			TimeZone: "America/Los_Angeles",
-		},
-		Attendees: []*calendar.EventAttendee{
-			&calendar.EventAttendee{Email: "adria.claret@gmail.com"},
-		},
-	}
-
-	calendarId := "primary"
-	_, insertErr := client.Events.Insert(calendarId, event).Do()
-
-	fmt.Println(insertErr)
+	inviteLinkBuilder := s.createInviteLink(iCalUid)
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
 	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
-	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286)")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286)\n\n")
+	markdownText.WriteString(fmt.Sprintf(
+		"Si quieres puedes agregar el evento en tu calendario haciendo uso de este link: %s",
+		inviteLinkBuilder.String(),
+	))
 
 	buttons := make([][]types.KeyboardButton, 0)
 
@@ -313,4 +297,56 @@ func (s *TelegramFinishCommandService) getGoogleCalendarClient(business types.Bu
 	}
 
 	return client, nil
+}
+
+func (s *TelegramFinishCommandService) registerEventInBusinessCalendar(business types.Business) (string, error) {
+	client, getClientErr := s.getGoogleCalendarClient(business)
+
+	if getClientErr != nil {
+		return "", getClientErr
+	}
+
+	event := &calendar.Event{
+		Summary:     "Google I/O 2015",
+		Location:    "800 Howard St., San Francisco, CA 94103",
+		Description: "A chance to hear more about Google's developer products.",
+		Start: &calendar.EventDateTime{
+			DateTime: "2024-11-11T09:00:00-07:00",
+			TimeZone: "America/Los_Angeles",
+		},
+		End: &calendar.EventDateTime{
+			DateTime: "2024-11-11T17:00:00-07:00",
+			TimeZone: "America/Los_Angeles",
+		},
+		Attendees: []*calendar.EventAttendee{
+			&calendar.EventAttendee{Email: "adria.claret@gmail.com"},
+		},
+		Status: "confirmed",
+	}
+
+	createdEvent, insertErr := client.Events.Insert("primary", event).Do()
+
+	if insertErr != nil {
+		return "", types.ApiError{
+			Msg:      insertErr.Error(),
+			Function: "registerEventInBusinessCalendar -> client.Events.Insert()",
+			File:     "service/telegram-finish-command.go",
+		}
+	}
+
+	return createdEvent.ICalUID, nil
+}
+
+func (s *TelegramFinishCommandService) createInviteLink(iCalUid string) strings.Builder {
+	var builder strings.Builder
+
+	/*builder.WriteString("https://calendar.google.com/calendar/r/eventedit?action=TEMPLATE")
+	builder.WriteString("&dates=20230325T224500Z%2F20230326T001500Z&stz=Europe/Brussels&etz=Europe/Brussels")
+	builder.WriteString("&details=EVENT_DESCRIPTION_HERE")
+	builder.WriteString("&location=EVENT_LOCATION_HERE")
+	builder.WriteString("&text=EVENT_TITLE_HERE")*/
+
+	builder.WriteString(fmt.Sprintf("https://calendar.google.com/ical/%s/public/basic.ics", iCalUid))
+
+	return builder
 }
