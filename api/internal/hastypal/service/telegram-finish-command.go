@@ -67,9 +67,9 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return getSessionErr
 	}
 
-	/*if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
 		return invalidSession
-	}*/
+	}
 
 	if duplicatedErr := s.ensureNotDuplicatedNotification(session); duplicatedErr != nil {
 		return duplicatedErr
