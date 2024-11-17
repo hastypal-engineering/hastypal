@@ -2,7 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"strings"
+
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 )
@@ -46,10 +49,17 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	defer rows.Close()
 
 	var (
-		id         string
-		name       string
-		created_at string
-		updated_at string
+		id              string
+		name            string
+		contact_phone   string
+		email           string
+		password        string
+		service_catalog []types.ServiceCatalog
+		opening_hours   map[string][]string
+		channel_name    string
+		location        string
+		created_at      string
+		updated_at      string
 	)
 
 	var results []types.Business
@@ -58,6 +68,13 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		if scanErr := rows.Scan(
 			&id,
 			&name,
+			&contact_phone,
+			&email,
+			&password,
+			&service_catalog,
+			&opening_hours,
+			&channel_name,
+			&location,
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
@@ -69,10 +86,17 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		}
 
 		results = append(results, types.Business{
-			Id:        id,
-			Name:      name,
-			CreatedAt: created_at,
-			UpdatedAt: updated_at,
+			Id:             id,
+			Name:           name,
+			ContactPhone:   contact_phone,
+			Email:          email,
+			Password:       password,
+			ServiceCatalog: service_catalog,
+			OpeningHours:   opening_hours,
+			ChannelName:    channel_name,
+			Location:       location,
+			CreatedAt:      created_at,
+			UpdatedAt:      updated_at,
 		})
 	}
 
@@ -91,15 +115,29 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	var (
-		id         string
-		name       string
-		created_at string
-		updated_at string
+		id                  string
+		name                string
+		communication_phone string
+		email               string
+		password            string
+		service_catalog     []types.ServiceCatalog
+		opening_hours       map[string][]string
+		channel_name        string
+		location            string
+		created_at          string
+		updated_at          string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
 		&id,
 		&name,
+		&communication_phone,
+		&email,
+		&password,
+		&service_catalog,
+		&opening_hours,
+		&channel_name,
+		&location,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
@@ -122,20 +160,70 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	return types.Business{
-		Id:        id,
-		Name:      name,
-		CreatedAt: created_at,
-		UpdatedAt: updated_at,
+		Id:             id,
+		Name:           name,
+		ContactPhone:   communication_phone,
+		Email:          email,
+		Password:       password,
+		ServiceCatalog: service_catalog,
+		OpeningHours:   opening_hours,
+		ChannelName:    channel_name,
+		Location:       location,
+		CreatedAt:      created_at,
+		UpdatedAt:      updated_at,
 	}, nil
 }
 
 func (r *PgBusinessRepository) Save(entity types.Business) error {
-	var query = `INSERT INTO business (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4)`
+	var query strings.Builder
+
+	query.WriteString(`INSERT INTO business `)
+	query.WriteString(`(id, name, contact_phone, email, password, opening_hours, holidays, channel_name, location, created_at, updated_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`)
+
+	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
+	if openingHoursErr != nil {
+		return types.ApiError{
+			Msg:      openingHoursErr.Error(),
+			Function: "Save -> json.Marshal(entity.OpeningHours)",
+			File:     "pg-business-repository.go",
+			Values: []string{
+				query.String(),
+				entity.Id,
+				entity.Name,
+				entity.ContactPhone,
+				entity.Email,
+			},
+		}
+	}
+
+	holidays, holidaysErr := json.Marshal(entity.Holidays)
+	if holidaysErr != nil {
+		return types.ApiError{
+			Msg:      holidaysErr.Error(),
+			Function: "Save -> json.Marshal(entity.Holidays)",
+			File:     "pg-business-repository.go",
+			Values: []string{
+				query.String(),
+				entity.Id,
+				entity.Name,
+				entity.ContactPhone,
+				entity.Email,
+			},
+		}
+	}
 
 	_, err := r.connection.Exec(
-		query,
+		query.String(),
 		entity.Id,
 		entity.Name,
+		entity.ContactPhone,
+		entity.Email,
+		entity.Password,
+		openingHours,
+		holidays,
+		entity.ChannelName,
+		entity.Location,
 		entity.CreatedAt,
 		entity.UpdatedAt,
 	)
@@ -146,11 +234,11 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-business-repository.go",
 			Values: []string{
-				query,
+				query.String(),
 				entity.Id,
 				entity.Name,
-				entity.CreatedAt,
-				entity.UpdatedAt,
+				entity.ContactPhone,
+				entity.Email,
 			},
 		}
 	}
