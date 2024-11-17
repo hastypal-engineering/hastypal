@@ -106,23 +106,9 @@ func (s *TelegramFinishCommandService) Execute(business types.Business, update t
 		return registerEventErr
 	}
 
-	inviteLinkBuilder, inviteLinkErr := s.createInviteLink(event)
-
-	if inviteLinkErr != nil {
-		return inviteLinkErr
-	}
-
-	stripPoints := strings.ReplaceAll(inviteLinkBuilder.String(), ".", "\\.")
-	stripEquals := strings.ReplaceAll(stripPoints, "=", "\\=")
-	stripPlus := strings.ReplaceAll(stripEquals, "+", "\\+")
-
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
 	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
 	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286)\n\n")
-	markdownText.WriteString(fmt.Sprintf(
-		"Si quieres puedes agregar el evento en tu calendario haciendo uso de este link: %s",
-		stripPlus,
-	))
 
 	buttons := make([][]types.KeyboardButton, 0)
 
