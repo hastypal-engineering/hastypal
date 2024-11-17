@@ -55,6 +55,7 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 		date        string
 		hour        string
 		created_at  string
+		updated_at  string
 		ttl         int64
 	)
 
@@ -69,6 +70,7 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 			&date,
 			&hour,
 			&created_at,
+			&updated_at,
 			&ttl,
 		); scanErr != nil {
 			return nil, types.ApiError{
@@ -86,6 +88,7 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 			Date:       date,
 			Hour:       hour,
 			CreatedAt:  created_at,
+			UpdatedAt:  updated_at,
 			Ttl:        ttl,
 		})
 	}
@@ -112,6 +115,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		date        string
 		hour        string
 		created_at  string
+		updated_at  string
 		ttl         int64
 	)
 
@@ -123,6 +127,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		&date,
 		&hour,
 		&created_at,
+		&updated_at,
 		&ttl,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
@@ -151,6 +156,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		Date:       date,
 		Hour:       hour,
 		CreatedAt:  created_at,
+		UpdatedAt:  updated_at,
 		Ttl:        ttl,
 	}, nil
 }
@@ -159,8 +165,8 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO booking_session `)
-	query.WriteString(`(id, business_id, chat_id, service_id, date, hour, created_at, ttl) `)
-	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
+	query.WriteString(`(id, business_id, chat_id, service_id, date, hour, created_at, updated_at, ttl) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`)
 
 	_, err := r.connection.Exec(
 		query.String(),
@@ -171,6 +177,7 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 		entity.Date,
 		entity.Hour,
 		entity.CreatedAt,
+		entity.UpdatedAt,
 		entity.Ttl,
 	)
 
@@ -196,7 +203,7 @@ func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
 
 	query.WriteString(`UPDATE booking_session `)
 	query.WriteString(`SET business_id = $2, chat_id = $3, service_id = $4, date = $5, hour = $6, `)
-	query.WriteString(`created_at = $7, ttl = $8 WHERE id = $1;`)
+	query.WriteString(`created_at = $7, updated_at = $8, ttl = $9 WHERE id = $1;`)
 
 	_, err := r.connection.Exec(
 		query.String(),
@@ -207,6 +214,7 @@ func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
 		entity.Date,
 		entity.Hour,
 		entity.CreatedAt,
+		entity.UpdatedAt,
 		entity.Ttl,
 	)
 

@@ -32,6 +32,8 @@ func main() {
 		constants.WhatsappBusinessApiToken,
 		constants.TelegramApiToken,
 		constants.TelegramApiBotUrl,
+		constants.GoogleClientId,
+		constants.GoogleClientSecret,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {
@@ -60,6 +62,9 @@ func main() {
 	api.Route("POST /bot-setup", constructBotSetupHandler(api, database))
 	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
 
+	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
+	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
+
 	api.Route("POST /business", constructCreateBusinessHandler(api, database))
 
 	api.Start()
@@ -78,8 +83,12 @@ func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) h
 }
 
 func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	googleApi := service.NewGoogleApi()
 	businessRepository := repository.NewPgBusinessRepository(database)
 	sessionRepository := repository.NewPgBookingSessionRepository(database)
+	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
+	bookingRepository := repository.NewPgBookingRepository(database)
+	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
 
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
 
@@ -87,6 +96,14 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	datesCommandHandler := service.NewTelegramDatesCommandService(bot, sessionRepository)
 	hoursCommandHandler := service.NewTelegramHoursCommandService(bot, sessionRepository)
 	confirmationCommandHandler := service.NewTelegramConfirmationCommandService(bot, sessionRepository)
+	finishCommandHandler := service.NewTelegramFinishCommandService(
+		bot,
+		googleApi,
+		sessionRepository,
+		notificationRepository,
+		bookingRepository,
+		googleTokenRepository,
+	)
 
 	webhookService := service.NewTelegramWebhookService(
 		businessRepository,
@@ -94,9 +111,29 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 		datesCommandHandler,
 		hoursCommandHandler,
 		confirmationCommandHandler,
+		finishCommandHandler,
 	)
 
 	controller := handler.NewTelegramWebhookHandler(webhookService)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructGoogleAuthHandler(api *server.HastypalApiServer) http.HandlerFunc {
+	googleApi := service.NewGoogleApi()
+
+	controller := handler.NewGoogleAuthHandler(googleApi)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	googleApi := service.NewGoogleApi()
+	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
+
+	callbackService := service.NewGoogleAuthCallbackService(googleTokenRepository, googleApi)
+
+	controller := handler.NewGoogleAuthCallbackHandler(callbackService)
 
 	return api.NewHandler(controller.Handler)
 }
