@@ -2,8 +2,8 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/adriein/hastypal/internal/hastypal/service"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
 )
 
@@ -20,10 +20,10 @@ func NewTelegramWebhookHandler(
 }
 
 func (h *TelegramWebhookHandler) Handler(w http.ResponseWriter, r *http.Request) error {
-	var update types.TelegramUpdate
+	var update types2.TelegramUpdate
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&update); decodeErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
 			File:     "handler/telegram-webhook.go",

@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
-
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
 )
 
 type PgBusinessRepository struct {
@@ -24,11 +23,11 @@ func NewPgBusinessRepository(connection *sql.DB) *PgBusinessRepository {
 	}
 }
 
-func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, error) {
+func (r *PgBusinessRepository) Find(criteria types2.Criteria) ([]types2.Business, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Find -> r.transformer.Transform()",
 			File:     "pg-business-repository.go",
@@ -38,7 +37,7 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      queryErr.Error(),
 			Function: "Find -> r.connection.Query()",
 			File:     "pg-business-repository.go",
@@ -54,7 +53,7 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		contact_phone   string
 		email           string
 		password        string
-		service_catalog []types.ServiceCatalog
+		service_catalog []types2.ServiceCatalog
 		opening_hours   map[string][]string
 		channel_name    string
 		location        string
@@ -62,7 +61,7 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		updated_at      string
 	)
 
-	var results []types.Business
+	var results []types2.Business
 
 	for rows.Next() {
 		if scanErr := rows.Scan(
@@ -78,14 +77,14 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
+			return nil, types2.ApiError{
 				Msg:      scanErr.Error(),
 				Function: "Find -> rows.Scan()",
 				File:     "pg-business-repository.go",
 			}
 		}
 
-		results = append(results, types.Business{
+		results = append(results, types2.Business{
 			Id:             id,
 			Name:           name,
 			ContactPhone:   contact_phone,
@@ -103,11 +102,11 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	return results, nil
 }
 
-func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business, error) {
+func (r *PgBusinessRepository) FindOne(criteria types2.Criteria) (types2.Business, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.Business{}, types.ApiError{
+		return types2.Business{}, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "FindOne -> r.transformer.Transform()",
 			File:     "pg-business-repository.go",
@@ -120,7 +119,7 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		communication_phone string
 		email               string
 		password            string
-		service_catalog     []types.ServiceCatalog
+		service_catalog     []types2.ServiceCatalog
 		opening_hours       map[string][]string
 		channel_name        string
 		location            string
@@ -142,7 +141,7 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&updated_at,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
-			return types.Business{}, types.ApiError{
+			return types2.Business{}, types2.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "FindOne -> rows.Scan()",
 				File:     "pg-business-repository.go",
@@ -151,7 +150,7 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 			}
 		}
 
-		return types.Business{}, types.ApiError{
+		return types2.Business{}, types2.ApiError{
 			Msg:      scanErr.Error(),
 			Function: "FindOne -> rows.Scan()",
 			File:     "pg-business-repository.go",
@@ -159,7 +158,7 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		}
 	}
 
-	return types.Business{
+	return types2.Business{
 		Id:             id,
 		Name:           name,
 		ContactPhone:   communication_phone,
@@ -174,7 +173,7 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}, nil
 }
 
-func (r *PgBusinessRepository) Save(entity types.Business) error {
+func (r *PgBusinessRepository) Save(entity types2.Business) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO business `)
@@ -183,7 +182,7 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 
 	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
 	if openingHoursErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      openingHoursErr.Error(),
 			Function: "Save -> json.Marshal(entity.OpeningHours)",
 			File:     "pg-business-repository.go",
@@ -199,7 +198,7 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 
 	holidays, holidaysErr := json.Marshal(entity.Holidays)
 	if holidaysErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      holidaysErr.Error(),
 			Function: "Save -> json.Marshal(entity.Holidays)",
 			File:     "pg-business-repository.go",
@@ -229,7 +228,7 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-business-repository.go",
@@ -246,8 +245,8 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	return nil
 }
 
-func (r *PgBusinessRepository) Update(_ types.Business) error {
-	return types.ApiError{
+func (r *PgBusinessRepository) Update(_ types2.Business) error {
+	return types2.ApiError{
 		Msg:      "Method not implemented yet",
 		Function: "Update",
 		File:     "pg-business-repository.go",

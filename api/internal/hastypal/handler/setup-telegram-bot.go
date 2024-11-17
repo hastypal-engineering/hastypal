@@ -2,9 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/service"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
 )
 
@@ -21,10 +21,10 @@ func NewSetupTelegramBotHandler(
 }
 
 func (h *SetupTelegramBotHandler) Handler(w http.ResponseWriter, r *http.Request) error {
-	var request types.AdminTelegramBotSetup
+	var request types2.AdminTelegramBotSetup
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
 			File:     "handler/setup-telegram.bot.go",
@@ -36,9 +36,9 @@ func (h *SetupTelegramBotHandler) Handler(w http.ResponseWriter, r *http.Request
 		return serviceErr
 	}
 
-	response := types.ServerResponse{Ok: true}
+	response := types2.ServerResponse{Ok: true}
 
-	if err := helper.Encode[types.ServerResponse](w, http.StatusCreated, response); err != nil {
+	if err := helper.Encode[types2.ServerResponse](w, http.StatusCreated, response); err != nil {
 		return err
 	}
 

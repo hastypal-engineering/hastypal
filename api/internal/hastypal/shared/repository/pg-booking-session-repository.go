@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strconv"
 	"strings"
 )
@@ -23,11 +23,11 @@ func NewPgBookingSessionRepository(connection *sql.DB) *PgBookingSessionReposito
 	}
 }
 
-func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.BookingSession, error) {
+func (r *PgBookingSessionRepository) Find(criteria types2.Criteria) ([]types2.BookingSession, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Find -> r.transformer.Transform()",
 			File:     "pg-booking-session-repository.go",
@@ -37,7 +37,7 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      queryErr.Error(),
 			Function: "Find -> r.connection.Query()",
 			File:     "pg-booking-session-repository.go",
@@ -59,7 +59,7 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 		ttl         int64
 	)
 
-	var results []types.BookingSession
+	var results []types2.BookingSession
 
 	for rows.Next() {
 		if scanErr := rows.Scan(
@@ -73,14 +73,14 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 			&updated_at,
 			&ttl,
 		); scanErr != nil {
-			return nil, types.ApiError{
+			return nil, types2.ApiError{
 				Msg:      scanErr.Error(),
 				Function: "Find -> rows.Scan()",
 				File:     "pg-booking-session-repository.go",
 			}
 		}
 
-		results = append(results, types.BookingSession{
+		results = append(results, types2.BookingSession{
 			Id:         id,
 			BusinessId: business_id,
 			ChatId:     chat_id,
@@ -96,11 +96,11 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 	return results, nil
 }
 
-func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.BookingSession, error) {
+func (r *PgBookingSessionRepository) FindOne(criteria types2.Criteria) (types2.BookingSession, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.BookingSession{}, types.ApiError{
+		return types2.BookingSession{}, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "FindOne -> r.transformer.Transform()",
 			File:     "pg-booking-session-repository.go",
@@ -131,7 +131,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		&ttl,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
-			return types.BookingSession{}, types.ApiError{
+			return types2.BookingSession{}, types2.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "FindOne -> rows.Scan()",
 				File:     "pg-booking-session-repository.go",
@@ -140,7 +140,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 			}
 		}
 
-		return types.BookingSession{}, types.ApiError{
+		return types2.BookingSession{}, types2.ApiError{
 			Msg:      scanErr.Error(),
 			Function: "FindOne -> rows.Scan()",
 			File:     "pg-booking-session-repository.go",
@@ -148,7 +148,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		}
 	}
 
-	return types.BookingSession{
+	return types2.BookingSession{
 		Id:         id,
 		BusinessId: business_id,
 		ChatId:     chat_id,
@@ -161,7 +161,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 	}, nil
 }
 
-func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
+func (r *PgBookingSessionRepository) Save(entity types2.BookingSession) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO booking_session `)
@@ -182,7 +182,7 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-booking-session-repository.go",
@@ -198,7 +198,7 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 	return nil
 }
 
-func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
+func (r *PgBookingSessionRepository) Update(entity types2.BookingSession) error {
 	var query strings.Builder
 
 	query.WriteString(`UPDATE booking_session `)
@@ -219,7 +219,7 @@ func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Update -> r.connection.Exec()",
 			File:     "pg-booking-session-repository.go",

@@ -1,7 +1,7 @@
 package google
 
 import (
-	"github.com/adriein/hastypal/internal/hastypal/service"
+	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 )
 
 type AuthGoogleService struct {

@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
 )
 
@@ -22,11 +22,11 @@ func NewPgBookingRepository(connection *sql.DB) *PgBookingRepository {
 	}
 }
 
-func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, error) {
+func (r *PgBookingRepository) Find(criteria types2.Criteria) ([]types2.Booking, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Find -> r.transformer.Transform()",
 			File:     "pg-booking-repository.go",
@@ -36,7 +36,7 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      queryErr.Error(),
 			Function: "Find -> r.connection.Query()",
 			File:     "pg-booking-repository.go",
@@ -55,7 +55,7 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 		created_at   string
 	)
 
-	var results []types.Booking
+	var results []types2.Booking
 
 	for rows.Next() {
 		if scanErr := rows.Scan(
@@ -66,14 +66,14 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 			&booking_date,
 			&created_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
+			return nil, types2.ApiError{
 				Msg:      scanErr.Error(),
 				Function: "Find -> rows.Scan()",
 				File:     "pg-booking-repository.go",
 			}
 		}
 
-		results = append(results, types.Booking{
+		results = append(results, types2.Booking{
 			Id:         id,
 			SessionId:  session_id,
 			BusinessId: business_id,
@@ -86,11 +86,11 @@ func (r *PgBookingRepository) Find(criteria types.Criteria) ([]types.Booking, er
 	return results, nil
 }
 
-func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, error) {
+func (r *PgBookingRepository) FindOne(criteria types2.Criteria) (types2.Booking, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.Booking{}, types.ApiError{
+		return types2.Booking{}, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "FindOne -> r.transformer.Transform()",
 			File:     "pg-booking-repository.go",
@@ -115,7 +115,7 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 		&created_at,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
-			return types.Booking{}, types.ApiError{
+			return types2.Booking{}, types2.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "FindOne -> rows.Scan()",
 				File:     "pg-booking-repository.go",
@@ -124,7 +124,7 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 			}
 		}
 
-		return types.Booking{}, types.ApiError{
+		return types2.Booking{}, types2.ApiError{
 			Msg:      scanErr.Error(),
 			Function: "FindOne -> rows.Scan()",
 			File:     "pg-booking-repository.go",
@@ -132,7 +132,7 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 		}
 	}
 
-	return types.Booking{
+	return types2.Booking{
 		Id:         id,
 		SessionId:  session_id,
 		BusinessId: business_id,
@@ -142,7 +142,7 @@ func (r *PgBookingRepository) FindOne(criteria types.Criteria) (types.Booking, e
 	}, nil
 }
 
-func (r *PgBookingRepository) Save(entity types.Booking) error {
+func (r *PgBookingRepository) Save(entity types2.Booking) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO booking `)
@@ -160,7 +160,7 @@ func (r *PgBookingRepository) Save(entity types.Booking) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-booking-repository.go",
@@ -176,8 +176,8 @@ func (r *PgBookingRepository) Save(entity types.Booking) error {
 	return nil
 }
 
-func (r *PgBookingRepository) Update(_ types.Booking) error {
-	return types.ApiError{
+func (r *PgBookingRepository) Update(_ types2.Booking) error {
+	return types2.ApiError{
 		Msg:      "Method not implemented yet",
 		Function: "Update",
 		File:     "pg-booking-repository.go",

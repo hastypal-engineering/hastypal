@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/constants"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	helper2 "github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 	"strings"
 	"time"
@@ -12,12 +12,12 @@ import (
 
 type TelegramConfirmationCommandService struct {
 	bot        *TelegramBot
-	repository types.Repository[types.BookingSession]
+	repository types2.Repository[types2.BookingSession]
 }
 
 func NewTelegramConfirmationCommandService(
 	bot *TelegramBot,
-	repository types.Repository[types.BookingSession],
+	repository types2.Repository[types2.BookingSession],
 ) *TelegramConfirmationCommandService {
 	return &TelegramConfirmationCommandService{
 		bot:        bot,
@@ -25,7 +25,7 @@ func NewTelegramConfirmationCommandService(
 	}
 }
 
-func (s *TelegramConfirmationCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *TelegramConfirmationCommandService) Execute(business types2.Business, update types2.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
 		return ackErr
 	}
@@ -35,7 +35,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
 
 	if loadLocationErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      loadLocationErr.Error(),
 			Function: "Execute -> time.LoadLocation()",
 			File:     "telegram-confirmation-command.go",
@@ -48,7 +48,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      parseUrlErr.Error(),
 			Function: "Execute -> url.Parse()",
 			File:     "telegram-confirmation-command.go",
@@ -77,7 +77,7 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	selectedDate, timeParseErr := time.Parse(time.DateTime, session.Date)
 
 	if timeParseErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      timeParseErr.Error(),
 			Function: "Execute -> time.Parse()",
 			File:     "telegram-confirmation-command.go",
@@ -112,12 +112,12 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 	markdownText.WriteString(hourMarkdown)
 	markdownText.WriteString(processInstructions)
 
-	buttons := make([]types.KeyboardButton, 2)
+	buttons := make([]types2.KeyboardButton, 2)
 
 	availableButtons := [2]string{"Confirmar", "Cancelar"}
 
 	for i, text := range availableButtons {
-		buttons[i] = types.KeyboardButton{
+		buttons[i] = types2.KeyboardButton{
 			Text: text,
 			CallbackData: fmt.Sprintf(
 				"/book?session=%s",
@@ -126,16 +126,16 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 		}
 	}
 
-	array := helper.NewArrayHelper[types.KeyboardButton]()
+	array := helper2.NewArrayHelper[types2.KeyboardButton]()
 
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types.SendTelegramMessage{
+	message := types2.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
-		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
+		ReplyMarkup:    types2.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
@@ -146,29 +146,29 @@ func (s *TelegramConfirmationCommandService) Execute(business types.Business, up
 }
 
 func (s *TelegramConfirmationCommandService) ackToTelegramClient(callbackQueryId string) error {
-	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+	return s.bot.AnswerCallbackQuery(types2.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
 }
 
-func (s *TelegramConfirmationCommandService) getCurrentSession(sessionId string) (types.BookingSession, error) {
-	filter := types.Filter{
+func (s *TelegramConfirmationCommandService) getCurrentSession(sessionId string) (types2.BookingSession, error) {
+	filter := types2.Filter{
 		Name:    "id",
 		Operand: constants.Equal,
 		Value:   sessionId,
 	}
 
-	criteria := types.Criteria{Filters: []types.Filter{filter}}
+	criteria := types2.Criteria{Filters: []types2.Filter{filter}}
 
 	session, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return types.BookingSession{}, findOneErr
+		return types2.BookingSession{}, findOneErr
 	}
 
 	return session, nil
 }
 
-func (s *TelegramConfirmationCommandService) updateSession(actualSession types.BookingSession, hour string) error {
-	updatedSession := types.BookingSession{
+func (s *TelegramConfirmationCommandService) updateSession(actualSession types2.BookingSession, hour string) error {
+	updatedSession := types2.BookingSession{
 		Id:         actualSession.Id,
 		BusinessId: actualSession.BusinessId,
 		ChatId:     actualSession.ChatId,
@@ -180,7 +180,7 @@ func (s *TelegramConfirmationCommandService) updateSession(actualSession types.B
 		Ttl:        actualSession.Ttl,
 	}
 
-	reflection := helper.NewReflectionHelper[types.BookingSession]()
+	reflection := helper2.NewReflectionHelper[types2.BookingSession]()
 
 	mergedSession := reflection.Merge(actualSession, updatedSession)
 

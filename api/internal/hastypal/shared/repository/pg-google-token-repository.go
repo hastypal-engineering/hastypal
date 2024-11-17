@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
 )
 
@@ -22,11 +22,11 @@ func NewPgGoogleTokenRepository(connection *sql.DB) *PgGoogleTokenRepository {
 	}
 }
 
-func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleToken, error) {
+func (r *PgGoogleTokenRepository) Find(criteria types2.Criteria) ([]types2.GoogleToken, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Find -> r.transformer.Transform()",
 			File:     "pg-google-token-repository.go",
@@ -36,7 +36,7 @@ func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleT
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      queryErr.Error(),
 			Function: "Find -> r.connection.Query()",
 			File:     "pg-google-token-repository.go",
@@ -55,7 +55,7 @@ func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleT
 		updated_at    string
 	)
 
-	var results []types.GoogleToken
+	var results []types2.GoogleToken
 
 	for rows.Next() {
 		if scanErr := rows.Scan(
@@ -66,14 +66,14 @@ func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleT
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
+			return nil, types2.ApiError{
 				Msg:      scanErr.Error(),
 				Function: "Find -> rows.Scan()",
 				File:     "pg-google-token-repository.go",
 			}
 		}
 
-		results = append(results, types.GoogleToken{
+		results = append(results, types2.GoogleToken{
 			BusinessId:   business_id,
 			AccessToken:  access_token,
 			TokenType:    token_type,
@@ -86,11 +86,11 @@ func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleT
 	return results, nil
 }
 
-func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.GoogleToken, error) {
+func (r *PgGoogleTokenRepository) FindOne(criteria types2.Criteria) (types2.GoogleToken, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.GoogleToken{}, types.ApiError{
+		return types2.GoogleToken{}, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "FindOne -> r.transformer.Transform()",
 			File:     "pg-google-token-repository.go",
@@ -115,7 +115,7 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 		&updated_at,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
-			return types.GoogleToken{}, types.ApiError{
+			return types2.GoogleToken{}, types2.ApiError{
 				Msg:      "Entity GoogleToken not found",
 				Function: "FindOne -> rows.Scan()",
 				File:     "pg-google-token-repository.go",
@@ -124,7 +124,7 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 			}
 		}
 
-		return types.GoogleToken{}, types.ApiError{
+		return types2.GoogleToken{}, types2.ApiError{
 			Msg:      scanErr.Error(),
 			Function: "FindOne -> rows.Scan()",
 			File:     "pg-google-token-repository.go",
@@ -132,7 +132,7 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 		}
 	}
 
-	return types.GoogleToken{
+	return types2.GoogleToken{
 		BusinessId:   business_id,
 		AccessToken:  access_token,
 		TokenType:    token_type,
@@ -142,7 +142,7 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 	}, nil
 }
 
-func (r *PgGoogleTokenRepository) Save(entity types.GoogleToken) error {
+func (r *PgGoogleTokenRepository) Save(entity types2.GoogleToken) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO google_token `)
@@ -160,7 +160,7 @@ func (r *PgGoogleTokenRepository) Save(entity types.GoogleToken) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-google-token-repository.go",
@@ -176,8 +176,8 @@ func (r *PgGoogleTokenRepository) Save(entity types.GoogleToken) error {
 	return nil
 }
 
-func (r *PgGoogleTokenRepository) Update(_ types.GoogleToken) error {
-	return types.ApiError{
+func (r *PgGoogleTokenRepository) Update(_ types2.GoogleToken) error {
+	return types2.ApiError{
 		Msg:      "Method not implemented yet",
 		Function: "Update",
 		File:     "pg-google-token-repository.go",

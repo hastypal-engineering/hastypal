@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
 )
 

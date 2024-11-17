@@ -2,9 +2,9 @@ package service
 
 import (
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/constants"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	helper2 "github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 	"strings"
 	"time"
@@ -12,12 +12,12 @@ import (
 
 type TelegramHoursCommandService struct {
 	bot        *TelegramBot
-	repository types.Repository[types.BookingSession]
+	repository types2.Repository[types2.BookingSession]
 }
 
 func NewTelegramHoursCommandService(
 	bot *TelegramBot,
-	repository types.Repository[types.BookingSession],
+	repository types2.Repository[types2.BookingSession],
 ) *TelegramHoursCommandService {
 	return &TelegramHoursCommandService{
 		bot:        bot,
@@ -25,7 +25,7 @@ func NewTelegramHoursCommandService(
 	}
 }
 
-func (s *TelegramHoursCommandService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *TelegramHoursCommandService) Execute(business types2.Business, update types2.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
 		return ackErr
 	}
@@ -35,7 +35,7 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
 
 	if loadLocationErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      loadLocationErr.Error(),
 			Function: "Execute -> time.LoadLocation()",
 			File:     "telegram-hours-command.go",
@@ -48,7 +48,7 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      parseUrlErr.Error(),
 			Function: "Execute -> url.Parse()",
 			File:     "telegram-hours-command.go",
@@ -64,7 +64,7 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 	selectedDate, timeParseErr := time.Parse(time.DateTime, stringSelectedDate)
 
 	if timeParseErr != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      timeParseErr.Error(),
 			Function: "Execute -> time.Parse()",
 			File:     "telegram-hours-command.go",
@@ -112,12 +112,12 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 	markdownText.WriteString(date)
 	markdownText.WriteString(processInstructions)
 
-	buttons := make([]types.KeyboardButton, 12)
+	buttons := make([]types2.KeyboardButton, 12)
 
 	for i := 8; i <= len(buttons)+7; i++ {
 		hour := fmt.Sprintf("%02d:00", i)
 
-		buttons[i-8] = types.KeyboardButton{
+		buttons[i-8] = types2.KeyboardButton{
 			Text: fmt.Sprintf("%s", hour),
 			CallbackData: fmt.Sprintf(
 				"/confirmation?session=%s&hour=%s",
@@ -127,16 +127,16 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 		}
 	}
 
-	array := helper.NewArrayHelper[types.KeyboardButton]()
+	array := helper2.NewArrayHelper[types2.KeyboardButton]()
 
 	inlineKeyboard := array.Chunk(buttons, 3)
 
-	message := types.SendTelegramMessage{
+	message := types2.SendTelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
-		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
+		ReplyMarkup:    types2.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
@@ -147,29 +147,29 @@ func (s *TelegramHoursCommandService) Execute(business types.Business, update ty
 }
 
 func (s *TelegramHoursCommandService) ackToTelegramClient(callbackQueryId string) error {
-	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+	return s.bot.AnswerCallbackQuery(types2.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
 }
 
-func (s *TelegramHoursCommandService) getCurrentSession(sessionId string) (types.BookingSession, error) {
-	filter := types.Filter{
+func (s *TelegramHoursCommandService) getCurrentSession(sessionId string) (types2.BookingSession, error) {
+	filter := types2.Filter{
 		Name:    "id",
 		Operand: constants.Equal,
 		Value:   sessionId,
 	}
 
-	criteria := types.Criteria{Filters: []types.Filter{filter}}
+	criteria := types2.Criteria{Filters: []types2.Filter{filter}}
 
 	session, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return types.BookingSession{}, findOneErr
+		return types2.BookingSession{}, findOneErr
 	}
 
 	return session, nil
 }
 
-func (s *TelegramHoursCommandService) updateSession(actualSession types.BookingSession, date string) error {
-	updatedSession := types.BookingSession{
+func (s *TelegramHoursCommandService) updateSession(actualSession types2.BookingSession, date string) error {
+	updatedSession := types2.BookingSession{
 		Id:         actualSession.Id,
 		BusinessId: actualSession.BusinessId,
 		ChatId:     actualSession.ChatId,
@@ -181,7 +181,7 @@ func (s *TelegramHoursCommandService) updateSession(actualSession types.BookingS
 		Ttl:        actualSession.Ttl,
 	}
 
-	reflection := helper.NewReflectionHelper[types.BookingSession]()
+	reflection := helper2.NewReflectionHelper[types2.BookingSession]()
 
 	mergedSession := reflection.Merge(actualSession, updatedSession)
 

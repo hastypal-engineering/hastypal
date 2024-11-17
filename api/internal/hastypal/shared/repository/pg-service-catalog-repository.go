@@ -2,10 +2,9 @@ package repository
 
 import (
 	"database/sql"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
-
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
 )
 
 type PgServiceCatalogRepository struct {
@@ -22,7 +21,7 @@ func NewPgServiceCatalogRepository(connection *sql.DB) *PgServiceCatalogReposito
 	}
 }
 
-func (r *PgServiceCatalogRepository) Save(entity types.ServiceCatalog) error {
+func (r *PgServiceCatalogRepository) Save(entity types2.ServiceCatalog) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO service_catalog `)
@@ -40,7 +39,7 @@ func (r *PgServiceCatalogRepository) Save(entity types.ServiceCatalog) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-service-catalog-repository.go",

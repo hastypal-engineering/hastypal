@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/google/uuid"
 	"log/slog"
 	"net/http"

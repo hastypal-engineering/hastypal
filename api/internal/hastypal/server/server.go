@@ -3,10 +3,10 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/constants"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/middleware"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	middleware2 "github.com/adriein/hastypal/internal/hastypal/shared/middleware"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"log"
 	"log/slog"
 	"net/http"
@@ -30,8 +30,8 @@ func (s *HastypalApiServer) Start() {
 	v1 := http.NewServeMux()
 	v1.Handle("/api/v1/", http.StripPrefix("/api/v1", s.router))
 
-	MuxMiddleWareChain := middleware.NewMiddlewareChain(
-		middleware.NewRequestTracingMiddleware,
+	MuxMiddleWareChain := middleware2.NewMiddlewareChain(
+		middleware2.NewRequestTracingMiddleware,
 	)
 
 	server := http.Server{
@@ -44,7 +44,7 @@ func (s *HastypalApiServer) Start() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		evtErr := types.ApiError{Msg: err.Error(), Function: "Start", File: "server.go"}
+		evtErr := types2.ApiError{Msg: err.Error(), Function: "Start", File: "server.go"}
 
 		log.Fatal(evtErr.Error())
 	}
@@ -54,18 +54,18 @@ func (s *HastypalApiServer) Route(url string, handler http.Handler) {
 	s.router.Handle(url, handler)
 }
 
-func (s *HastypalApiServer) NewHandler(handler types.HastypalHttpHandler) http.HandlerFunc {
+func (s *HastypalApiServer) NewHandler(handler types2.HastypalHttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var appError types.ApiErrorInterface
+		var appError types2.ApiErrorInterface
 
 		if err := handler(w, r); errors.As(err, &appError) {
 			if appError.IsDomain() {
-				response := types.ServerResponse{
+				response := types2.ServerResponse{
 					Ok:    false,
 					Error: appError.PresentableError(),
 				}
 
-				if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusOK, response); encodeErr != nil {
+				if encodeErr := helper.Encode[types2.ServerResponse](w, http.StatusOK, response); encodeErr != nil {
 					log.Fatal(encodeErr.Error())
 				}
 
@@ -74,12 +74,12 @@ func (s *HastypalApiServer) NewHandler(handler types.HastypalHttpHandler) http.H
 				return
 			}
 
-			response := types.ServerResponse{
+			response := types2.ServerResponse{
 				Ok:    false,
 				Error: constants.ServerGenericError,
 			}
 
-			if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusInternalServerError, response); encodeErr != nil {
+			if encodeErr := helper.Encode[types2.ServerResponse](w, http.StatusInternalServerError, response); encodeErr != nil {
 				log.Fatal(encodeErr.Error())
 			}
 

@@ -3,8 +3,8 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
 )
 
@@ -22,11 +22,11 @@ func NewPgTelegramNotificationRepository(connection *sql.DB) *PgTelegramNotifica
 	}
 }
 
-func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]types.TelegramNotification, error) {
+func (r *PgTelegramNotificationRepository) Find(criteria types2.Criteria) ([]types2.TelegramNotification, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Find -> r.transformer.Transform()",
 			File:     "pg-telegram-notification-repository.go",
@@ -36,7 +36,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
+		return nil, types2.ApiError{
 			Msg:      queryErr.Error(),
 			Function: "Find -> r.connection.Query()",
 			File:     "pg-telegram-notification-repository.go",
@@ -55,7 +55,7 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 		created_at    string
 	)
 
-	var results []types.TelegramNotification
+	var results []types2.TelegramNotification
 
 	for rows.Next() {
 		if scanErr := rows.Scan(
@@ -66,14 +66,14 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			&business_name,
 			&created_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
+			return nil, types2.ApiError{
 				Msg:      scanErr.Error(),
 				Function: "Find -> rows.Scan()",
 				File:     "pg-telegram-notification-repository.go",
 			}
 		}
 
-		results = append(results, types.TelegramNotification{
+		results = append(results, types2.TelegramNotification{
 			Id:          id,
 			SessionId:   session_id,
 			ScheduledAt: scheduled_at,
@@ -86,11 +86,11 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 	return results, nil
 }
 
-func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (types.TelegramNotification, error) {
+func (r *PgTelegramNotificationRepository) FindOne(criteria types2.Criteria) (types2.TelegramNotification, error) {
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.TelegramNotification{}, types.ApiError{
+		return types2.TelegramNotification{}, types2.ApiError{
 			Msg:      err.Error(),
 			Function: "FindOne -> r.transformer.Transform()",
 			File:     "pg-telegram-notification-repository.go",
@@ -115,7 +115,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		&created_at,
 	); scanErr != nil {
 		if errors.As(err, &sql.ErrNoRows) {
-			return types.TelegramNotification{}, types.ApiError{
+			return types2.TelegramNotification{}, types2.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "FindOne -> rows.Scan()",
 				File:     "pg-telegram-notification-repository.go",
@@ -124,7 +124,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 			}
 		}
 
-		return types.TelegramNotification{}, types.ApiError{
+		return types2.TelegramNotification{}, types2.ApiError{
 			Msg:      scanErr.Error(),
 			Function: "FindOne -> rows.Scan()",
 			File:     "pg-telegram-notification-repository.go",
@@ -132,7 +132,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		}
 	}
 
-	return types.TelegramNotification{
+	return types2.TelegramNotification{
 		Id:          id,
 		SessionId:   session_id,
 		ScheduledAt: scheduled_at,
@@ -142,7 +142,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 	}, nil
 }
 
-func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotification) error {
+func (r *PgTelegramNotificationRepository) Save(entity types2.TelegramNotification) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO telegram_notification `)
@@ -160,7 +160,7 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 	)
 
 	if err != nil {
-		return types.ApiError{
+		return types2.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-telegram-notification-repository.go",
@@ -177,8 +177,8 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 	return nil
 }
 
-func (r *PgTelegramNotificationRepository) Update(_ types.TelegramNotification) error {
-	return types.ApiError{
+func (r *PgTelegramNotificationRepository) Update(_ types2.TelegramNotification) error {
+	return types2.ApiError{
 		Msg:      "Method not implemented yet",
 		Function: "Update",
 		File:     "pg-telegram-notification-repository.go",
