@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS telegram_notification (
     chat_id INT NOT NULL,
     business_name VARCHAR(255) NOT NULL,
     created_at VARCHAR(60) NOT NULL,
-    FOREIGN KEY (session_id) REFERENCES booking_session(id)
-    FOREIGN KEY (booking_id) REFERENCES booking(id)
+    FOREIGN KEY (session_id) REFERENCES booking_session(id),
+    FOREIGN KEY (booking_id) REFERENCES booking(id),
     FOREIGN KEY (business_id) REFERENCES business(id)
 );
