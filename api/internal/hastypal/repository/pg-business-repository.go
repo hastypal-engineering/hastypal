@@ -181,10 +181,10 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	query.WriteString(`(id, name, contact_phone, email, password, opening_hours, holidays, channel_name, location, created_at, updated_at) `)
 	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`)
 
-	opening_hours, opening_hours_err := json.Marshal(entity.OpeningHours)
-	if opening_hours_err != nil {
+	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
+	if openingHoursErr != nil {
 		return types.ApiError{
-			Msg:      opening_hours_err.Error(),
+			Msg:      openingHoursErr.Error(),
 			Function: "Save -> json.Marshal(entity.OpeningHours)",
 			File:     "pg-business-repository.go",
 			Values: []string{
@@ -197,10 +197,10 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 		}
 	}
 
-	holidays, holidays_err := json.Marshal(entity.Holidays)
-	if holidays_err != nil {
+	holidays, holidaysErr := json.Marshal(entity.Holidays)
+	if holidaysErr != nil {
 		return types.ApiError{
-			Msg:      holidays_err.Error(),
+			Msg:      holidaysErr.Error(),
 			Function: "Save -> json.Marshal(entity.Holidays)",
 			File:     "pg-business-repository.go",
 			Values: []string{
@@ -220,7 +220,7 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 		entity.ContactPhone,
 		entity.Email,
 		entity.Password,
-		opening_hours,
+		openingHours,
 		holidays,
 		entity.ChannelName,
 		entity.Location,
