@@ -1,4 +1,4 @@
-package service
+package business
 
 import "github.com/adriein/hastypal/internal/hastypal/types"
 

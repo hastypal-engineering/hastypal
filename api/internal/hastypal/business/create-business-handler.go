@@ -1,20 +1,19 @@
-package handler
+package business
 
 import (
 	"encoding/json"
 	"net/http"
 
 	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 )
 
 type CreateBusinessHandler struct {
-	service *service.CreateBusinessService
+	service *CreateBusinessService
 }
 
 func NewCreateBusinessHandler(
-	service *service.CreateBusinessService,
+	service *CreateBusinessService,
 ) *CreateBusinessHandler {
 	return &CreateBusinessHandler{
 		service: service,

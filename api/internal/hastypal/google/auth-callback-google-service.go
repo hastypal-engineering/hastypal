@@ -1,26 +1,27 @@
-package service
+package google
 
 import (
+	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"net/url"
 )
 
-type GoogleAuthCallbackService struct {
+type AuthCallbackGoogleService struct {
 	repository types.Repository[types.GoogleToken]
-	googleApi  *GoogleApi
+	googleApi  *service.GoogleApi
 }
 
-func NewGoogleAuthCallbackService(
+func NewAuthCallbackGoogleService(
 	repository types.Repository[types.GoogleToken],
-	googleApi *GoogleApi,
-) *GoogleAuthCallbackService {
-	return &GoogleAuthCallbackService{
+	googleApi *service.GoogleApi,
+) *AuthCallbackGoogleService {
+	return &AuthCallbackGoogleService{
 		repository: repository,
 		googleApi:  googleApi,
 	}
 }
 
-func (s *GoogleAuthCallbackService) Execute(request string) error {
+func (s *AuthCallbackGoogleService) Execute(request string) error {
 	parsedUrl, parseUrlErr := url.Parse(request)
 
 	if parseUrlErr != nil {

@@ -3,6 +3,8 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/adriein/hastypal/internal/hastypal/business"
+	"github.com/adriein/hastypal/internal/hastypal/google"
 	"log"
 	"net/http"
 	"os"
@@ -122,7 +124,9 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 func constructGoogleAuthHandler(api *server.HastypalApiServer) http.HandlerFunc {
 	googleApi := service.NewGoogleApi()
 
-	controller := handler.NewGoogleAuthHandler(googleApi)
+	authGoogleService := google.NewAuthGoogleService(googleApi)
+
+	controller := google.NewGoogleAuthHandler(authGoogleService)
 
 	return api.NewHandler(controller.Handler)
 }
@@ -131,9 +135,9 @@ func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database 
 	googleApi := service.NewGoogleApi()
 	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
 
-	callbackService := service.NewGoogleAuthCallbackService(googleTokenRepository, googleApi)
+	callbackService := google.NewAuthCallbackGoogleService(googleTokenRepository, googleApi)
 
-	controller := handler.NewGoogleAuthCallbackHandler(callbackService)
+	controller := google.NewGoogleAuthCallbackHandler(callbackService)
 
 	return api.NewHandler(controller.Handler)
 }
@@ -141,9 +145,9 @@ func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database 
 func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	businessRepository := repository.NewPgBusinessRepository(database)
 
-	createBusinessService := service.NewCreateBusinessService(businessRepository)
+	createBusinessService := business.NewCreateBusinessService(businessRepository)
 
-	controller := handler.NewCreateBusinessHandler(createBusinessService)
+	controller := business.NewCreateBusinessHandler(createBusinessService)
 
 	return api.NewHandler(controller.Handler)
 }

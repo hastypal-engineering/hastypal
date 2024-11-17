@@ -1,25 +1,24 @@
-package handler
+package google
 
 import (
 	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/adriein/hastypal/internal/hastypal/types"
 	"net/http"
 )
 
-type GoogleAuthCallbackHandler struct {
-	service *service.GoogleAuthCallbackService
+type AuthCallbackGoogleHandler struct {
+	service *AuthCallbackGoogleService
 }
 
 func NewGoogleAuthCallbackHandler(
-	service *service.GoogleAuthCallbackService,
-) *GoogleAuthCallbackHandler {
-	return &GoogleAuthCallbackHandler{
+	service *AuthCallbackGoogleService,
+) *AuthCallbackGoogleHandler {
+	return &AuthCallbackGoogleHandler{
 		service: service,
 	}
 }
 
-func (h *GoogleAuthCallbackHandler) Handler(w http.ResponseWriter, r *http.Request) error {
+func (h *AuthCallbackGoogleHandler) Handler(w http.ResponseWriter, r *http.Request) error {
 	if err := h.service.Execute(r.RequestURI); err != nil {
 		return err
 	}
