@@ -76,12 +76,18 @@ func (s *FinishCommandTelegramService) Execute(business types.Business, update t
 		return duplicatedErr
 	}
 
-	if registerErr := s.registerNotification(session, update, business); registerErr != nil {
-		return registerErr
+	booking, createBookingErr := s.createBooking(session, business)
+
+	if createBookingErr != nil {
+		return createBookingErr
 	}
 
-	if createBookingErr := s.createBooking(session, business); createBookingErr != nil {
-		return createBookingErr
+	if storeBookingErr := s.storeBooking(booking); storeBookingErr != nil {
+		return storeBookingErr
+	}
+
+	if registerErr := s.registerNotification(booking, update, business); registerErr != nil {
+		return registerErr
 	}
 
 	event := &calendar.Event{
@@ -178,18 +184,18 @@ func (s *FinishCommandTelegramService) ensureNotDuplicatedNotification(session t
 }
 
 func (s *FinishCommandTelegramService) registerNotification(
-	session types.BookingSession,
+	booking types.Booking,
 	update types.TelegramUpdate,
 	business types.Business,
 ) error {
-	bookingDate, timeParseErr := time.Parse(time.DateTime, session.Date)
+	bookingDate, timeParseErr := time.Parse(time.DateTime, booking.When)
 
 	if timeParseErr != nil {
 		return types.ApiError{
 			Msg:      timeParseErr.Error(),
 			Function: "registerNotification -> time.Parse()",
 			File:     "service/telegram-finish-command.go",
-			Values:   []string{session.Date},
+			Values:   []string{booking.When},
 		}
 	}
 
@@ -204,7 +210,9 @@ func (s *FinishCommandTelegramService) registerNotification(
 
 	notification := types.TelegramNotification{
 		Id:          uuid.New().String(),
-		SessionId:   session.Id,
+		SessionId:   booking.SessionId,
+		BookingId:   booking.Id,
+		BusinessId:  business.Id,
 		ScheduledAt: notificationDate.Format(time.DateTime),
 		ChatId:      update.CallbackQuery.From.Id,
 		From:        business.Name,
@@ -218,11 +226,14 @@ func (s *FinishCommandTelegramService) registerNotification(
 	return nil
 }
 
-func (s *FinishCommandTelegramService) createBooking(session types.BookingSession, business types.Business) error {
+func (s *FinishCommandTelegramService) createBooking(
+	session types.BookingSession,
+	business types.Business,
+) (types.Booking, error) {
 	bookingDate, timeParseErr := time.Parse(time.DateTime, session.Date)
 
 	if timeParseErr != nil {
-		return types.ApiError{
+		return types.Booking{}, types.ApiError{
 			Msg:      timeParseErr.Error(),
 			Function: "createBooking -> time.Parse()",
 			File:     "service/telegram-finish-command.go",
@@ -235,7 +246,7 @@ func (s *FinishCommandTelegramService) createBooking(session types.BookingSessio
 	bookingHour, hourConversionErr := strconv.Atoi(stringHours[0])
 
 	if hourConversionErr != nil {
-		return types.ApiError{
+		return types.Booking{}, types.ApiError{
 			Msg:      hourConversionErr.Error(),
 			Function: "createBooking -> strconv.Atoi()",
 			File:     "service/telegram-finish-command.go",
@@ -246,7 +257,7 @@ func (s *FinishCommandTelegramService) createBooking(session types.BookingSessio
 	bookingMinutes, minutesConversionErr := strconv.Atoi(stringHours[1])
 
 	if minutesConversionErr != nil {
-		return types.ApiError{
+		return types.Booking{}, types.ApiError{
 			Msg:      minutesConversionErr.Error(),
 			Function: "createBooking -> strconv.Atoi()",
 			File:     "service/telegram-finish-command.go",
@@ -270,6 +281,10 @@ func (s *FinishCommandTelegramService) createBooking(session types.BookingSessio
 		CreatedAt:  time.Now().Format(time.DateTime),
 	}
 
+	return booking, nil
+}
+
+func (s *FinishCommandTelegramService) storeBooking(booking types.Booking) error {
 	if saveErr := s.bookingRepository.Save(booking); saveErr != nil {
 		return saveErr
 	}

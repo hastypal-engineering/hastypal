@@ -4,6 +4,6 @@ CREATE TABLE IF NOT EXISTS google_token (
     token_type VARCHAR(255) NOT NULL,
     refresh_token VARCHAR(255) NOT NULL,
     created_at VARCHAR(60) NOT NULL,
-    updated_at VARCHAR(60) NOT NULL
-    -- FOREIGN KEY (business_id) REFERENCES business(id)
+    updated_at VARCHAR(60) NOT NULL,
+    FOREIGN KEY (business_id) REFERENCES business(id)
 );

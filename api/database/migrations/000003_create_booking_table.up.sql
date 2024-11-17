@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS booking (
     service_id VARCHAR(36) NOT NULL,
     booking_date VARCHAR(60) NOT NULL,
     created_at VARCHAR(60) NOT NULL,
-    FOREIGN KEY (session_id) REFERENCES booking_session(id)
+    FOREIGN KEY (session_id) REFERENCES booking_session(id),
+    FOREIGN KEY (business_id) REFERENCES business(id)
 );

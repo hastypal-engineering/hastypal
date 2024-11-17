@@ -7,5 +7,6 @@ CREATE TABLE IF NOT EXISTS booking_session (
     hour VARCHAR(5) NOT NULL,
     created_at VARCHAR(60) NOT NULL,
     updated_at VARCHAR(60) NOT NULL,
-    ttl INTEGER NOT NULL
+    ttl INTEGER NOT NULL,
+    FOREIGN KEY (business_id) REFERENCES business(id)
 );
