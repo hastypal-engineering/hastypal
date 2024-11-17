@@ -90,26 +90,7 @@ func (s *FinishCommandTelegramService) Execute(business types.Business, update t
 		return registerErr
 	}
 
-	event := &calendar.Event{
-		Summary:     "Google I/O 2015",
-		Location:    "800 Howard St., San Francisco, CA 94103",
-		Description: "A chance to hear more about Google's developer products.",
-		Start: &calendar.EventDateTime{
-			DateTime: "2024-11-20T09:00:00-07:00",
-			TimeZone: "America/Los_Angeles",
-		},
-		End: &calendar.EventDateTime{
-			DateTime: "2024-11-20T17:00:00-07:00",
-			TimeZone: "America/Los_Angeles",
-		},
-		Organizer: &calendar.EventOrganizer{
-			Email: "adria.claret@gmail.com",
-			Self:  true,
-		},
-		Status: "confirmed",
-	}
-
-	if registerEventErr := s.registerEventInBusinessCalendar(business, event); registerEventErr != nil {
+	if registerEventErr := s.registerEventInBusinessCalendar(business, booking); registerEventErr != nil {
 		return registerEventErr
 	}
 
@@ -328,12 +309,39 @@ func (s *FinishCommandTelegramService) getGoogleCalendarClient(business types.Bu
 
 func (s *FinishCommandTelegramService) registerEventInBusinessCalendar(
 	business types.Business,
-	event *calendar.Event,
+	booking types.Booking,
 ) error {
 	client, getClientErr := s.getGoogleCalendarClient(business)
 
 	if getClientErr != nil {
 		return getClientErr
+	}
+
+	bookingStartDate, timeParseErr := time.Parse(time.DateTime, booking.When)
+
+	if timeParseErr != nil {
+		return timeParseErr
+	}
+
+	bookingFinishDate := bookingStartDate.Add(1 * time.Hour)
+
+	event := &calendar.Event{
+		Summary:     "Google I/O 2015",
+		Location:    "800 Howard St., San Francisco, CA 94103",
+		Description: "A chance to hear more about Google's developer products.",
+		Start: &calendar.EventDateTime{
+			DateTime: bookingStartDate.Format(time.RFC3339),
+			TimeZone: "Europe/Madrid",
+		},
+		End: &calendar.EventDateTime{
+			DateTime: bookingFinishDate.Format(time.RFC3339),
+			TimeZone: "Europe/Madrid",
+		},
+		Organizer: &calendar.EventOrganizer{
+			Email: "adria.claret@gmail.com",
+			Self:  true,
+		},
+		Status: "confirmed",
 	}
 
 	_, insertErr := client.Events.Insert("primary", event).Do()
