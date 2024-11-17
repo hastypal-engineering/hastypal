@@ -2,10 +2,11 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/adriein/hastypal/internal/hastypal/helper"
 	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/adriein/hastypal/internal/hastypal/types"
-	"net/http"
 )
 
 type CreateBusinessHandler struct {

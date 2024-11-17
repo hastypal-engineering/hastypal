@@ -3,6 +3,10 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/adriein/hastypal/internal/hastypal/constants"
 	"github.com/adriein/hastypal/internal/hastypal/handler"
 	"github.com/adriein/hastypal/internal/hastypal/helper"
@@ -11,9 +15,6 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/service"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"log"
-	"net/http"
-	"os"
 )
 
 func main() {
@@ -63,6 +64,8 @@ func main() {
 
 	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
+
+	api.Route("POST /business", constructCreateBusinessHandler(api, database))
 
 	api.Start()
 
@@ -131,6 +134,16 @@ func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database 
 	callbackService := service.NewGoogleAuthCallbackService(googleTokenRepository, googleApi)
 
 	controller := handler.NewGoogleAuthCallbackHandler(callbackService)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	businessRepository := repository.NewPgBusinessRepository(database)
+
+	createBusinessService := service.NewCreateBusinessService(businessRepository)
+
+	controller := handler.NewCreateBusinessHandler(createBusinessService)
 
 	return api.NewHandler(controller.Handler)
 }
