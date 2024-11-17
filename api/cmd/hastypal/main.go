@@ -5,18 +5,17 @@ import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/business"
 	"github.com/adriein/hastypal/internal/hastypal/google"
+	"github.com/adriein/hastypal/internal/hastypal/server"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/repository"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/telegram"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/adriein/hastypal/internal/hastypal/handler"
-	"github.com/adriein/hastypal/internal/hastypal/server"
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -105,7 +104,7 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 		finishCommandHandler,
 	)
 
-	controller := handler.NewTelegramWebhookHandler(webhookService)
+	controller := telegram.NewNotificationWebhookTelegramHandler(webhookService)
 
 	return api.NewHandler(controller.Handler)
 }

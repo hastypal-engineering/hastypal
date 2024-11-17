@@ -1,4 +1,4 @@
-package handler
+package telegram
 
 import (
 	"encoding/json"
@@ -7,19 +7,19 @@ import (
 	"net/http"
 )
 
-type TelegramWebhookHandler struct {
+type NotificationWebhookTelegramHandler struct {
 	service *service.TelegramWebhookService
 }
 
-func NewTelegramWebhookHandler(
+func NewNotificationWebhookTelegramHandler(
 	service *service.TelegramWebhookService,
-) *TelegramWebhookHandler {
-	return &TelegramWebhookHandler{
+) *NotificationWebhookTelegramHandler {
+	return &NotificationWebhookTelegramHandler{
 		service: service,
 	}
 }
 
-func (h *TelegramWebhookHandler) Handler(w http.ResponseWriter, r *http.Request) error {
+func (h *NotificationWebhookTelegramHandler) Handler(w http.ResponseWriter, r *http.Request) error {
 	var update types2.TelegramUpdate
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&update); decodeErr != nil {
