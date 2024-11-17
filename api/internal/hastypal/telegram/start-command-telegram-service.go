@@ -1,30 +1,31 @@
-package service
+package telegram
 
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	helper2 "github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
 	"time"
 )
 
-type TelegramStartCommandService struct {
-	bot        *TelegramBot
-	repository types2.Repository[types2.BookingSession]
+type StartCommandTelegramService struct {
+	bot        *service.TelegramBot
+	repository types.Repository[types.BookingSession]
 }
 
-func NewTelegramStartCommandService(
-	bot *TelegramBot,
-	repository types2.Repository[types2.BookingSession],
-) *TelegramStartCommandService {
-	return &TelegramStartCommandService{
+func NewStartCommandTelegramService(
+	bot *service.TelegramBot,
+	repository types.Repository[types.BookingSession],
+) *StartCommandTelegramService {
+	return &StartCommandTelegramService{
 		bot:        bot,
 		repository: repository,
 	}
 }
 
-func (s *TelegramStartCommandService) Execute(business types2.Business, update types2.TelegramUpdate) error {
+func (s *StartCommandTelegramService) Execute(business types.Business, update types.TelegramUpdate) error {
 	var markdownText strings.Builder
 
 	session, createSessionErr := s.createSession(business.Id, update.Message.Chat.Id)
@@ -49,27 +50,27 @@ func (s *TelegramStartCommandService) Execute(business types2.Business, update t
 	markdownText.WriteString(welcome)
 	markdownText.WriteString("*Te muestro a continuación los servicios que ofrecemos:*\n\n")
 
-	buttons := make([]types2.KeyboardButton, len(services))
+	buttons := make([]types.KeyboardButton, len(services))
 
 	for i, service := range services {
 		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, service))
 
-		buttons[i] = types2.KeyboardButton{
+		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
 			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
 		}
 	}
 
-	array := helper2.NewArrayHelper[types2.KeyboardButton]()
+	array := helper.NewArrayHelper[types.KeyboardButton]()
 
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types2.SendTelegramMessage{
+	message := types.SendTelegramMessage{
 		ChatId:         update.Message.Chat.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
-		ReplyMarkup:    types2.ReplyMarkup{InlineKeyboard: inlineKeyboard},
+		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
@@ -79,12 +80,12 @@ func (s *TelegramStartCommandService) Execute(business types2.Business, update t
 	return nil
 }
 
-func (s *TelegramStartCommandService) createSession(businessId string, chatId int) (types2.BookingSession, error) {
-	uuidHelper := helper2.NewUuidHelper()
+func (s *StartCommandTelegramService) createSession(businessId string, chatId int) (types.BookingSession, error) {
+	uuidHelper := helper.NewUuidHelper()
 
 	sessionId := uuidHelper.GenerateShort()
 
-	session := types2.BookingSession{
+	session := types.BookingSession{
 		Id:         sessionId,
 		BusinessId: businessId,
 		ChatId:     chatId,
@@ -97,7 +98,7 @@ func (s *TelegramStartCommandService) createSession(businessId string, chatId in
 	}
 
 	if err := s.repository.Save(session); err != nil {
-		return types2.BookingSession{}, err
+		return types.BookingSession{}, err
 	}
 
 	return session, nil

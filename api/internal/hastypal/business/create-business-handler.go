@@ -3,7 +3,7 @@ package business
 import (
 	"encoding/json"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
 )
 
@@ -20,10 +20,10 @@ func NewCreateBusinessHandler(
 }
 
 func (h *CreateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) error {
-	var request types2.Business
+	var request types.Business
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
 			File:     "create-business.go",
@@ -34,9 +34,9 @@ func (h *CreateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) 
 		return serviceErr
 	}
 
-	response := types2.ServerResponse{Ok: true}
+	response := types.ServerResponse{Ok: true}
 
-	if err := helper.Encode[types2.ServerResponse](w, http.StatusCreated, response); err != nil {
+	if err := helper.Encode[types.ServerResponse](w, http.StatusCreated, response); err != nil {
 		return err
 	}
 

@@ -1,32 +1,32 @@
-package service
+package telegram
 
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 	"strings"
 )
 
-type TelegramWebhookService struct {
-	repository                 types2.Repository[types2.Business]
-	startCommandHandler        types2.TelegramCommandHandler
-	datesCommandHandler        types2.TelegramCommandHandler
-	hoursCommandHandler        types2.TelegramCommandHandler
-	confirmationCommandHandler types2.TelegramCommandHandler
-	finishCommandHandler       types2.TelegramCommandHandler
+type NotificationWebhookTelegramService struct {
+	repository                 types.Repository[types.Business]
+	startCommandHandler        types.TelegramCommandHandler
+	datesCommandHandler        types.TelegramCommandHandler
+	hoursCommandHandler        types.TelegramCommandHandler
+	confirmationCommandHandler types.TelegramCommandHandler
+	finishCommandHandler       types.TelegramCommandHandler
 }
 
-func NewTelegramWebhookService(
-	repository types2.Repository[types2.Business],
-	startCommandHandler types2.TelegramCommandHandler,
-	datesCommandHandler types2.TelegramCommandHandler,
-	hoursCommandHandler types2.TelegramCommandHandler,
-	confirmationCommandHandler types2.TelegramCommandHandler,
-	finishCommandHandler types2.TelegramCommandHandler,
-) *TelegramWebhookService {
-	return &TelegramWebhookService{
+func NewNotificationWebhookTelegramService(
+	repository types.Repository[types.Business],
+	startCommandHandler types.TelegramCommandHandler,
+	datesCommandHandler types.TelegramCommandHandler,
+	hoursCommandHandler types.TelegramCommandHandler,
+	confirmationCommandHandler types.TelegramCommandHandler,
+	finishCommandHandler types.TelegramCommandHandler,
+) *NotificationWebhookTelegramService {
+	return &NotificationWebhookTelegramService{
 		repository:                 repository,
 		startCommandHandler:        startCommandHandler,
 		datesCommandHandler:        datesCommandHandler,
@@ -36,8 +36,8 @@ func NewTelegramWebhookService(
 	}
 }
 
-func (s *TelegramWebhookService) Execute(update types2.TelegramUpdate) error {
-	pipe := [2]types2.ResolveTelegramUpdate{s.resolveBotCommand, s.resolveCallbackQueryCommand}
+func (s *NotificationWebhookTelegramService) Execute(update types.TelegramUpdate) error {
+	pipe := [2]types.ResolveTelegramUpdate{s.resolveBotCommand, s.resolveCallbackQueryCommand}
 
 	for i := 0; i < len(pipe); i++ {
 		parseFunc := pipe[i]
@@ -50,8 +50,8 @@ func (s *TelegramWebhookService) Execute(update types2.TelegramUpdate) error {
 	return nil
 }
 
-func (s *TelegramWebhookService) resolveBotCommand(update types2.TelegramUpdate) error {
-	reflection := helper.NewReflectionHelper[types2.TelegramUpdate]()
+func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.TelegramUpdate) error {
+	reflection := helper.NewReflectionHelper[types.TelegramUpdate]()
 
 	if !reflection.HasField(update, constants.TelegramMessageField) {
 		return nil
@@ -77,15 +77,15 @@ func (s *TelegramWebhookService) resolveBotCommand(update types2.TelegramUpdate)
 		return err
 	}
 
-	if handlerErr := handler.Execute(types2.Business{}, update); handlerErr != nil {
+	if handlerErr := handler.Execute(types.Business{}, update); handlerErr != nil {
 		return handlerErr
 	}
 
 	return nil
 }
 
-func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types2.TelegramUpdate) error {
-	reflection := helper.NewReflectionHelper[types2.TelegramUpdate]()
+func (s *NotificationWebhookTelegramService) resolveCallbackQueryCommand(update types.TelegramUpdate) error {
+	reflection := helper.NewReflectionHelper[types.TelegramUpdate]()
 
 	if !reflection.HasField(update, constants.TelegramCallbackQueryField) {
 		return nil
@@ -94,7 +94,7 @@ func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types2.Teleg
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      parseUrlErr.Error(),
 			Function: "Execute -> url.Parse()",
 			File:     "telegram-webhook.go",
@@ -120,14 +120,14 @@ func (s *TelegramWebhookService) resolveCallbackQueryCommand(update types2.Teleg
 		return err
 	}
 
-	if handlerErr := handler.Execute(types2.Business{}, update); handlerErr != nil {
+	if handlerErr := handler.Execute(types.Business{}, update); handlerErr != nil {
 		return handlerErr
 	}
 
 	return nil
 }
 
-func (s *TelegramWebhookService) resolveHandler(command string) (types2.TelegramCommandHandler, error) {
+func (s *NotificationWebhookTelegramService) resolveHandler(command string) (types.TelegramCommandHandler, error) {
 	switch command {
 	case constants.StartCommand:
 		return s.startCommandHandler, nil
@@ -141,7 +141,7 @@ func (s *TelegramWebhookService) resolveHandler(command string) (types2.Telegram
 		return s.finishCommandHandler, nil
 	}
 
-	return nil, types2.ApiError{
+	return nil, types.ApiError{
 		Msg:      fmt.Sprintf("Hanlder not found for command: %s", command),
 		Function: "Execute -> resolveHandler()",
 		File:     "service/telegram-webhook.go",

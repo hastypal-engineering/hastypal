@@ -2,17 +2,17 @@ package google
 
 import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 )
 
 type AuthCallbackGoogleService struct {
-	repository types2.Repository[types2.GoogleToken]
+	repository types.Repository[types.GoogleToken]
 	googleApi  *service.GoogleApi
 }
 
 func NewAuthCallbackGoogleService(
-	repository types2.Repository[types2.GoogleToken],
+	repository types.Repository[types.GoogleToken],
 	googleApi *service.GoogleApi,
 ) *AuthCallbackGoogleService {
 	return &AuthCallbackGoogleService{
@@ -25,7 +25,7 @@ func (s *AuthCallbackGoogleService) Execute(request string) error {
 	parsedUrl, parseUrlErr := url.Parse(request)
 
 	if parseUrlErr != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      parseUrlErr.Error(),
 			Function: "Handler -> url.Parse()",
 			File:     "handler/google-auth-callback.go",

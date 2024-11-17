@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -36,21 +36,21 @@ func (g *GoogleApi) GetAuthCodeUrl() string {
 	return config.AuthCodeURL(verifier, oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(verifier))
 }
 
-func (g *GoogleApi) ExchangeToken(state string, code string) (types2.GoogleToken, error) {
+func (g *GoogleApi) ExchangeToken(state string, code string) (types.GoogleToken, error) {
 	ctx := context.Background()
 	config := g.GetOauth2Config()
 
 	token, exchangeErr := config.Exchange(ctx, code, oauth2.VerifierOption(state))
 
 	if exchangeErr != nil {
-		return types2.GoogleToken{}, types2.ApiError{
+		return types.GoogleToken{}, types.ApiError{
 			Msg:      exchangeErr.Error(),
 			Function: "Handler -> config.Exchange()",
 			File:     "service/google-api.go",
 		}
 	}
 
-	googleToken := types2.GoogleToken{
+	googleToken := types.GoogleToken{
 		BusinessId:   state,
 		AccessToken:  token.AccessToken,
 		TokenType:    token.TokenType,
@@ -62,7 +62,7 @@ func (g *GoogleApi) ExchangeToken(state string, code string) (types2.GoogleToken
 	return googleToken, nil
 }
 
-func (g *GoogleApi) CalendarClient(businessToken types2.GoogleToken) (*calendar.Service, error) {
+func (g *GoogleApi) CalendarClient(businessToken types.GoogleToken) (*calendar.Service, error) {
 	ctx := context.Background()
 
 	config := g.GetOauth2Config()
@@ -76,7 +76,7 @@ func (g *GoogleApi) CalendarClient(businessToken types2.GoogleToken) (*calendar.
 	client, newServiceErr := calendar.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
 
 	if newServiceErr != nil {
-		return nil, types2.ApiError{
+		return nil, types.ApiError{
 			Msg:      newServiceErr.Error(),
 			Function: "CalendarClient -> calendar.NewService()",
 			File:     "service/google-api.go",

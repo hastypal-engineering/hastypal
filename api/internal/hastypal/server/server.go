@@ -6,7 +6,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	middleware2 "github.com/adriein/hastypal/internal/hastypal/shared/middleware"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"log"
 	"log/slog"
 	"net/http"
@@ -44,7 +44,7 @@ func (s *HastypalApiServer) Start() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		evtErr := types2.ApiError{Msg: err.Error(), Function: "Start", File: "server.go"}
+		evtErr := types.ApiError{Msg: err.Error(), Function: "Start", File: "server.go"}
 
 		log.Fatal(evtErr.Error())
 	}
@@ -54,18 +54,18 @@ func (s *HastypalApiServer) Route(url string, handler http.Handler) {
 	s.router.Handle(url, handler)
 }
 
-func (s *HastypalApiServer) NewHandler(handler types2.HastypalHttpHandler) http.HandlerFunc {
+func (s *HastypalApiServer) NewHandler(handler types.HastypalHttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var appError types2.ApiErrorInterface
+		var appError types.ApiErrorInterface
 
 		if err := handler(w, r); errors.As(err, &appError) {
 			if appError.IsDomain() {
-				response := types2.ServerResponse{
+				response := types.ServerResponse{
 					Ok:    false,
 					Error: appError.PresentableError(),
 				}
 
-				if encodeErr := helper.Encode[types2.ServerResponse](w, http.StatusOK, response); encodeErr != nil {
+				if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusOK, response); encodeErr != nil {
 					log.Fatal(encodeErr.Error())
 				}
 
@@ -74,12 +74,12 @@ func (s *HastypalApiServer) NewHandler(handler types2.HastypalHttpHandler) http.
 				return
 			}
 
-			response := types2.ServerResponse{
+			response := types.ServerResponse{
 				Ok:    false,
 				Error: constants.ServerGenericError,
 			}
 
-			if encodeErr := helper.Encode[types2.ServerResponse](w, http.StatusInternalServerError, response); encodeErr != nil {
+			if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusInternalServerError, response); encodeErr != nil {
 				log.Fatal(encodeErr.Error())
 			}
 

@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
 )
 
@@ -21,7 +21,7 @@ func NewPgServiceCatalogRepository(connection *sql.DB) *PgServiceCatalogReposito
 	}
 }
 
-func (r *PgServiceCatalogRepository) Save(entity types2.ServiceCatalog) error {
+func (r *PgServiceCatalogRepository) Save(entity types.ServiceCatalog) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO service_catalog `)
@@ -39,7 +39,7 @@ func (r *PgServiceCatalogRepository) Save(entity types2.ServiceCatalog) error {
 	)
 
 	if err != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      err.Error(),
 			Function: "Save -> r.connection.Exec()",
 			File:     "pg-service-catalog-repository.go",

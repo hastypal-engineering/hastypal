@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	types2 "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"io"
 	"net/http"
 )
@@ -21,11 +21,11 @@ func NewTelegramBot(url string, token string) *TelegramBot {
 	}
 }
 
-func (tb *TelegramBot) SendMsg(msg types2.SendTelegramMessage) error {
+func (tb *TelegramBot) SendMsg(msg types.SendTelegramMessage) error {
 	byteEncodedBody, jsonEncodeError := json.Marshal(msg)
 
 	if jsonEncodeError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      jsonEncodeError.Error(),
 			Function: "SendMsg -> json.Marshal()",
 			File:     "service/telegram-bot.go",
@@ -43,7 +43,7 @@ func (tb *TelegramBot) SendMsg(msg types2.SendTelegramMessage) error {
 	)
 
 	if requestCreationError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestCreationError.Error(),
 			Function: "SendMsg -> http.NewRequest()",
 			File:     "service/telegram-bot.go",
@@ -56,7 +56,7 @@ func (tb *TelegramBot) SendMsg(msg types2.SendTelegramMessage) error {
 	response, requestError := client.Do(request)
 
 	if requestError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestError.Error(),
 			Function: "SendMsg -> client.Do()",
 			File:     "service/telegram-bot.go",
@@ -69,23 +69,23 @@ func (tb *TelegramBot) SendMsg(msg types2.SendTelegramMessage) error {
 		body, ioReaderErr := io.ReadAll(response.Body)
 
 		if ioReaderErr != nil {
-			return types2.ApiError{
+			return types.ApiError{
 				Msg:      response.Status,
 				Function: "SendMsg -> io.ReadAll()",
 				File:     "service/telegram-bot.go",
 			}
 		}
 
-		var data types2.TelegramHttpResponse
+		var data types.TelegramHttpResponse
 		if unmarshalErr := json.Unmarshal(body, &data); unmarshalErr != nil {
-			return types2.ApiError{
+			return types.ApiError{
 				Msg:      unmarshalErr.Error(),
 				Function: "SendMsg -> json.Unmarshal()",
 				File:     "service/telegram-bot.go",
 			}
 		}
 
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      fmt.Sprintf("Error code: %d, Description: %s", data.ErrorCode, data.Description),
 			Function: "SendMsg",
 			File:     "service/telegram-bot.go",
@@ -95,11 +95,11 @@ func (tb *TelegramBot) SendMsg(msg types2.SendTelegramMessage) error {
 	return nil
 }
 
-func (tb *TelegramBot) AnswerCallbackQuery(msg types2.AnswerCallbackQuery) error {
+func (tb *TelegramBot) AnswerCallbackQuery(msg types.AnswerCallbackQuery) error {
 	byteEncodedBody, jsonEncodeError := json.Marshal(msg)
 
 	if jsonEncodeError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      jsonEncodeError.Error(),
 			Function: "AnswerCallbackQuery -> json.Marshal()",
 			File:     "service/telegram-bot.go",
@@ -117,7 +117,7 @@ func (tb *TelegramBot) AnswerCallbackQuery(msg types2.AnswerCallbackQuery) error
 	)
 
 	if requestCreationError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestCreationError.Error(),
 			Function: "AnswerCallbackQuery -> http.NewRequest()",
 			File:     "service/telegram-bot.go",
@@ -130,7 +130,7 @@ func (tb *TelegramBot) AnswerCallbackQuery(msg types2.AnswerCallbackQuery) error
 	response, requestError := client.Do(request)
 
 	if requestError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestError.Error(),
 			Function: "AnswerCallbackQuery -> client.Do()",
 			File:     "service/telegram-bot.go",
@@ -143,23 +143,23 @@ func (tb *TelegramBot) AnswerCallbackQuery(msg types2.AnswerCallbackQuery) error
 		body, ioReaderErr := io.ReadAll(response.Body)
 
 		if ioReaderErr != nil {
-			return types2.ApiError{
+			return types.ApiError{
 				Msg:      response.Status,
 				Function: "AnswerCallbackQuery -> io.ReadAll()",
 				File:     "service/telegram-bot.go",
 			}
 		}
 
-		var data types2.TelegramHttpResponse
+		var data types.TelegramHttpResponse
 		if unmarshalErr := json.Unmarshal(body, &data); unmarshalErr != nil {
-			return types2.ApiError{
+			return types.ApiError{
 				Msg:      unmarshalErr.Error(),
 				Function: "AnswerCallbackQuery -> json.Unmarshal()",
 				File:     "service/telegram-bot.go",
 			}
 		}
 
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      fmt.Sprintf("Error code: %d, Description: %s", data.ErrorCode, data.Description),
 			Function: "AnswerCallbackQuery",
 			File:     "service/telegram-bot.go",
@@ -169,15 +169,15 @@ func (tb *TelegramBot) AnswerCallbackQuery(msg types2.AnswerCallbackQuery) error
 	return nil
 }
 
-func (tb *TelegramBot) SetCommands(commands []types2.TelegramBotCommand) error {
+func (tb *TelegramBot) SetCommands(commands []types.TelegramBotCommand) error {
 	type SetCommand struct {
-		Commands []types2.TelegramBotCommand `json:"commands"`
+		Commands []types.TelegramBotCommand `json:"commands"`
 	}
 
 	byteEncodedBody, jsonEncodeError := json.Marshal(SetCommand{Commands: commands})
 
 	if jsonEncodeError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      jsonEncodeError.Error(),
 			Function: "SetCommands -> json.Marshal()",
 			File:     "service/telegram-bot.go",
@@ -195,7 +195,7 @@ func (tb *TelegramBot) SetCommands(commands []types2.TelegramBotCommand) error {
 	)
 
 	if requestCreationError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestCreationError.Error(),
 			Function: "SetCommands -> http.NewRequest()",
 			File:     "service/telegram-bot.go",
@@ -208,7 +208,7 @@ func (tb *TelegramBot) SetCommands(commands []types2.TelegramBotCommand) error {
 	response, requestError := client.Do(request)
 
 	if requestError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestError.Error(),
 			Function: "SetCommands -> client.Do()",
 			File:     "service/telegram-bot.go",
@@ -218,7 +218,7 @@ func (tb *TelegramBot) SetCommands(commands []types2.TelegramBotCommand) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      response.Status,
 			Function: "SetCommands -> client.Do()",
 			File:     "service/telegram-bot.go",
@@ -228,11 +228,11 @@ func (tb *TelegramBot) SetCommands(commands []types2.TelegramBotCommand) error {
 	return nil
 }
 
-func (tb *TelegramBot) SetWebhook(webhook types2.TelegramWebhook) error {
+func (tb *TelegramBot) SetWebhook(webhook types.TelegramWebhook) error {
 	byteEncodedBody, jsonEncodeError := json.Marshal(webhook)
 
 	if jsonEncodeError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      jsonEncodeError.Error(),
 			Function: "SetWebhook -> json.Marshal()",
 			File:     "service/telegram-bot.go",
@@ -250,7 +250,7 @@ func (tb *TelegramBot) SetWebhook(webhook types2.TelegramWebhook) error {
 	)
 
 	if requestCreationError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestCreationError.Error(),
 			Function: "SetWebhook -> http.NewRequest()",
 			File:     "service/telegram-bot.go",
@@ -263,7 +263,7 @@ func (tb *TelegramBot) SetWebhook(webhook types2.TelegramWebhook) error {
 	response, requestError := client.Do(request)
 
 	if requestError != nil {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      requestError.Error(),
 			Function: "SetWebhook -> client.Do()",
 			File:     "service/telegram-bot.go",
@@ -273,7 +273,7 @@ func (tb *TelegramBot) SetWebhook(webhook types2.TelegramWebhook) error {
 	defer response.Body.Close()
 
 	if response.StatusCode != http.StatusOK {
-		return types2.ApiError{
+		return types.ApiError{
 			Msg:      response.Status,
 			Function: "SetWebhook -> client.Do()",
 			File:     "service/telegram-bot.go",
