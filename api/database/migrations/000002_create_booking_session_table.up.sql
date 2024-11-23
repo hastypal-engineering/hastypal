@@ -1,10 +1,12 @@
-CREATE TABLE IF NOT EXISTS booking (
+CREATE TABLE IF NOT EXISTS booking_session (
     id VARCHAR(36) PRIMARY KEY, -- Unique identifier (UUID)
-    session_id VARCHAR(8) NOT NULL,
     business_id VARCHAR(36) NOT NULL,
+    chat_id VARCHAR(36) NOT NULL,
     service_id VARCHAR(36) NOT NULL,
-    booking_date VARCHAR(60) NOT NULL,
+    date VARCHAR(60) NOT NULL,
+    hour VARCHAR(5) NOT NULL,
     created_at VARCHAR(60) NOT NULL,
-    FOREIGN KEY (session_id) REFERENCES booking_session(id),
+    updated_at VARCHAR(60) NOT NULL,
+    ttl INTEGER NOT NULL,
     FOREIGN KEY (business_id) REFERENCES business(id)
 );
