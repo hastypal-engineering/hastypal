@@ -21,17 +21,15 @@ func NewLoginBusinessService(repository types.Repository[LoginBusiness]) *LoginB
 }
 
 func (s *LoginBusinessService) Execute(request LoginBusiness) error {
-	// Get business with email from request
-	_, getBusinessErr := s.getBusiness(request.Email)
+	business, getBusinessErr := s.getBusiness(request.Email)
 
 	if getBusinessErr != nil {
 		return getBusinessErr
 	}
-	// If not exists return error
 
-	// Compare given password with stored password
-
-	// If passwords don't match return error
+	if comparePasswordsError := s.comparePasswords(business.Password, request.Password); comparePasswordsError != nil {
+		return comparePasswordsError
+	}
 
 	return nil
 }
@@ -52,4 +50,17 @@ func (s *LoginBusinessService) getBusiness(email string) (LoginBusiness, error) 
 	}
 
 	return business, nil
+}
+
+func (s *LoginBusinessService) comparePasswords(storedPassword string, givenPassword string) error {
+	if storedPassword != givenPassword {
+		return types.ApiError{
+			Msg:      "Passwords don't match",
+			Function: "Execute -> comparePasswords()",
+			File:     "login-business-service.go",
+			Domain:   true,
+		}
+	}
+
+	return nil
 }
