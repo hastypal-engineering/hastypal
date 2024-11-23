@@ -3,18 +3,19 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/adriein/hastypal/internal/hastypal/business"
+	"github.com/adriein/hastypal/internal/hastypal/google"
+	"github.com/adriein/hastypal/internal/hastypal/server"
+	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	"github.com/adriein/hastypal/internal/hastypal/shared/repository"
+	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/telegram"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/adriein/hastypal/internal/hastypal/constants"
-	"github.com/adriein/hastypal/internal/hastypal/handler"
-	"github.com/adriein/hastypal/internal/hastypal/helper"
-	"github.com/adriein/hastypal/internal/hastypal/repository"
-	"github.com/adriein/hastypal/internal/hastypal/server"
-	"github.com/adriein/hastypal/internal/hastypal/service"
-	"github.com/joho/godotenv"
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -59,7 +60,6 @@ func main() {
 		log.Fatal(dbConnErr.Error())
 	}
 
-	api.Route("POST /bot-setup", constructBotSetupHandler(api, database))
 	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
 
 	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
@@ -72,16 +72,6 @@ func main() {
 	defer database.Close()
 }
 
-func constructBotSetupHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
-
-	setupBotService := service.NewSetupTelegramBotService(bot)
-
-	controller := handler.NewSetupTelegramBotHandler(setupBotService)
-
-	return api.NewHandler(controller.Handler)
-}
-
 func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	googleApi := service.NewGoogleApi()
 	businessRepository := repository.NewPgBusinessRepository(database)
@@ -92,11 +82,11 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
 
-	startCommandHandler := service.NewTelegramStartCommandService(bot, sessionRepository)
-	datesCommandHandler := service.NewTelegramDatesCommandService(bot, sessionRepository)
-	hoursCommandHandler := service.NewTelegramHoursCommandService(bot, sessionRepository)
-	confirmationCommandHandler := service.NewTelegramConfirmationCommandService(bot, sessionRepository)
-	finishCommandHandler := service.NewTelegramFinishCommandService(
+	startCommandService := telegram.NewStartCommandTelegramService(bot, sessionRepository)
+	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository)
+	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository)
+	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository)
+	finishCommandService := telegram.NewFinishCommandTelegramService(
 		bot,
 		googleApi,
 		sessionRepository,
@@ -105,16 +95,16 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 		googleTokenRepository,
 	)
 
-	webhookService := service.NewTelegramWebhookService(
+	webhookService := telegram.NewNotificationWebhookTelegramService(
 		businessRepository,
-		startCommandHandler,
-		datesCommandHandler,
-		hoursCommandHandler,
-		confirmationCommandHandler,
-		finishCommandHandler,
+		startCommandService,
+		datesCommandService,
+		hoursCommandService,
+		confirmationCommandService,
+		finishCommandService,
 	)
 
-	controller := handler.NewTelegramWebhookHandler(webhookService)
+	controller := telegram.NewNotificationWebhookTelegramHandler(webhookService)
 
 	return api.NewHandler(controller.Handler)
 }
@@ -122,7 +112,9 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 func constructGoogleAuthHandler(api *server.HastypalApiServer) http.HandlerFunc {
 	googleApi := service.NewGoogleApi()
 
-	controller := handler.NewGoogleAuthHandler(googleApi)
+	authGoogleService := google.NewAuthGoogleService(googleApi)
+
+	controller := google.NewGoogleAuthHandler(authGoogleService)
 
 	return api.NewHandler(controller.Handler)
 }
@@ -131,9 +123,9 @@ func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database 
 	googleApi := service.NewGoogleApi()
 	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
 
-	callbackService := service.NewGoogleAuthCallbackService(googleTokenRepository, googleApi)
+	callbackService := google.NewAuthCallbackGoogleService(googleTokenRepository, googleApi)
 
-	controller := handler.NewGoogleAuthCallbackHandler(callbackService)
+	controller := google.NewGoogleAuthCallbackHandler(callbackService)
 
 	return api.NewHandler(controller.Handler)
 }
@@ -141,9 +133,9 @@ func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database 
 func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	businessRepository := repository.NewPgBusinessRepository(database)
 
-	createBusinessService := service.NewCreateBusinessService(businessRepository)
+	createBusinessService := business.NewCreateBusinessService(businessRepository)
 
-	controller := handler.NewCreateBusinessHandler(createBusinessService)
+	controller := business.NewCreateBusinessHandler(createBusinessService)
 
 	return api.NewHandler(controller.Handler)
 }
