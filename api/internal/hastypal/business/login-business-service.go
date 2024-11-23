@@ -1,8 +1,8 @@
 package business
 
 import (
-	"github.com/adriein/hastypal/internal/hastypal/constants"
-	"github.com/adriein/hastypal/internal/hastypal/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 )
 
 type LoginBusiness struct {
