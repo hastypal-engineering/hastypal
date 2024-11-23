@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	middleware2 "github.com/adriein/hastypal/internal/hastypal/shared/middleware"
-	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/middleware"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"log"
 	"log/slog"
 	"net/http"
@@ -30,8 +30,8 @@ func (s *HastypalApiServer) Start() {
 	v1 := http.NewServeMux()
 	v1.Handle("/api/v1/", http.StripPrefix("/api/v1", s.router))
 
-	MuxMiddleWareChain := middleware2.NewMiddlewareChain(
-		middleware2.NewRequestTracingMiddleware,
+	MuxMiddleWareChain := middleware.NewMiddlewareChain(
+		middleware.NewRequestTracingMiddleware,
 	)
 
 	server := http.Server{

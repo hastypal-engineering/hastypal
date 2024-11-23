@@ -2,7 +2,7 @@ package telegram
 
 import (
 	"encoding/json"
-	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
 )
 

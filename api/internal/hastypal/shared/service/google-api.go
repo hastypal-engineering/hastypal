@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"

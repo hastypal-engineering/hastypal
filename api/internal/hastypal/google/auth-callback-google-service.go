@@ -2,7 +2,7 @@ package google
 
 import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
-	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 )
 
