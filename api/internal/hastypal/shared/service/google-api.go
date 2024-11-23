@@ -28,12 +28,10 @@ func (g *GoogleApi) GetOauth2Config() *oauth2.Config {
 	}
 }
 
-func (g *GoogleApi) GetAuthCodeUrl() string {
+func (g *GoogleApi) GetAuthCodeUrlForBusiness(businessId string) string {
 	config := g.GetOauth2Config()
 
-	verifier := "testId"
-
-	return config.AuthCodeURL(verifier, oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(verifier))
+	return config.AuthCodeURL(businessId, oauth2.AccessTypeOffline, oauth2.S256ChallengeOption(businessId))
 }
 
 func (g *GoogleApi) ExchangeToken(state string, code string) (types.GoogleToken, error) {

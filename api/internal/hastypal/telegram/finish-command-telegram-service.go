@@ -286,7 +286,7 @@ func (s *FinishCommandTelegramService) getBusinessGoogleToken(business types.Bus
 	filter := types.Filter{
 		Name:    "business_id",
 		Operand: constants.Equal,
-		Value:   "testId",
+		Value:   business.Id,
 	}
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}

@@ -4,6 +4,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
+	"net/url"
 )
 
 type AuthGoogleHandler struct {
@@ -18,8 +19,21 @@ func NewGoogleAuthHandler(
 	}
 }
 
-func (h *AuthGoogleHandler) Handler(w http.ResponseWriter, _ *http.Request) error {
-	googleAuthUrl := h.service.Execute()
+func (h *AuthGoogleHandler) Handler(w http.ResponseWriter, r *http.Request) error {
+	url, urlParseErr := url.Parse(r.URL.String())
+
+	if urlParseErr != nil {
+		return types.ApiError{
+			Msg:      urlParseErr.Error(),
+			Function: "Handler -> url.Parse()",
+			File:     "auth-google-handler.go",
+			Values:   []string{r.URL.String()},
+		}
+	}
+
+	businessId := url.Query().Get("businessId")
+
+	googleAuthUrl := h.service.Execute(businessId)
 
 	response := types.ServerResponse{
 		Ok:   true,
