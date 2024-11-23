@@ -10,7 +10,6 @@ import (
 )
 
 type NotificationWebhookTelegramService struct {
-	repository                 types.Repository[types.Business]
 	startCommandHandler        types.TelegramCommandHandler
 	datesCommandHandler        types.TelegramCommandHandler
 	hoursCommandHandler        types.TelegramCommandHandler
@@ -19,7 +18,6 @@ type NotificationWebhookTelegramService struct {
 }
 
 func NewNotificationWebhookTelegramService(
-	repository types.Repository[types.Business],
 	startCommandHandler types.TelegramCommandHandler,
 	datesCommandHandler types.TelegramCommandHandler,
 	hoursCommandHandler types.TelegramCommandHandler,
@@ -27,7 +25,6 @@ func NewNotificationWebhookTelegramService(
 	finishCommandHandler types.TelegramCommandHandler,
 ) *NotificationWebhookTelegramService {
 	return &NotificationWebhookTelegramService{
-		repository:                 repository,
 		startCommandHandler:        startCommandHandler,
 		datesCommandHandler:        datesCommandHandler,
 		hoursCommandHandler:        hoursCommandHandler,
@@ -59,25 +56,13 @@ func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.Tele
 
 	text := strings.Split(update.Message.Text, " ")
 
-	/*filters := make([]types.Filter, 1)
-
-	filters[0] = types.Filter{Name: "diffusion_channel", Value: text[1]}
-
-	criteria := types.Criteria{Filters: filters}
-
-	business, err := s.repository.FindOne(criteria)
-
-	if err != nil {
-		return err
-	}*/
-
 	handler, err := s.resolveHandler(text[0])
 
 	if err != nil {
 		return err
 	}
 
-	if handlerErr := handler.Execute(types.Business{}, update); handlerErr != nil {
+	if handlerErr := handler.Execute(update); handlerErr != nil {
 		return handlerErr
 	}
 
@@ -102,25 +87,13 @@ func (s *NotificationWebhookTelegramService) resolveCallbackQueryCommand(update 
 		}
 	}
 
-	/*filters := make([]types.Filter, 1)
-
-	filters[0] = types.Filter{Name: "diffusion_channel", Value: text[1]}
-
-	criteria := types.Criteria{Filters: filters}
-
-	business, err := s.repository.FindOne(criteria)
-
-	if err != nil {
-		return err
-	}*/
-
 	handler, err := s.resolveHandler(parsedUrl.Path)
 
 	if err != nil {
 		return err
 	}
 
-	if handlerErr := handler.Execute(types.Business{}, update); handlerErr != nil {
+	if handlerErr := handler.Execute(update); handlerErr != nil {
 		return handlerErr
 	}
 

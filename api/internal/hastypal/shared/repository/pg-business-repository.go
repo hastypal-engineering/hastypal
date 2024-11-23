@@ -48,17 +48,17 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	defer rows.Close()
 
 	var (
-		id              string
-		name            string
-		contact_phone   string
-		email           string
-		password        string
-		service_catalog []types.ServiceCatalog
-		opening_hours   map[string][]string
-		channel_name    string
-		location        string
-		created_at      string
-		updated_at      string
+		id            string
+		name          string
+		contact_phone string
+		email         string
+		password      string
+		channel_name  string
+		location      string
+		opening_hours map[string][]string
+		holidays      map[string][]string
+		created_at    string
+		updated_at    string
 	)
 
 	var results []types.Business
@@ -70,10 +70,10 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			&contact_phone,
 			&email,
 			&password,
-			&service_catalog,
-			&opening_hours,
 			&channel_name,
 			&location,
+			&opening_hours,
+			&holidays,
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
@@ -85,17 +85,16 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		}
 
 		results = append(results, types.Business{
-			Id:             id,
-			Name:           name,
-			ContactPhone:   contact_phone,
-			Email:          email,
-			Password:       password,
-			ServiceCatalog: service_catalog,
-			OpeningHours:   opening_hours,
-			ChannelName:    channel_name,
-			Location:       location,
-			CreatedAt:      created_at,
-			UpdatedAt:      updated_at,
+			Id:           id,
+			Name:         name,
+			ContactPhone: contact_phone,
+			Email:        email,
+			Password:     password,
+			OpeningHours: opening_hours,
+			ChannelName:  channel_name,
+			Location:     location,
+			CreatedAt:    created_at,
+			UpdatedAt:    updated_at,
 		})
 	}
 
@@ -114,29 +113,29 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	var (
-		id                  string
-		name                string
-		communication_phone string
-		email               string
-		password            string
-		service_catalog     []types.ServiceCatalog
-		opening_hours       map[string][]string
-		channel_name        string
-		location            string
-		created_at          string
-		updated_at          string
+		id            string
+		name          string
+		contact_phone string
+		email         string
+		password      string
+		channel_name  string
+		location      string
+		opening_hours map[string][]string
+		holidays      map[string][]string
+		created_at    string
+		updated_at    string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
 		&id,
 		&name,
-		&communication_phone,
+		&contact_phone,
 		&email,
 		&password,
-		&service_catalog,
-		&opening_hours,
 		&channel_name,
 		&location,
+		&opening_hours,
+		&holidays,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
@@ -159,17 +158,16 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	return types.Business{
-		Id:             id,
-		Name:           name,
-		ContactPhone:   communication_phone,
-		Email:          email,
-		Password:       password,
-		ServiceCatalog: service_catalog,
-		OpeningHours:   opening_hours,
-		ChannelName:    channel_name,
-		Location:       location,
-		CreatedAt:      created_at,
-		UpdatedAt:      updated_at,
+		Id:           id,
+		Name:         name,
+		ContactPhone: contact_phone,
+		Email:        email,
+		Password:     password,
+		OpeningHours: opening_hours,
+		ChannelName:  channel_name,
+		Location:     location,
+		CreatedAt:    created_at,
+		UpdatedAt:    updated_at,
 	}, nil
 }
 

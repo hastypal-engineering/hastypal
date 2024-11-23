@@ -26,7 +26,7 @@ func NewPickDateCommandTelegramService(
 	}
 }
 
-func (s *PickDateCommandTelegramService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
 		return ackErr
 	}

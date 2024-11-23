@@ -20,6 +20,7 @@ type FinishCommandTelegramService struct {
 	notificationRepository types.Repository[types.TelegramNotification]
 	bookingRepository      types.Repository[types.Booking]
 	googleTokenRepository  types.Repository[types.GoogleToken]
+	businessRepository     types.Repository[types.Business]
 }
 
 func NewFinishCommandTelegramService(
@@ -29,6 +30,7 @@ func NewFinishCommandTelegramService(
 	notificationRepository types.Repository[types.TelegramNotification],
 	bookingRepository types.Repository[types.Booking],
 	googleTokenRepository types.Repository[types.GoogleToken],
+	businessRepository types.Repository[types.Business],
 ) *FinishCommandTelegramService {
 	return &FinishCommandTelegramService{
 		bot:                    bot,
@@ -37,10 +39,11 @@ func NewFinishCommandTelegramService(
 		notificationRepository: notificationRepository,
 		bookingRepository:      bookingRepository,
 		googleTokenRepository:  googleTokenRepository,
+		businessRepository:     businessRepository,
 	}
 }
 
-func (s *FinishCommandTelegramService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
 		return ackErr
 	}
@@ -70,6 +73,12 @@ func (s *FinishCommandTelegramService) Execute(business types.Business, update t
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
 		return invalidSession
+	}
+
+	business, getBusinessErr := s.getBusiness(session.BusinessId)
+
+	if getBusinessErr != nil {
+		return getBusinessErr
 	}
 
 	if duplicatedErr := s.ensureNotDuplicatedNotification(session); duplicatedErr != nil {
@@ -397,4 +406,20 @@ func (s *FinishCommandTelegramService) createInviteLink(event *calendar.Event) (
 	builder.WriteString(fmt.Sprintf("&text=%s", url.QueryEscape("Google I/O 2015")))
 
 	return builder, nil
+}
+
+func (s *FinishCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+	filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.businessRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.Business{}, err
+	}
+
+	return business, nil
 }

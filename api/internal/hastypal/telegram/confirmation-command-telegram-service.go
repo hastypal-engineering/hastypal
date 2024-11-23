@@ -26,7 +26,7 @@ func NewConfirmationCommandTelegramService(
 	}
 }
 
-func (s *ConfirmationCommandTelegramService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
 		return ackErr
 	}
