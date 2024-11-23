@@ -55,8 +55,8 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		password      string
 		channel_name  string
 		location      string
-		opening_hours map[string][]string
-		holidays      map[string][]string
+		opening_hours []uint8
+		holidays      []uint8
 		created_at    string
 		updated_at    string
 	)
@@ -84,13 +84,40 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			}
 		}
 
+		var openingHours map[string][]string
+
+		openingHoursUnMarshalErr := json.Unmarshal(opening_hours, &openingHours)
+
+		if openingHoursUnMarshalErr != nil {
+			return results, types.ApiError{
+				Msg:      openingHoursUnMarshalErr.Error(),
+				Function: "FindOne -> json.Unmarshal(openingHours)",
+				File:     "pg-business-repository.go",
+				Values:   []string{query},
+			}
+		}
+
+		var holidaysMap map[string][]string
+
+		holidaysUnMarshalErr := json.Unmarshal(holidays, &holidaysMap)
+
+		if holidaysUnMarshalErr != nil {
+			return results, types.ApiError{
+				Msg:      holidaysUnMarshalErr.Error(),
+				Function: "FindOne -> json.Unmarshal(holidays)",
+				File:     "pg-business-repository.go",
+				Values:   []string{query},
+			}
+		}
+
 		results = append(results, types.Business{
 			Id:           id,
 			Name:         name,
 			ContactPhone: contact_phone,
 			Email:        email,
 			Password:     password,
-			OpeningHours: opening_hours,
+			OpeningHours: openingHours,
+			Holidays:     holidaysMap,
 			ChannelName:  channel_name,
 			Location:     location,
 			CreatedAt:    created_at,
@@ -120,8 +147,8 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		password      string
 		channel_name  string
 		location      string
-		opening_hours map[string][]string
-		holidays      map[string][]string
+		opening_hours []uint8
+		holidays      []uint8
 		created_at    string
 		updated_at    string
 	)
@@ -157,13 +184,40 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		}
 	}
 
+	var openingHours map[string][]string
+
+	openingHoursUnMarshalErr := json.Unmarshal(opening_hours, &openingHours)
+
+	if openingHoursUnMarshalErr != nil {
+		return types.Business{}, types.ApiError{
+			Msg:      openingHoursUnMarshalErr.Error(),
+			Function: "FindOne -> json.Unmarshal(openingHours)",
+			File:     "pg-business-repository.go",
+			Values:   []string{query},
+		}
+	}
+
+	var holidaysMap map[string][]string
+
+	holidaysUnMarshalErr := json.Unmarshal(holidays, &holidaysMap)
+
+	if holidaysUnMarshalErr != nil {
+		return types.Business{}, types.ApiError{
+			Msg:      holidaysUnMarshalErr.Error(),
+			Function: "FindOne -> json.Unmarshal(holidays)",
+			File:     "pg-business-repository.go",
+			Values:   []string{query},
+		}
+	}
+
 	return types.Business{
 		Id:           id,
 		Name:         name,
 		ContactPhone: contact_phone,
 		Email:        email,
 		Password:     password,
-		OpeningHours: opening_hours,
+		OpeningHours: openingHours,
+		Holidays:     holidaysMap,
 		ChannelName:  channel_name,
 		Location:     location,
 		CreatedAt:    created_at,
