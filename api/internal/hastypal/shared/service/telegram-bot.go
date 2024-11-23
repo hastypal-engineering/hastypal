@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	types "github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"io"
 	"net/http"
 )
