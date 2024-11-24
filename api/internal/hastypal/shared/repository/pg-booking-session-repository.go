@@ -130,7 +130,7 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		&updated_at,
 		&ttl,
 	); scanErr != nil {
-		if errors.As(err, &sql.ErrNoRows) {
+		if errors.Is(scanErr, sql.ErrNoRows) {
 			return types.BookingSession{}, types.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "FindOne -> rows.Scan()",

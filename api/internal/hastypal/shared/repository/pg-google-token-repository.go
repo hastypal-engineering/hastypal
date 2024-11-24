@@ -114,7 +114,7 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
-		if errors.As(err, &sql.ErrNoRows) {
+		if errors.Is(scanErr, sql.ErrNoRows) {
 			return types.GoogleToken{}, types.ApiError{
 				Msg:      "Entity GoogleToken not found",
 				Function: "FindOne -> rows.Scan()",

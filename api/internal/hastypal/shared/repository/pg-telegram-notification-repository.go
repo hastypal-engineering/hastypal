@@ -124,7 +124,7 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		&business_name,
 		&created_at,
 	); scanErr != nil {
-		if errors.As(err, &sql.ErrNoRows) {
+		if errors.Is(scanErr, sql.ErrNoRows) {
 			return types.TelegramNotification{}, types.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "FindOne -> rows.Scan()",

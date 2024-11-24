@@ -40,7 +40,20 @@ func (s *NotificationWebhookTelegramService) Execute(update types.TelegramUpdate
 		parseFunc := pipe[i]
 
 		if err := parseFunc(update); err != nil {
-			return err
+			switch i {
+			case 0:
+				return types.WrapErr(
+					"resolveBotCommand",
+					"notification-webhook-telegram-service",
+					err,
+				)
+			case 1:
+				return types.WrapErr(
+					"resolveCallbackQueryCommand",
+					"notification-webhook-telegram-service",
+					err,
+				)
+			}
 		}
 	}
 
@@ -63,7 +76,7 @@ func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.Tele
 	}
 
 	if handlerErr := handler.Execute(update); handlerErr != nil {
-		return handlerErr
+		return types.WrapErr("handler.Execute", "notification-webhook-telegram-service", handlerErr)
 	}
 
 	return nil

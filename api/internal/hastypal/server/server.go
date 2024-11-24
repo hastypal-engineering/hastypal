@@ -62,7 +62,7 @@ func (s *HastypalApiServer) NewHandler(handler types.HastypalHttpHandler) http.H
 			if appError.IsDomain() {
 				response := types.ServerResponse{
 					Ok:    false,
-					Error: appError.PresentableError(),
+					Error: appError.PresentError(),
 				}
 
 				if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusOK, response); encodeErr != nil {
