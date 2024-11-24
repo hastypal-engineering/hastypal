@@ -167,7 +167,7 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&updated_at,
 	); scanErr != nil {
 		if errors.Is(scanErr, sql.ErrNoRows) {
-			return types.Business{}, types.ParallelApiError{
+			return types.Business{}, types.ApiError{
 				Msg:      "Entity Business not found",
 				Function: "r.connection.QueryRow.Scan",
 				File:     "pg-business-repository.go",

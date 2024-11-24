@@ -39,7 +39,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 		//Stacktrace: [Execute|s.getBusiness|start-command-telegram-service.go,getBusiness|s.businessRepository.FindOne|start-command-telegram-service.go, FindOne|r.connection.QueryRow|pg-business-repository.go]; Values: [criteria, SELECT * FROM business WHERE id = 'businessId']
 		//Stacktrace: [getBusiness|s.businessRepository.FindOne|start-command-telegram-service.go, FindOne|r.connection.QueryRow|pg-business-repository.go]; Values: [criteria, SELECT * FROM business WHERE id = 'businessId']
 		//Err: Entity Business not found; Stacktrace: FindOne|r.connection.QueryRow|pg-business-repository.go; Values: [SELECT * FROM business WHERE id = 'businessId']
-		return types.WrapErr(
+		return types.WrapError(
 			"s.getBusiness",
 			"start-command-telegram-service",
 			getBusinessErr,
@@ -109,7 +109,7 @@ func (s *StartCommandTelegramService) getBusiness(businessId string) (types.Busi
 	business, err := s.businessRepository.FindOne(criteria)
 
 	if err != nil {
-		return types.Business{}, types.WrapErr(
+		return types.Business{}, types.WrapError(
 			"s.businessRepository.FindOne",
 			"start-command-telegram-service",
 			err,

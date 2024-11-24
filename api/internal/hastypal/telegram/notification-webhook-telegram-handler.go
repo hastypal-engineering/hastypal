@@ -30,7 +30,7 @@ func (h *NotificationWebhookTelegramHandler) Handler(w http.ResponseWriter, r *h
 	}
 
 	if serviceErr := h.service.Execute(update); serviceErr != nil {
-		return types.WrapErr("h.service.Execute", "notification-webhook-telegram-handler.go", serviceErr)
+		return types.WrapError("h.service.Execute", "notification-webhook-telegram-handler.go", serviceErr)
 	}
 
 	return nil
