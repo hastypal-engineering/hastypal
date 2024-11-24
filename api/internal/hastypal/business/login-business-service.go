@@ -11,10 +11,10 @@ type LoginBusiness struct {
 }
 
 type LoginBusinessService struct {
-	repository types.Repository[LoginBusiness]
+	repository types.Repository[types.Business]
 }
 
-func NewLoginBusinessService(repository types.Repository[LoginBusiness]) *LoginBusinessService {
+func NewLoginBusinessService(repository types.Repository[types.Business]) *LoginBusinessService {
 	return &LoginBusinessService{
 		repository: repository,
 	}
@@ -34,7 +34,7 @@ func (s *LoginBusinessService) Execute(request LoginBusiness) error {
 	return nil
 }
 
-func (s *LoginBusinessService) getBusiness(email string) (LoginBusiness, error) {
+func (s *LoginBusinessService) getBusiness(email string) (types.Business, error) {
 	filter := types.Filter{
 		Name:    "email",
 		Operand: constants.Equal,
@@ -46,7 +46,7 @@ func (s *LoginBusinessService) getBusiness(email string) (LoginBusiness, error) 
 	business, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return LoginBusiness{}, findOneErr
+		return types.Business{}, findOneErr
 	}
 
 	return business, nil
