@@ -44,7 +44,6 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 			"start-command-telegram-service",
 			getBusinessErr,
 		)
-		return getBusinessErr
 	}
 
 	session, createSessionErr := s.createSession(business.Id, update.Message.Chat.Id)
