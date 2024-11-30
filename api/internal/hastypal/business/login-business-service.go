@@ -20,18 +20,18 @@ func NewLoginBusinessService(repository types.Repository[types.Business]) *Login
 	}
 }
 
-func (s *LoginBusinessService) Execute(request LoginBusiness) error {
+func (s *LoginBusinessService) Execute(request LoginBusiness) (types.Business, error) {
 	business, getBusinessErr := s.getBusiness(request.Email)
 
 	if getBusinessErr != nil {
-		return getBusinessErr
+		return types.Business{}, getBusinessErr
 	}
 
 	if comparePasswordsError := s.comparePasswords(business.Password, request.Password); comparePasswordsError != nil {
-		return comparePasswordsError
+		return types.Business{}, comparePasswordsError
 	}
 
-	return nil
+	return business, nil
 }
 
 func (s *LoginBusinessService) getBusiness(email string) (types.Business, error) {

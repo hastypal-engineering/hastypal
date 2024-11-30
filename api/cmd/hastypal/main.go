@@ -36,6 +36,7 @@ func main() {
 		constants.TelegramApiBotUrl,
 		constants.GoogleClientId,
 		constants.GoogleClientSecret,
+		constants.JwtKey,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {
