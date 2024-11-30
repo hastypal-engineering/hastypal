@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -28,7 +29,11 @@ func NewConfirmationCommandTelegramService(
 
 func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
-		return ackErr
+		return exception.Wrap(
+			"s.ackToTelegramClient",
+			"confirmation-command-telegram-service.go",
+			ackErr,
+		)
 	}
 
 	var markdownText strings.Builder
@@ -36,12 +41,9 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
 
 	if loadLocationErr != nil {
-		return types.ApiError{
-			Msg:      loadLocationErr.Error(),
-			Function: "Execute -> time.LoadLocation()",
-			File:     "telegram-confirmation-command.go",
-			Values:   []string{"Europe/Madrid"},
-		}
+		return exception.New(loadLocationErr.Error()).
+			Trace("time.LoadLocation", "confirmation-command-telegram-service.go").
+			WithValues([]string{"Europe/Madrid"})
 	}
 
 	time.Local = location
@@ -49,12 +51,9 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
-			Msg:      parseUrlErr.Error(),
-			Function: "Execute -> url.Parse()",
-			File:     "telegram-confirmation-command.go",
-			Values:   []string{update.CallbackQuery.Data},
-		}
+		return exception.New(parseUrlErr.Error()).
+			Trace("url.Parse(update.CallbackQuery.Data)", "confirmation-command-telegram-service.go").
+			WithValues([]string{update.CallbackQuery.Data})
 	}
 
 	queryParams := parsedUrl.Query()
@@ -64,26 +63,35 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	session, getSessionErr := s.getCurrentSession(sessionId)
 
 	if getSessionErr != nil {
-		return getSessionErr
+		return exception.Wrap(
+			"s.getCurrentSession",
+			"confirmation-command-telegram-service.go",
+			getSessionErr,
+		)
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return invalidSession
+		return exception.Wrap(
+			"session.EnsureIsValid",
+			"confirmation-command-telegram-service.go",
+			invalidSession,
+		)
 	}
 
 	if updateSessionErr := s.updateSession(session, hour); updateSessionErr != nil {
-		return updateSessionErr
+		return exception.Wrap(
+			"s.updateSession",
+			"confirmation-command-telegram-service.go",
+			updateSessionErr,
+		)
 	}
 
 	selectedDate, timeParseErr := time.Parse(time.DateTime, session.Date)
 
 	if timeParseErr != nil {
-		return types.ApiError{
-			Msg:      timeParseErr.Error(),
-			Function: "Execute -> time.Parse()",
-			File:     "telegram-confirmation-command.go",
-			Values:   []string{session.Date},
-		}
+		return exception.New(timeParseErr.Error()).
+			Trace("time.Parse(time.DateTime, session.Date)", "confirmation-command-telegram-service.go").
+			WithValues([]string{session.Date})
 	}
 
 	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
@@ -140,7 +148,11 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
-		return botSendMsgErr
+		return exception.Wrap(
+			"s.bot.SendMsg",
+			"confirmation-command-telegram-service.go",
+			botSendMsgErr,
+		)
 	}
 
 	return nil
@@ -162,7 +174,11 @@ func (s *ConfirmationCommandTelegramService) getCurrentSession(sessionId string)
 	session, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return types.BookingSession{}, findOneErr
+		return types.BookingSession{}, exception.Wrap(
+			"s.repository.FindOne",
+			"confirmation-command-telegram-service.go",
+			findOneErr,
+		)
 	}
 
 	return session, nil
@@ -186,7 +202,11 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 	mergedSession := reflection.Merge(actualSession, updatedSession)
 
 	if err := s.repository.Update(mergedSession); err != nil {
-		return err
+		return exception.Wrap(
+			"s.repository.Update",
+			"confirmation-command-telegram-service.go",
+			err,
+		)
 	}
 
 	return nil

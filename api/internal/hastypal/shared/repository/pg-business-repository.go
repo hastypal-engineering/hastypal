@@ -29,14 +29,14 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 
 	if err != nil {
 		return nil, exception.New(err.Error()).
-			Trace("r.transformer.Transform()", "pg-business-repository.go")
+			Trace("r.transformer.Transform", "pg-business-repository.go")
 	}
 
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
 		return nil, exception.New(queryErr.Error()).
-			Trace("r.connection.Query()", "pg-business-repository.go").
+			Trace("r.connection.Query", "pg-business-repository.go").
 			WithValues([]string{query})
 	}
 
@@ -73,7 +73,7 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			&updated_at,
 		); scanErr != nil {
 			return nil, exception.New(scanErr.Error()).
-				Trace("rows.Scan()", "pg-business-repository.go").
+				Trace("rows.Scan", "pg-business-repository.go").
 				WithValues([]string{query})
 		}
 
@@ -117,11 +117,8 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.Business{}, types.ApiError{
-			Msg:      err.Error(),
-			Function: "FindOne -> r.transformer.Transform()",
-			File:     "pg-business-repository.go",
-		}
+		return types.Business{}, exception.New(err.Error()).
+			Trace("r.transformer.Transform", "pg-business-repository.go")
 	}
 
 	var (
@@ -170,12 +167,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	openingHoursUnMarshalErr := json.Unmarshal(opening_hours, &openingHours)
 
 	if openingHoursUnMarshalErr != nil {
-		return types.Business{}, types.ApiError{
-			Msg:      openingHoursUnMarshalErr.Error(),
-			Function: "FindOne -> json.Unmarshal(openingHours)",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+		return types.Business{}, exception.
+			New(openingHoursUnMarshalErr.Error()).
+			Trace("json.Unmarshal(openingHours)", "pg-business-repository.go").
+			WithValues([]string{query})
 	}
 
 	var holidaysMap map[string][]string
@@ -183,12 +178,11 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	holidaysUnMarshalErr := json.Unmarshal(holidays, &holidaysMap)
 
 	if holidaysUnMarshalErr != nil {
-		return types.Business{}, types.ApiError{
-			Msg:      holidaysUnMarshalErr.Error(),
-			Function: "FindOne -> json.Unmarshal(holidays)",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+		return types.Business{}, exception.
+			New(holidaysUnMarshalErr.Error()).
+			Trace("json.Unmarshal(holidays, &holidaysMap)", "pg-business-repository.go").
+			WithValues([]string{query})
+
 	}
 
 	return types.Business{

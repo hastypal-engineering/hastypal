@@ -73,7 +73,8 @@ func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.Tele
 	handler, err := s.resolveHandler(text[0])
 
 	if err != nil {
-		return err
+		return exception.Wrap("s.resolveHandler", "notification-webhook-telegram-service", err).
+			WithValues([]string{text[0]})
 	}
 
 	if handlerErr := handler.Execute(update); handlerErr != nil {
@@ -93,22 +94,19 @@ func (s *NotificationWebhookTelegramService) resolveCallbackQueryCommand(update 
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
-			Msg:      parseUrlErr.Error(),
-			Function: "Execute -> url.Parse()",
-			File:     "telegram-webhook.go",
-			Values:   []string{update.CallbackQuery.Data},
-		}
+		return exception.New(parseUrlErr.Error()).
+			Trace("url.Parse", "notification-webhook-telegram-service").
+			WithValues([]string{update.CallbackQuery.Data})
 	}
 
 	handler, err := s.resolveHandler(parsedUrl.Path)
 
 	if err != nil {
-		return err
+		return exception.Wrap("s.resolveHandler", "notification-webhook-telegram-service", err)
 	}
 
 	if handlerErr := handler.Execute(update); handlerErr != nil {
-		return handlerErr
+		return exception.Wrap("handler.Execute", "notification-webhook-telegram-service", handlerErr)
 	}
 
 	return nil
@@ -128,9 +126,6 @@ func (s *NotificationWebhookTelegramService) resolveHandler(command string) (typ
 		return s.finishCommandHandler, nil
 	}
 
-	return nil, types.ApiError{
-		Msg:      fmt.Sprintf("Hanlder not found for command: %s", command),
-		Function: "Execute -> resolveHandler()",
-		File:     "service/telegram-webhook.go",
-	}
+	return nil, exception.New(fmt.Sprintf("Hanlder not found for command: %s", command)).
+		Trace("resolveHandler", "notification-webhook-telegram-service")
 }

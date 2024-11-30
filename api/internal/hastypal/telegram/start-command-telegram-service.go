@@ -47,7 +47,11 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 	session, createSessionErr := s.createSession(business.Id, update.Message.Chat.Id)
 
 	if createSessionErr != nil {
-		return createSessionErr
+		return exception.Wrap(
+			"s.createSession",
+			"start-command-telegram-service",
+			createSessionErr,
+		)
 	}
 
 	welcome := fmt.Sprintf(
@@ -90,7 +94,11 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
-		return botSendMsgErr
+		return exception.Wrap(
+			"s.bot.SendMsg",
+			"start-command-telegram-service",
+			botSendMsgErr,
+		)
 	}
 
 	return nil
@@ -134,7 +142,11 @@ func (s *StartCommandTelegramService) createSession(businessId string, chatId in
 	}
 
 	if err := s.sessionRepository.Save(session); err != nil {
-		return types.BookingSession{}, err
+		return types.BookingSession{}, exception.Wrap(
+			"s.sessionRepository.Save",
+			"start-command-telegram-service",
+			err,
+		)
 	}
 
 	return session, nil
