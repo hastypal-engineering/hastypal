@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
@@ -175,13 +176,12 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 				Domain:   true,
 			}
 		}
-		//FindOne|r.connection.QueryRow|pg-business-repository.go
-		return types.Business{}, types.ApiError{
-			Msg:      "Entity Business not found",
-			Function: "FindOne -> rows.Scan()",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+
+		return types.Business{}, exception.
+			New("Entity Business not found").
+			Trace("r.connection.QueryRow.Scan", "pg-business-repository.go").
+			WithValues([]string{query}).
+			Domain()
 	}
 
 	var openingHours map[string][]string

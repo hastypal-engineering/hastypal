@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -36,10 +37,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 	business, getBusinessErr := s.getBusiness(businessId)
 
 	if getBusinessErr != nil {
-		//Stacktrace: [Execute|s.getBusiness|start-command-telegram-service.go,getBusiness|s.businessRepository.FindOne|start-command-telegram-service.go, FindOne|r.connection.QueryRow|pg-business-repository.go]; Values: [criteria, SELECT * FROM business WHERE id = 'businessId']
-		//Stacktrace: [getBusiness|s.businessRepository.FindOne|start-command-telegram-service.go, FindOne|r.connection.QueryRow|pg-business-repository.go]; Values: [criteria, SELECT * FROM business WHERE id = 'businessId']
-		//Err: Entity Business not found; Stacktrace: FindOne|r.connection.QueryRow|pg-business-repository.go; Values: [SELECT * FROM business WHERE id = 'businessId']
-		return types.WrapError(
+		return exception.Wrap(
 			"s.getBusiness",
 			"start-command-telegram-service",
 			getBusinessErr,
@@ -108,7 +106,7 @@ func (s *StartCommandTelegramService) getBusiness(businessId string) (types.Busi
 	business, err := s.businessRepository.FindOne(criteria)
 
 	if err != nil {
-		return types.Business{}, types.WrapError(
+		return types.Business{}, exception.Wrap(
 			"s.businessRepository.FindOne",
 			"start-command-telegram-service",
 			err,

@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
@@ -42,13 +43,13 @@ func (s *NotificationWebhookTelegramService) Execute(update types.TelegramUpdate
 		if err := parseFunc(update); err != nil {
 			switch i {
 			case 0:
-				return types.WrapError(
+				return exception.Wrap(
 					"resolveBotCommand",
 					"notification-webhook-telegram-service",
 					err,
 				)
 			case 1:
-				return types.WrapError(
+				return exception.Wrap(
 					"resolveCallbackQueryCommand",
 					"notification-webhook-telegram-service",
 					err,
@@ -76,7 +77,7 @@ func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.Tele
 	}
 
 	if handlerErr := handler.Execute(update); handlerErr != nil {
-		return types.WrapError("handler.Execute", "notification-webhook-telegram-service", handlerErr)
+		return exception.Wrap("handler.Execute", "notification-webhook-telegram-service", handlerErr)
 	}
 
 	return nil
