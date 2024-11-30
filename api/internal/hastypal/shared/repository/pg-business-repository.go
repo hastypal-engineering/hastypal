@@ -168,20 +168,17 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&updated_at,
 	); scanErr != nil {
 		if errors.Is(scanErr, sql.ErrNoRows) {
-			return types.Business{}, types.ApiError{
-				Msg:      "Entity Business not found",
-				Function: "r.connection.QueryRow.Scan",
-				File:     "pg-business-repository.go",
-				Values:   []string{query},
-				Domain:   true,
-			}
+			return types.Business{}, exception.
+				New("Entity Business not found").
+				Trace("r.connection.QueryRow.Scan", "pg-business-repository.go").
+				WithValues([]string{query}).
+				Domain()
 		}
 
 		return types.Business{}, exception.
-			New("Entity Business not found").
+			New(scanErr.Error()).
 			Trace("r.connection.QueryRow.Scan", "pg-business-repository.go").
-			WithValues([]string{query}).
-			Domain()
+			WithValues([]string{query})
 	}
 
 	var openingHours map[string][]string
