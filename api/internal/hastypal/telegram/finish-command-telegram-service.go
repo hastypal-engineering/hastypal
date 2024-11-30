@@ -1,8 +1,8 @@
 package telegram
 
 import (
-	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"github.com/google/uuid"
@@ -45,7 +45,11 @@ func NewFinishCommandTelegramService(
 
 func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
-		return ackErr
+		return exception.Wrap(
+			"s.ackToTelegramClient",
+			"finish-command-telegram-service.go",
+			ackErr,
+		)
 	}
 
 	var markdownText strings.Builder
@@ -53,12 +57,9 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
-			Msg:      parseUrlErr.Error(),
-			Function: "Execute -> url.Parse()",
-			File:     "telegram-finish-command.go",
-			Values:   []string{update.CallbackQuery.Data},
-		}
+		return exception.New(parseUrlErr.Error()).
+			Trace("url.Parse", "finish-command-telegram-service.go").
+			WithValues([]string{update.CallbackQuery.Data})
 	}
 
 	queryParams := parsedUrl.Query()
@@ -68,39 +69,71 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 	session, getSessionErr := s.getCurrentSession(sessionId)
 
 	if getSessionErr != nil {
-		return getSessionErr
+		return exception.Wrap(
+			"s.getCurrentSession",
+			"finish-command-telegram-service.go",
+			getSessionErr,
+		)
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return invalidSession
+		return exception.Wrap(
+			"session.EnsureIsValid",
+			"finish-command-telegram-service.go",
+			invalidSession,
+		)
 	}
 
 	business, getBusinessErr := s.getBusiness(session.BusinessId)
 
 	if getBusinessErr != nil {
-		return getBusinessErr
+		return exception.Wrap(
+			"s.getBusiness",
+			"finish-command-telegram-service.go",
+			getBusinessErr,
+		)
 	}
 
 	if duplicatedErr := s.ensureNotDuplicatedNotification(session); duplicatedErr != nil {
-		return duplicatedErr
+		return exception.Wrap(
+			"s.ensureNotDuplicatedNotification",
+			"finish-command-telegram-service.go",
+			duplicatedErr,
+		)
 	}
 
 	booking, createBookingErr := s.createBooking(session, business)
 
 	if createBookingErr != nil {
-		return createBookingErr
+		return exception.Wrap(
+			"s.createBooking",
+			"finish-command-telegram-service.go",
+			createBookingErr,
+		)
 	}
 
 	if storeBookingErr := s.storeBooking(booking); storeBookingErr != nil {
-		return storeBookingErr
+		return exception.Wrap(
+			"s.storeBooking",
+			"finish-command-telegram-service.go",
+			storeBookingErr,
+		)
 	}
 
 	if registerErr := s.registerNotification(booking, update, business); registerErr != nil {
-		return registerErr
+		return exception.Wrap(
+			"s.registerNotification",
+			"finish-command-telegram-service.go",
+			registerErr,
+		)
 	}
 
 	if registerEventErr := s.registerEventInBusinessCalendar(business, booking); registerEventErr != nil {
-		return registerEventErr
+		return exception.Wrap(
+			"s.registerEventInBusinessCalendar",
+			"finish-command-telegram-service.go",
+			registerEventErr,
+		)
 	}
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
@@ -118,7 +151,11 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
-		return botSendMsgErr
+		return exception.Wrap(
+			"s.bot.SendMsg",
+			"finish-command-telegram-service.go",
+			botSendMsgErr,
+		)
 	}
 
 	return nil
@@ -136,7 +173,11 @@ func (s *FinishCommandTelegramService) getCurrentSession(sessionId string) (type
 	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return types.BookingSession{}, findOneErr
+		return types.BookingSession{}, exception.Wrap(
+			"s.sessionRepository.FindOne",
+			"finish-command-telegram-service.go",
+			findOneErr,
+		)
 	}
 
 	return session, nil
@@ -158,16 +199,13 @@ func (s *FinishCommandTelegramService) ensureNotDuplicatedNotification(session t
 	result, err := s.notificationRepository.Find(criteria)
 
 	if err != nil {
-		return err
+		return exception.Wrap("s.notificationRepository.Find", "finish-command-telegram-service.go", err)
 	}
 
 	if len(result) > 0 {
-		return types.ApiError{
-			Msg:      "Already saved notification for this booking",
-			Function: "ensureNotDuplicatedNotification",
-			File:     "service/telegram-finish-command.go",
-			Values:   []string{session.Id},
-		}
+		return exception.New("Already saved notification for this booking").
+			Trace("ensureNotDuplicatedNotification", "finish-command-telegram-service.go").
+			WithValues([]string{session.Id})
 	}
 
 	return nil
@@ -181,12 +219,9 @@ func (s *FinishCommandTelegramService) registerNotification(
 	bookingDate, timeParseErr := time.Parse(time.DateTime, booking.When)
 
 	if timeParseErr != nil {
-		return types.ApiError{
-			Msg:      timeParseErr.Error(),
-			Function: "registerNotification -> time.Parse()",
-			File:     "service/telegram-finish-command.go",
-			Values:   []string{booking.When},
-		}
+		return exception.New(timeParseErr.Error()).
+			Trace("time.Parse", "finish-command-telegram-service.go").
+			WithValues([]string{booking.When})
 	}
 
 	oneDayBefore := bookingDate.Add(-24 * time.Hour)
@@ -210,7 +245,7 @@ func (s *FinishCommandTelegramService) registerNotification(
 	}
 
 	if err := s.notificationRepository.Save(notification); err != nil {
-		return err
+		return exception.Wrap("s.notificationRepository.Save", "finish-command-telegram-service.go", err)
 	}
 
 	return nil
@@ -223,12 +258,9 @@ func (s *FinishCommandTelegramService) createBooking(
 	bookingDate, timeParseErr := time.Parse(time.DateTime, session.Date)
 
 	if timeParseErr != nil {
-		return types.Booking{}, types.ApiError{
-			Msg:      timeParseErr.Error(),
-			Function: "createBooking -> time.Parse()",
-			File:     "service/telegram-finish-command.go",
-			Values:   []string{session.Date},
-		}
+		return types.Booking{}, exception.New(timeParseErr.Error()).
+			Trace("time.Parse", "finish-command-telegram-service.go").
+			WithValues([]string{session.Date})
 	}
 
 	stringHours := strings.Split(session.Hour, ":")
@@ -236,23 +268,17 @@ func (s *FinishCommandTelegramService) createBooking(
 	bookingHour, hourConversionErr := strconv.Atoi(stringHours[0])
 
 	if hourConversionErr != nil {
-		return types.Booking{}, types.ApiError{
-			Msg:      hourConversionErr.Error(),
-			Function: "createBooking -> strconv.Atoi()",
-			File:     "service/telegram-finish-command.go",
-			Values:   []string{stringHours[0]},
-		}
+		return types.Booking{}, exception.New(hourConversionErr.Error()).
+			Trace("strconv.Atoi(stringHours[0])", "finish-command-telegram-service.go").
+			WithValues([]string{stringHours[0]})
 	}
 
 	bookingMinutes, minutesConversionErr := strconv.Atoi(stringHours[1])
 
 	if minutesConversionErr != nil {
-		return types.Booking{}, types.ApiError{
-			Msg:      minutesConversionErr.Error(),
-			Function: "createBooking -> strconv.Atoi()",
-			File:     "service/telegram-finish-command.go",
-			Values:   []string{stringHours[1]},
-		}
+		return types.Booking{}, exception.New(minutesConversionErr.Error()).
+			Trace("strconv.Atoi(stringHours[1])", "finish-command-telegram-service.go").
+			WithValues([]string{stringHours[1]})
 	}
 
 	bookingDateWithHour := time.Date(
@@ -275,8 +301,8 @@ func (s *FinishCommandTelegramService) createBooking(
 }
 
 func (s *FinishCommandTelegramService) storeBooking(booking types.Booking) error {
-	if saveErr := s.bookingRepository.Save(booking); saveErr != nil {
-		return saveErr
+	if err := s.bookingRepository.Save(booking); err != nil {
+		return exception.Wrap("s.bookingRepository.Save", "finish-command-telegram-service.go", err)
 	}
 
 	return nil
@@ -294,7 +320,11 @@ func (s *FinishCommandTelegramService) getBusinessGoogleToken(business types.Bus
 	result, err := s.googleTokenRepository.FindOne(criteria)
 
 	if err != nil {
-		return types.GoogleToken{}, err
+		return types.GoogleToken{}, exception.Wrap(
+			"s.googleTokenRepository.FindOne",
+			"finish-command-telegram-service.go",
+			err,
+		)
 	}
 
 	return result, nil
@@ -304,13 +334,21 @@ func (s *FinishCommandTelegramService) getGoogleCalendarClient(business types.Bu
 	token, getTokenErr := s.getBusinessGoogleToken(business)
 
 	if getTokenErr != nil {
-		return nil, getTokenErr
+		return nil, exception.Wrap(
+			"s.getBusinessGoogleToken",
+			"finish-command-telegram-service.go",
+			getTokenErr,
+		)
 	}
 
 	client, calendarClientErr := s.googleApi.CalendarClient(token)
 
 	if calendarClientErr != nil {
-		return nil, calendarClientErr
+		return nil, exception.Wrap(
+			"s.googleApi.CalendarClient",
+			"finish-command-telegram-service.go",
+			calendarClientErr,
+		)
 	}
 
 	return client, nil
@@ -323,13 +361,19 @@ func (s *FinishCommandTelegramService) registerEventInBusinessCalendar(
 	client, getClientErr := s.getGoogleCalendarClient(business)
 
 	if getClientErr != nil {
-		return getClientErr
+		return exception.Wrap(
+			"s.getGoogleCalendarClient",
+			"finish-command-telegram-service.go",
+			getClientErr,
+		)
 	}
 
 	bookingStartDate, timeParseErr := time.Parse(time.DateTime, booking.When)
 
 	if timeParseErr != nil {
-		return timeParseErr
+		return exception.New(timeParseErr.Error()).
+			Trace("time.Parse", "finish-command-telegram-service.go").
+			WithValues([]string{booking.When})
 	}
 
 	bookingFinishDate := bookingStartDate.Add(1 * time.Hour)
@@ -356,56 +400,11 @@ func (s *FinishCommandTelegramService) registerEventInBusinessCalendar(
 	_, insertErr := client.Events.Insert("primary", event).Do()
 
 	if insertErr != nil {
-		return types.ApiError{
-			Msg:      insertErr.Error(),
-			Function: "registerEventInBusinessCalendar -> client.Events.Insert()",
-			File:     "service/telegram-finish-command.go",
-		}
+		return exception.New(insertErr.Error()).
+			Trace("client.Events.Insert", "finish-command-telegram-service.go")
 	}
 
 	return nil
-}
-
-func (s *FinishCommandTelegramService) createInviteLink(event *calendar.Event) (strings.Builder, error) {
-	var builder strings.Builder
-
-	startParsedTime, startParseErr := time.Parse(time.RFC3339, event.Start.DateTime)
-
-	if startParseErr != nil {
-		return builder, types.ApiError{
-			Msg:      startParseErr.Error(),
-			Function: "createInviteLink -> startParsedTime -> time.Parse()",
-			File:     "service/telegram-finish-command.go",
-		}
-	}
-
-	endParsedTime, endParseErr := time.Parse(time.RFC3339, event.End.DateTime)
-
-	if endParseErr != nil {
-		return builder, types.ApiError{
-			Msg:      endParseErr.Error(),
-			Function: "createInviteLink -> endParsedTime -> time.Parse()",
-			File:     "service/telegram-finish-command.go",
-		}
-	}
-
-	builder.WriteString("https://calendar.google.com/calendar/r/eventedit?action=TEMPLATE")
-	builder.WriteString(fmt.Sprintf("&dates=%s", startParsedTime.UTC().Format("20060102T150405Z")))
-	builder.WriteString("%2F")
-	builder.WriteString(fmt.Sprintf("%s", endParsedTime.UTC().Format("20060102T150405Z")))
-	builder.WriteString(fmt.Sprintf("&stz=%s", event.Start.TimeZone))
-	builder.WriteString(fmt.Sprintf("&etz=%s", event.End.TimeZone))
-	builder.WriteString(fmt.Sprintf(
-		"&details=%s",
-		url.QueryEscape("A chance to hear more about Google's developer products\\."),
-	))
-	builder.WriteString(fmt.Sprintf(
-		"&location=%s",
-		url.QueryEscape("800 Howard St., San Francisco, CA 94103"),
-	))
-	builder.WriteString(fmt.Sprintf("&text=%s", url.QueryEscape("Google I/O 2015")))
-
-	return builder, nil
 }
 
 func (s *FinishCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
@@ -418,7 +417,11 @@ func (s *FinishCommandTelegramService) getBusiness(businessId string) (types.Bus
 	business, err := s.businessRepository.FindOne(criteria)
 
 	if err != nil {
-		return types.Business{}, err
+		return types.Business{}, exception.Wrap(
+			"s.businessRepository.FindOne",
+			"finish-command-telegram-service.go",
+			err,
+		)
 	}
 
 	return business, nil
