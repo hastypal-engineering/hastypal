@@ -4,10 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"strings"
-
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"strings"
 )
 
 type PgBusinessRepository struct {
@@ -28,38 +28,33 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
-			Msg:      err.Error(),
-			Function: "Find -> r.transformer.Transform()",
-			File:     "pg-business-repository.go",
-		}
+		return nil, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-business-repository.go")
 	}
 
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
-			Msg:      queryErr.Error(),
-			Function: "Find -> r.connection.Query()",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+		return nil, exception.New(queryErr.Error()).
+			Trace("r.connection.Query", "pg-business-repository.go").
+			WithValues([]string{query})
 	}
 
 	defer rows.Close()
 
 	var (
-		id              string
-		name            string
-		contact_phone   string
-		email           string
-		password        string
-		service_catalog []types.ServiceCatalog
-		opening_hours   map[string][]string
-		channel_name    string
-		location        string
-		created_at      string
-		updated_at      string
+		id            string
+		name          string
+		contact_phone string
+		email         string
+		password      string
+		channel_name  string
+		location      string
+		opening_hours []uint8
+		holidays      []uint8
+		created_at    string
+		updated_at    string
 	)
 
 	var results []types.Business
@@ -71,32 +66,48 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			&contact_phone,
 			&email,
 			&password,
-			&service_catalog,
-			&opening_hours,
 			&channel_name,
 			&location,
+			&opening_hours,
+			&holidays,
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
-				Msg:      scanErr.Error(),
-				Function: "Find -> rows.Scan()",
-				File:     "pg-business-repository.go",
-			}
+			return nil, exception.New(scanErr.Error()).
+				Trace("rows.Scan", "pg-business-repository.go").
+				WithValues([]string{query})
+		}
+
+		var openingHours map[string][]string
+
+		openingHoursUnMarshalErr := json.Unmarshal(opening_hours, &openingHours)
+
+		if openingHoursUnMarshalErr != nil {
+			return results, exception.New(openingHoursUnMarshalErr.Error()).
+				Trace("json.Unmarshal(openingHours)", "pg-business-repository.go")
+		}
+
+		var holidaysMap map[string][]string
+
+		holidaysUnMarshalErr := json.Unmarshal(holidays, &holidaysMap)
+
+		if holidaysUnMarshalErr != nil {
+			return results, exception.New(holidaysUnMarshalErr.Error()).
+				Trace("json.Unmarshal(holidays)", "pg-business-repository.go")
 		}
 
 		results = append(results, types.Business{
-			Id:             id,
-			Name:           name,
-			ContactPhone:   contact_phone,
-			Email:          email,
-			Password:       password,
-			ServiceCatalog: service_catalog,
-			OpeningHours:   opening_hours,
-			ChannelName:    channel_name,
-			Location:       location,
-			CreatedAt:      created_at,
-			UpdatedAt:      updated_at,
+			Id:           id,
+			Name:         name,
+			ContactPhone: contact_phone,
+			Email:        email,
+			Password:     password,
+			OpeningHours: openingHours,
+			Holidays:     holidaysMap,
+			ChannelName:  channel_name,
+			Location:     location,
+			CreatedAt:    created_at,
+			UpdatedAt:    updated_at,
 		})
 	}
 
@@ -107,11 +118,8 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.Business{}, types.ApiError{
-			Msg:      err.Error(),
-			Function: "FindOne -> r.transformer.Transform()",
-			File:     "pg-business-repository.go",
-		}
+		return types.Business{}, exception.New(err.Error()).
+			Trace("r.transformer.Transform", "pg-business-repository.go")
 	}
 
 	var (
@@ -141,22 +149,18 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
-		if errors.As(err, &sql.ErrNoRows) {
-			return types.Business{}, types.ApiError{
-				Msg:      "Entity Business not found",
-				Function: "FindOne -> rows.Scan()",
-				File:     "pg-business-repository.go",
-				Values:   []string{query},
-				Domain:   true,
-			}
+		if errors.Is(scanErr, sql.ErrNoRows) {
+			return types.Business{}, exception.
+				New("Entity Business not found").
+				Trace("r.connection.QueryRow.Scan", "pg-business-repository.go").
+				WithValues([]string{query}).
+				Domain()
 		}
 
-		return types.Business{}, types.ApiError{
-			Msg:      scanErr.Error(),
-			Function: "FindOne -> rows.Scan()",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+		return types.Business{}, exception.
+			New(scanErr.Error()).
+			Trace("r.connection.QueryRow.Scan", "pg-business-repository.go").
+			WithValues([]string{query})
 	}
 
 	var openingHours map[string][]string
@@ -164,12 +168,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	openingHoursUnMarshalErr := json.Unmarshal(opening_hours, &openingHours)
 
 	if openingHoursUnMarshalErr != nil {
-		return types.Business{}, types.ApiError{
-			Msg:      openingHoursUnMarshalErr.Error(),
-			Function: "FindOne -> json.Unmarshal(openingHours)",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+		return types.Business{}, exception.
+			New(openingHoursUnMarshalErr.Error()).
+			Trace("json.Unmarshal(openingHours)", "pg-business-repository.go").
+			WithValues([]string{query})
 	}
 
 	var holidaysMap map[string][]string
@@ -177,12 +179,11 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	holidaysUnMarshalErr := json.Unmarshal(holidays, &holidaysMap)
 
 	if holidaysUnMarshalErr != nil {
-		return types.Business{}, types.ApiError{
-			Msg:      holidaysUnMarshalErr.Error(),
-			Function: "FindOne -> json.Unmarshal(holidays)",
-			File:     "pg-business-repository.go",
-			Values:   []string{query},
-		}
+		return types.Business{}, exception.
+			New(holidaysUnMarshalErr.Error()).
+			Trace("json.Unmarshal(holidays, &holidaysMap)", "pg-business-repository.go").
+			WithValues([]string{query})
+
 	}
 
 	return types.Business{
@@ -209,34 +210,17 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 
 	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
 	if openingHoursErr != nil {
-		return types.ApiError{
-			Msg:      openingHoursErr.Error(),
-			Function: "Save -> json.Marshal(entity.OpeningHours)",
-			File:     "pg-business-repository.go",
-			Values: []string{
-				query.String(),
-				entity.Id,
-				entity.Name,
-				entity.ContactPhone,
-				entity.Email,
-			},
-		}
+		return exception.New(openingHoursErr.Error()).
+			Trace("json.Marshal(entity.OpeningHours)", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
 	}
 
 	holidays, holidaysErr := json.Marshal(entity.Holidays)
+
 	if holidaysErr != nil {
-		return types.ApiError{
-			Msg:      holidaysErr.Error(),
-			Function: "Save -> json.Marshal(entity.Holidays)",
-			File:     "pg-business-repository.go",
-			Values: []string{
-				query.String(),
-				entity.Id,
-				entity.Name,
-				entity.ContactPhone,
-				entity.Email,
-			},
-		}
+		return exception.New(holidaysErr.Error()).
+			Trace("json.Marshal(entity.Holidays)", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
 	}
 
 	_, err := r.connection.Exec(
@@ -255,27 +239,15 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
-			Msg:      err.Error(),
-			Function: "Save -> r.connection.Exec()",
-			File:     "pg-business-repository.go",
-			Values: []string{
-				query.String(),
-				entity.Id,
-				entity.Name,
-				entity.ContactPhone,
-				entity.Email,
-			},
-		}
+		return exception.New(err.Error()).
+			Trace("r.connection.Exec", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
 	}
 
 	return nil
 }
 
 func (r *PgBusinessRepository) Update(_ types.Business) error {
-	return types.ApiError{
-		Msg:      "Method not implemented yet",
-		Function: "Update",
-		File:     "pg-business-repository.go",
-	}
+	return exception.New("Method not implemented").
+		Trace("Update", "pg-business-repository.go")
 }

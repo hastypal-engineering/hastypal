@@ -5,7 +5,7 @@ package types
 type ResolveTelegramUpdate func(update TelegramUpdate) error
 
 type TelegramCommandHandler interface {
-	Execute(business Business, update TelegramUpdate) error
+	Execute(update TelegramUpdate) error
 }
 
 //Domain objects

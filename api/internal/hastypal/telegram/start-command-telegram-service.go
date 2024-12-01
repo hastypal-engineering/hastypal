@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -11,27 +12,46 @@ import (
 )
 
 type StartCommandTelegramService struct {
-	bot        *service.TelegramBot
-	repository types.Repository[types.BookingSession]
+	bot                *service.TelegramBot
+	sessionRepository  types.Repository[types.BookingSession]
+	businessRepository types.Repository[types.Business]
 }
 
 func NewStartCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	businessRepository types.Repository[types.Business],
 ) *StartCommandTelegramService {
 	return &StartCommandTelegramService{
-		bot:        bot,
-		repository: repository,
+		bot:                bot,
+		sessionRepository:  sessionRepository,
+		businessRepository: businessRepository,
 	}
 }
 
-func (s *StartCommandTelegramService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	var markdownText strings.Builder
+
+	businessId := strings.ReplaceAll(update.Message.Text, "/start ", "")
+
+	business, getBusinessErr := s.getBusiness(businessId)
+
+	if getBusinessErr != nil {
+		return exception.Wrap(
+			"s.getBusiness",
+			"start-command-telegram-service",
+			getBusinessErr,
+		)
+	}
 
 	session, createSessionErr := s.createSession(business.Id, update.Message.Chat.Id)
 
 	if createSessionErr != nil {
-		return createSessionErr
+		return exception.Wrap(
+			"s.createSession",
+			"start-command-telegram-service",
+			createSessionErr,
+		)
 	}
 
 	welcome := fmt.Sprintf(
@@ -52,8 +72,8 @@ func (s *StartCommandTelegramService) Execute(business types.Business, update ty
 
 	buttons := make([]types.KeyboardButton, len(services))
 
-	for i, service := range services {
-		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, service))
+	for i, serv := range services {
+		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, serv))
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
@@ -74,10 +94,34 @@ func (s *StartCommandTelegramService) Execute(business types.Business, update ty
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
-		return botSendMsgErr
+		return exception.Wrap(
+			"s.bot.SendMsg",
+			"start-command-telegram-service",
+			botSendMsgErr,
+		)
 	}
 
 	return nil
+}
+
+func (s *StartCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+	filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.businessRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.Business{}, exception.Wrap(
+			"s.businessRepository.FindOne",
+			"start-command-telegram-service",
+			err,
+		)
+	}
+
+	return business, nil
 }
 
 func (s *StartCommandTelegramService) createSession(businessId string, chatId int) (types.BookingSession, error) {
@@ -97,8 +141,12 @@ func (s *StartCommandTelegramService) createSession(businessId string, chatId in
 		Ttl:        time.Minute.Milliseconds() * 5,
 	}
 
-	if err := s.repository.Save(session); err != nil {
-		return types.BookingSession{}, err
+	if err := s.sessionRepository.Save(session); err != nil {
+		return types.BookingSession{}, exception.Wrap(
+			"s.sessionRepository.Save",
+			"start-command-telegram-service",
+			err,
+		)
 	}
 
 	return session, nil

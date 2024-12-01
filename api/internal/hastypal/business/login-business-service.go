@@ -2,6 +2,7 @@ package business
 
 import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 )
 
@@ -24,11 +25,19 @@ func (s *LoginBusinessService) Execute(request LoginBusiness) (types.Business, e
 	business, getBusinessErr := s.getBusiness(request.Email)
 
 	if getBusinessErr != nil {
-		return types.Business{}, getBusinessErr
+		return types.Business{}, exception.Wrap(
+			"s.getBusiness",
+			"login-business-service.go",
+			getBusinessErr,
+		)
 	}
 
 	if comparePasswordsError := s.comparePasswords(business.Password, request.Password); comparePasswordsError != nil {
-		return types.Business{}, comparePasswordsError
+		return types.Business{}, exception.Wrap(
+			"s.comparePasswords",
+			"login-business-service.go",
+			comparePasswordsError,
+		)
 	}
 
 	return business, nil
@@ -46,7 +55,11 @@ func (s *LoginBusinessService) getBusiness(email string) (types.Business, error)
 	business, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return types.Business{}, findOneErr
+		return types.Business{}, exception.Wrap(
+			"s.repository.FindOne",
+			"login-business-service.go",
+			findOneErr,
+		)
 	}
 
 	return business, nil
@@ -54,12 +67,10 @@ func (s *LoginBusinessService) getBusiness(email string) (types.Business, error)
 
 func (s *LoginBusinessService) comparePasswords(storedPassword string, givenPassword string) error {
 	if storedPassword != givenPassword {
-		return types.ApiError{
-			Msg:      "Passwords don't match",
-			Function: "Execute -> comparePasswords()",
-			File:     "login-business-service.go",
-			Domain:   true,
-		}
+		return exception.
+			New("Passwords don't match").
+			Trace("comparePasswords", "login-business-service.go").
+			Domain()
 	}
 
 	return nil

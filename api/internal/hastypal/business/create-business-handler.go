@@ -2,10 +2,10 @@ package business
 
 import (
 	"encoding/json"
-	"net/http"
-
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"net/http"
 )
 
 type CreateBusinessHandler struct {
@@ -24,21 +24,17 @@ func (h *CreateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) 
 	var request types.Business
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {
-		return types.ApiError{
-			Msg:      decodeErr.Error(),
-			Function: "Handler -> json.NewDecoder().Decode()",
-			File:     "create-business-handler.go",
-		}
+		return exception.New(decodeErr.Error()).Trace("json.NewDecoder", "create-business-handler.go")
 	}
 
 	if serviceErr := h.service.Execute(request); serviceErr != nil {
-		return serviceErr
+		return exception.Wrap("h.service.Execute", "create-business-handler.go", serviceErr)
 	}
 
 	response := types.ServerResponse{Ok: true}
 
 	if err := helper.Encode[types.ServerResponse](w, http.StatusCreated, response); err != nil {
-		return err
+		return exception.Wrap("helper.Encode", "create-business-handler.go", err)
 	}
 
 	return nil

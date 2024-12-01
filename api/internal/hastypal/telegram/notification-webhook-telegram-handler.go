@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"encoding/json"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/http"
 )
@@ -22,15 +23,12 @@ func (h *NotificationWebhookTelegramHandler) Handler(w http.ResponseWriter, r *h
 	var update types.TelegramUpdate
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&update); decodeErr != nil {
-		return types.ApiError{
-			Msg:      decodeErr.Error(),
-			Function: "Handler -> json.NewDecoder().Decode()",
-			File:     "handler/telegram-webhook.go",
-		}
+		return exception.New(decodeErr.Error()).
+			Trace("json.NewDecoder", "notification-webhook-telegram-handler.go")
 	}
 
 	if serviceErr := h.service.Execute(update); serviceErr != nil {
-		return serviceErr
+		return exception.Wrap("h.service.Execute", "notification-webhook-telegram-handler.go", serviceErr)
 	}
 
 	return nil

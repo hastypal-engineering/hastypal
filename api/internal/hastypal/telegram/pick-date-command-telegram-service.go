@@ -3,6 +3,7 @@ package telegram
 import (
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -26,9 +27,13 @@ func NewPickDateCommandTelegramService(
 	}
 }
 
-func (s *PickDateCommandTelegramService) Execute(business types.Business, update types.TelegramUpdate) error {
+func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
-		return ackErr
+		return exception.Wrap(
+			"s.ackToTelegramClient",
+			"pick-date-command-telegram-service.go",
+			ackErr,
+		)
 	}
 
 	var markdownText strings.Builder
@@ -36,12 +41,9 @@ func (s *PickDateCommandTelegramService) Execute(business types.Business, update
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
-			Msg:      parseUrlErr.Error(),
-			Function: "Execute -> url.Parse()",
-			File:     "telegram-dates-command.go",
-			Values:   []string{update.CallbackQuery.Data},
-		}
+		return exception.New(parseUrlErr.Error()).
+			Trace("url.Parse(update.CallbackQuery.Data)", "pick-date-command-telegram-service.go").
+			WithValues([]string{update.CallbackQuery.Data})
 	}
 
 	queryParams := parsedUrl.Query()
@@ -52,15 +54,27 @@ func (s *PickDateCommandTelegramService) Execute(business types.Business, update
 	session, getSessionErr := s.getCurrentSession(sessionId)
 
 	if getSessionErr != nil {
-		return getSessionErr
+		return exception.Wrap(
+			"s.getCurrentSession",
+			"pick-date-command-telegram-service.go",
+			getSessionErr,
+		)
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return invalidSession
+		return exception.Wrap(
+			"session.EnsureIsValid",
+			"pick-date-command-telegram-service.go",
+			invalidSession,
+		)
 	}
 
 	if updateSessionErr := s.updateSession(session, serviceId); updateSessionErr != nil {
-		return updateSessionErr
+		return exception.Wrap(
+			"s.updateSession",
+			"pick-date-command-telegram-service.go",
+			updateSessionErr,
+		)
 	}
 
 	commandInformation := fmt.Sprintf(
@@ -78,12 +92,9 @@ func (s *PickDateCommandTelegramService) Execute(business types.Business, update
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
 
 	if loadLocationErr != nil {
-		return types.ApiError{
-			Msg:      loadLocationErr.Error(),
-			Function: "Execute -> time.LoadLocation()",
-			File:     "telegram-dates-command.go",
-			Values:   []string{"Europe/Madrid"},
-		}
+		return exception.New(loadLocationErr.Error()).
+			Trace("time.LoadLocation", "pick-date-command-telegram-service.go").
+			WithValues([]string{"Europe/Madrid"})
 	}
 
 	time.Local = location
@@ -119,7 +130,11 @@ func (s *PickDateCommandTelegramService) Execute(business types.Business, update
 	}
 
 	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
-		return botSendMsgErr
+		return exception.Wrap(
+			"s.bot.SendMsg",
+			"pick-date-command-telegram-service.go",
+			botSendMsgErr,
+		)
 	}
 
 	return nil
@@ -137,7 +152,11 @@ func (s *PickDateCommandTelegramService) getCurrentSession(sessionId string) (ty
 	session, findOneErr := s.repository.FindOne(criteria)
 
 	if findOneErr != nil {
-		return types.BookingSession{}, findOneErr
+		return types.BookingSession{}, exception.Wrap(
+			"s.repository.FindOne",
+			"pick-date-command-telegram-service.go",
+			findOneErr,
+		)
 	}
 
 	return session, nil
@@ -165,7 +184,11 @@ func (s *PickDateCommandTelegramService) updateSession(actualSession types.Booki
 	mergedSession := reflection.Merge(actualSession, updatedSession)
 
 	if err := s.repository.Update(mergedSession); err != nil {
-		return err
+		return exception.Wrap(
+			"s.repository.Update",
+			"pick-date-command-telegram-service.go",
+			err,
+		)
 	}
 
 	return nil

@@ -16,8 +16,8 @@ func NewAuthGoogleService(
 	}
 }
 
-func (s *AuthGoogleService) Execute() string {
-	googleAuthUrl := s.googleApi.GetAuthCodeUrl()
+func (s *AuthGoogleService) Execute(businessId string) string {
+	googleAuthUrl := s.googleApi.GetAuthCodeUrlForBusiness(businessId)
 
 	return googleAuthUrl
 }

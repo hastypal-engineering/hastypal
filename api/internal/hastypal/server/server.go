@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/middleware"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -44,9 +45,9 @@ func (s *HastypalApiServer) Start() {
 	err := server.ListenAndServe()
 
 	if err != nil {
-		evtErr := types.ApiError{Msg: err.Error(), Function: "Start", File: "server.go"}
+		hastypalErr := exception.New(err.Error()).Trace("server.ListenAndServe", "server.go")
 
-		log.Fatal(evtErr.Error())
+		log.Fatal(hastypalErr.Error())
 	}
 }
 
@@ -56,13 +57,13 @@ func (s *HastypalApiServer) Route(url string, handler http.Handler) {
 
 func (s *HastypalApiServer) NewHandler(handler types.HastypalHttpHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var appError types.ApiErrorInterface
+		var appError exception.HastypalErrorInterface
 
 		if err := handler(w, r); errors.As(err, &appError) {
 			if appError.IsDomain() {
 				response := types.ServerResponse{
 					Ok:    false,
-					Error: appError.PresentableError(),
+					Error: appError.PresentError(),
 				}
 
 				if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusOK, response); encodeErr != nil {

@@ -3,6 +3,7 @@ package business
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"net/http"
 	"os"
 
@@ -28,17 +29,17 @@ func (h *LoginBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) e
 	var request LoginBusiness
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {
-		return types.ApiError{
-			Msg:      decodeErr.Error(),
-			Function: "Handler -> json.NewDecoder().Decode()",
-			File:     "login-business-handler.go",
-		}
+		return exception.New(decodeErr.Error()).Trace("json.NewDecoder", "login-business-handler.go")
 	}
 
 	business, serviceErr := h.service.Execute(request)
 
 	if serviceErr != nil {
-		return serviceErr
+		return exception.Wrap(
+			"h.service.Execute",
+			"login-business-handler.go",
+			serviceErr,
+		)
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -50,7 +51,11 @@ func (h *LoginBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) e
 	signedJwt, jwtErr := token.SignedString(os.Getenv(constants.JwtKey))
 
 	if jwtErr != nil {
-		return jwtErr
+		return exception.Wrap(
+			"token.SignedString",
+			"login-business-handler.go",
+			jwtErr,
+		)
 	}
 
 	w.Header().Set("Authorization", fmt.Sprintf("Bearer %s", signedJwt))
@@ -58,7 +63,11 @@ func (h *LoginBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) e
 	response := types.ServerResponse{Ok: true}
 
 	if err := helper.Encode[types.ServerResponse](w, http.StatusAccepted, response); err != nil {
-		return err
+		return exception.Wrap(
+			"helper.Encode",
+			"login-business-handler.go",
+			err,
+		)
 	}
 
 	return nil

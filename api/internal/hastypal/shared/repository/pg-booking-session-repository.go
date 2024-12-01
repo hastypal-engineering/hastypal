@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strconv"
@@ -27,22 +28,17 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
-			Msg:      err.Error(),
-			Function: "Find -> r.transformer.Transform()",
-			File:     "pg-booking-session-repository.go",
-		}
+		return nil, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-booking-session-repository.go")
 	}
 
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
-			Msg:      queryErr.Error(),
-			Function: "Find -> r.connection.Query()",
-			File:     "pg-booking-session-repository.go",
-			Values:   []string{query},
-		}
+		return nil, exception.
+			New(queryErr.Error()).
+			Trace("r.connection.Query", "pg-booking-session-repository.go")
 	}
 
 	defer rows.Close()
@@ -73,11 +69,9 @@ func (r *PgBookingSessionRepository) Find(criteria types.Criteria) ([]types.Book
 			&updated_at,
 			&ttl,
 		); scanErr != nil {
-			return nil, types.ApiError{
-				Msg:      scanErr.Error(),
-				Function: "Find -> rows.Scan()",
-				File:     "pg-booking-session-repository.go",
-			}
+			return nil, exception.
+				New(scanErr.Error()).
+				Trace("rows.Scan", "pg-booking-session-repository.go")
 		}
 
 		results = append(results, types.BookingSession{
@@ -100,11 +94,9 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.BookingSession{}, types.ApiError{
-			Msg:      err.Error(),
-			Function: "FindOne -> r.transformer.Transform()",
-			File:     "pg-booking-session-repository.go",
-		}
+		return types.BookingSession{}, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-booking-session-repository.go")
 	}
 
 	var (
@@ -130,22 +122,18 @@ func (r *PgBookingSessionRepository) FindOne(criteria types.Criteria) (types.Boo
 		&updated_at,
 		&ttl,
 	); scanErr != nil {
-		if errors.As(err, &sql.ErrNoRows) {
-			return types.BookingSession{}, types.ApiError{
-				Msg:      "Entity Business not found",
-				Function: "FindOne -> rows.Scan()",
-				File:     "pg-booking-session-repository.go",
-				Values:   []string{query},
-				Domain:   true,
-			}
+		if errors.Is(scanErr, sql.ErrNoRows) {
+			return types.BookingSession{}, exception.
+				New(scanErr.Error()).
+				Trace("r.connection.QueryRow", "pg-booking-session-repository.go").
+				WithValues([]string{query}).
+				Domain()
 		}
 
-		return types.BookingSession{}, types.ApiError{
-			Msg:      scanErr.Error(),
-			Function: "FindOne -> rows.Scan()",
-			File:     "pg-booking-session-repository.go",
-			Values:   []string{query},
-		}
+		return types.BookingSession{}, exception.
+			New(scanErr.Error()).
+			Trace("r.connection.QueryRow", "pg-booking-session-repository.go").
+			WithValues([]string{query})
 	}
 
 	return types.BookingSession{
@@ -182,17 +170,15 @@ func (r *PgBookingSessionRepository) Save(entity types.BookingSession) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
-			Msg:      err.Error(),
-			Function: "Save -> r.connection.Exec()",
-			File:     "pg-booking-session-repository.go",
-			Values: []string{
+		return exception.
+			New(err.Error()).
+			Trace("r.connection.Exec", "pg-booking-session-repository.go").
+			WithValues([]string{
 				query.String(),
 				entity.Id,
 				entity.BusinessId,
 				strconv.Itoa(entity.ChatId),
-			},
-		}
+			})
 	}
 
 	return nil
@@ -219,17 +205,15 @@ func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
-			Msg:      err.Error(),
-			Function: "Update -> r.connection.Exec()",
-			File:     "pg-booking-session-repository.go",
-			Values: []string{
+		return exception.
+			New(err.Error()).
+			Trace("r.connection.Exec", "pg-booking-session-repository.go").
+			WithValues([]string{
 				query.String(),
 				entity.Id,
 				entity.BusinessId,
 				strconv.Itoa(entity.ChatId),
-			},
-		}
+			})
 	}
 
 	return nil

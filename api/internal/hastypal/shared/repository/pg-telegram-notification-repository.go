@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
@@ -26,22 +27,18 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
-			Msg:      err.Error(),
-			Function: "Find -> r.transformer.Transform()",
-			File:     "pg-telegram-notification-repository.go",
-		}
+		return nil, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-telegram-notification-repository.go")
 	}
 
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
-			Msg:      queryErr.Error(),
-			Function: "Find -> r.connection.Query()",
-			File:     "pg-telegram-notification-repository.go",
-			Values:   []string{query},
-		}
+		return nil, exception.
+			New(queryErr.Error()).
+			Trace("r.connection.Query", "pg-telegram-notification-repository.go").
+			WithValues([]string{query})
 	}
 
 	defer rows.Close()
@@ -70,11 +67,10 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			&business_name,
 			&created_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
-				Msg:      scanErr.Error(),
-				Function: "Find -> rows.Scan()",
-				File:     "pg-telegram-notification-repository.go",
-			}
+			return nil, exception.
+				New(scanErr.Error()).
+				Trace("rows.Scan", "pg-telegram-notification-repository.go").
+				WithValues([]string{query})
 		}
 
 		results = append(results, types.TelegramNotification{
@@ -96,11 +92,9 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.TelegramNotification{}, types.ApiError{
-			Msg:      err.Error(),
-			Function: "FindOne -> r.transformer.Transform()",
-			File:     "pg-telegram-notification-repository.go",
-		}
+		return types.TelegramNotification{}, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-telegram-notification-repository.go")
 	}
 
 	var (
@@ -124,22 +118,18 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		&business_name,
 		&created_at,
 	); scanErr != nil {
-		if errors.As(err, &sql.ErrNoRows) {
-			return types.TelegramNotification{}, types.ApiError{
-				Msg:      "Entity Business not found",
-				Function: "FindOne -> rows.Scan()",
-				File:     "pg-telegram-notification-repository.go",
-				Values:   []string{query},
-				Domain:   true,
-			}
+		if errors.Is(scanErr, sql.ErrNoRows) {
+			return types.TelegramNotification{}, exception.
+				New("Telegram notification not found").
+				Trace("r.connection.QueryRow", "pg-telegram-notification-repository.go").
+				WithValues([]string{query}).
+				Domain()
 		}
 
-		return types.TelegramNotification{}, types.ApiError{
-			Msg:      scanErr.Error(),
-			Function: "FindOne -> rows.Scan()",
-			File:     "pg-telegram-notification-repository.go",
-			Values:   []string{query},
-		}
+		return types.TelegramNotification{}, exception.
+			New(scanErr.Error()).
+			Trace("r.connection.QueryRow", "pg-telegram-notification-repository.go").
+			WithValues([]string{query})
 	}
 
 	return types.TelegramNotification{
@@ -174,11 +164,10 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 	)
 
 	if err != nil {
-		return types.ApiError{
-			Msg:      err.Error(),
-			Function: "Save -> r.connection.Exec()",
-			File:     "pg-telegram-notification-repository.go",
-			Values: []string{
+		return exception.
+			New(err.Error()).
+			Trace("r.connection.Exec", "pg-telegram-notification-repository.go").
+			WithValues([]string{
 				query.String(),
 				entity.Id,
 				entity.BusinessId,
@@ -186,17 +175,14 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 				entity.ScheduledAt,
 				entity.From,
 				entity.CreatedAt,
-			},
-		}
+			})
 	}
 
 	return nil
 }
 
 func (r *PgTelegramNotificationRepository) Update(_ types.TelegramNotification) error {
-	return types.ApiError{
-		Msg:      "Method not implemented yet",
-		Function: "Update",
-		File:     "pg-telegram-notification-repository.go",
-	}
+	return exception.
+		New("Method not implemented").
+		Trace("Update", "pg-telegram-notification-repository.go")
 }
