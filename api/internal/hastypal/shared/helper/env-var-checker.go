@@ -2,7 +2,7 @@ package helper
 
 import (
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"os"
 )
 
@@ -21,11 +21,9 @@ func (evc *EnvVarChecker) Check() error {
 		_, exists := os.LookupEnv(key)
 
 		if !exists {
-			return types.ApiError{
-				Msg:      fmt.Sprintf("Env var %s not set", key),
-				Function: "Check",
-				File:     "env-var-checker.go",
-			}
+			return exception.
+				New(fmt.Sprintf("Env var %s not set", key)).
+				Trace("os.LookupEnv", "env-var-checker.go")
 		}
 	}
 

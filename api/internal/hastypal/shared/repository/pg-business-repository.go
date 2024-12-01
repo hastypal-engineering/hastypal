@@ -28,7 +28,8 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, exception.New(err.Error()).
+		return nil, exception.
+			New(err.Error()).
 			Trace("r.transformer.Transform", "pg-business-repository.go")
 	}
 

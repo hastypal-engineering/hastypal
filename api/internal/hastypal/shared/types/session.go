@@ -1,6 +1,9 @@
 package types
 
-import "time"
+import (
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
+	"time"
+)
 
 type BookingSession struct {
 	Id         string `json:"id"`
@@ -18,23 +21,20 @@ func (s *BookingSession) EnsureIsValid() error {
 	updatedAt, err := time.Parse(time.DateTime, s.UpdatedAt)
 
 	if err != nil {
-		return ApiError{
-			Msg:      err.Error(),
-			Function: "time.Parse",
-			File:     "types/session.go",
-			Values:   []string{s.CreatedAt},
-		}
+		return exception.
+			New(err.Error()).
+			Trace("time.Parse", "session.go").
+			WithValues([]string{s.CreatedAt})
 	}
 
 	maxAllowedDate := updatedAt.Add(time.Duration(300000) * time.Millisecond)
 
 	if maxAllowedDate.Before(time.Now().UTC()) {
-		return ApiError{
-			Msg:      "The session has expired",
-			Function: "maxAllowedDate.Before",
-			File:     "types/session.go",
-			Domain:   true,
-		}
+		return exception.
+			New("The session has expired").
+			Trace("maxAllowedDate.Before", "session.go").
+			WithValues([]string{s.CreatedAt}).
+			Domain()
 	}
 
 	return nil

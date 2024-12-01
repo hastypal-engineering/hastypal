@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
@@ -26,22 +27,18 @@ func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleT
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return nil, types.ApiError{
-			Msg:      err.Error(),
-			Function: "Find -> r.transformer.Transform()",
-			File:     "pg-google-token-repository.go",
-		}
+		return nil, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-google-token-repository.go")
 	}
 
 	rows, queryErr := r.connection.Query(query)
 
 	if queryErr != nil {
-		return nil, types.ApiError{
-			Msg:      queryErr.Error(),
-			Function: "Find -> r.connection.Query()",
-			File:     "pg-google-token-repository.go",
-			Values:   []string{query},
-		}
+		return nil, exception.
+			New(queryErr.Error()).
+			Trace("r.connection.Query", "pg-google-token-repository.go").
+			WithValues([]string{query})
 	}
 
 	defer rows.Close()
@@ -66,11 +63,10 @@ func (r *PgGoogleTokenRepository) Find(criteria types.Criteria) ([]types.GoogleT
 			&created_at,
 			&updated_at,
 		); scanErr != nil {
-			return nil, types.ApiError{
-				Msg:      scanErr.Error(),
-				Function: "Find -> rows.Scan()",
-				File:     "pg-google-token-repository.go",
-			}
+			return nil, exception.
+				New(scanErr.Error()).
+				Trace("rows.Scan", "pg-google-token-repository.go").
+				WithValues([]string{query})
 		}
 
 		results = append(results, types.GoogleToken{
@@ -90,11 +86,9 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 	query, err := r.transformer.Transform(criteria)
 
 	if err != nil {
-		return types.GoogleToken{}, types.ApiError{
-			Msg:      err.Error(),
-			Function: "FindOne -> r.transformer.Transform()",
-			File:     "pg-google-token-repository.go",
-		}
+		return types.GoogleToken{}, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-google-token-repository.go")
 	}
 
 	var (
@@ -115,21 +109,17 @@ func (r *PgGoogleTokenRepository) FindOne(criteria types.Criteria) (types.Google
 		&updated_at,
 	); scanErr != nil {
 		if errors.Is(scanErr, sql.ErrNoRows) {
-			return types.GoogleToken{}, types.ApiError{
-				Msg:      "Entity GoogleToken not found",
-				Function: "FindOne -> rows.Scan()",
-				File:     "pg-google-token-repository.go",
-				Values:   []string{query},
-				Domain:   true,
-			}
+			return types.GoogleToken{}, exception.
+				New("Google token not found").
+				Trace("r.connection.QueryRow", "pg-google-token-repository.go").
+				WithValues([]string{query}).
+				Domain()
 		}
 
-		return types.GoogleToken{}, types.ApiError{
-			Msg:      scanErr.Error(),
-			Function: "FindOne -> rows.Scan()",
-			File:     "pg-google-token-repository.go",
-			Values:   []string{query},
-		}
+		return types.GoogleToken{}, exception.
+			New(scanErr.Error()).
+			Trace("r.connection.QueryRow", "pg-google-token-repository.go").
+			WithValues([]string{query})
 	}
 
 	return types.GoogleToken{
@@ -160,26 +150,22 @@ func (r *PgGoogleTokenRepository) Save(entity types.GoogleToken) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
-			Msg:      err.Error(),
-			Function: "Save -> r.connection.Exec()",
-			File:     "pg-google-token-repository.go",
-			Values: []string{
+		return exception.
+			New(err.Error()).
+			Trace("r.connection.Exec", "pg-google-token-repository.go").
+			WithValues([]string{
 				query.String(),
 				entity.BusinessId,
 				entity.CreatedAt,
 				entity.UpdatedAt,
-			},
-		}
+			})
 	}
 
 	return nil
 }
 
 func (r *PgGoogleTokenRepository) Update(_ types.GoogleToken) error {
-	return types.ApiError{
-		Msg:      "Method not implemented yet",
-		Function: "Update",
-		File:     "pg-google-token-repository.go",
-	}
+	return exception.
+		New("Method not implemented").
+		Trace("Update", "pg-google-token-repository.go")
 }

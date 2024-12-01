@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -41,11 +42,9 @@ func (g *GoogleApi) ExchangeToken(state string, code string) (types.GoogleToken,
 	token, exchangeErr := config.Exchange(ctx, code, oauth2.VerifierOption(state))
 
 	if exchangeErr != nil {
-		return types.GoogleToken{}, types.ApiError{
-			Msg:      exchangeErr.Error(),
-			Function: "Handler -> config.Exchange()",
-			File:     "service/google-api.go",
-		}
+		return types.GoogleToken{}, exception.
+			New(exchangeErr.Error()).
+			Trace("config.Exchange", "google-api.go")
 	}
 
 	googleToken := types.GoogleToken{
@@ -74,11 +73,9 @@ func (g *GoogleApi) CalendarClient(businessToken types.GoogleToken) (*calendar.S
 	client, newServiceErr := calendar.NewService(ctx, option.WithTokenSource(config.TokenSource(ctx, token)))
 
 	if newServiceErr != nil {
-		return nil, types.ApiError{
-			Msg:      newServiceErr.Error(),
-			Function: "CalendarClient -> calendar.NewService()",
-			File:     "service/google-api.go",
-		}
+		return nil, exception.
+			New(newServiceErr.Error()).
+			Trace("calendar.NewService", "google-api.go")
 	}
 
 	return client, nil
