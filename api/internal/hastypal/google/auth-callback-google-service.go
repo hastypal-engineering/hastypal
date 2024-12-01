@@ -1,6 +1,7 @@
 package google
 
 import (
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
@@ -25,12 +26,9 @@ func (s *AuthCallbackGoogleService) Execute(request string) error {
 	parsedUrl, parseUrlErr := url.Parse(request)
 
 	if parseUrlErr != nil {
-		return types.ApiError{
-			Msg:      parseUrlErr.Error(),
-			Function: "Handler -> url.Parse()",
-			File:     "handler/google-auth-callback.go",
-			Values:   []string{request},
-		}
+		return exception.New(parseUrlErr.Error()).
+			Trace("url.Parse", "auth-callback-google-service.go").
+			WithValues([]string{request})
 	}
 
 	code := parsedUrl.Query().Get("code")
@@ -39,11 +37,19 @@ func (s *AuthCallbackGoogleService) Execute(request string) error {
 	googleToken, exchangeTokenErr := s.googleApi.ExchangeToken(state, code)
 
 	if exchangeTokenErr != nil {
-		return exchangeTokenErr
+		return exception.Wrap(
+			"s.googleApi.ExchangeToken",
+			"auth-callback-google-service.go",
+			exchangeTokenErr,
+		)
 	}
 
 	if err := s.repository.Save(googleToken); err != nil {
-		return err
+		return exception.Wrap(
+			"s.repository.Save",
+			"auth-callback-google-service.go",
+			err,
+		)
 	}
 
 	return nil

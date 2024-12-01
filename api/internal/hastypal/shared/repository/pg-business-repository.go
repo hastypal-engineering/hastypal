@@ -209,34 +209,17 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 
 	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
 	if openingHoursErr != nil {
-		return types.ApiError{
-			Msg:      openingHoursErr.Error(),
-			Function: "Save -> json.Marshal(entity.OpeningHours)",
-			File:     "pg-business-repository.go",
-			Values: []string{
-				query.String(),
-				entity.Id,
-				entity.Name,
-				entity.ContactPhone,
-				entity.Email,
-			},
-		}
+		return exception.New(openingHoursErr.Error()).
+			Trace("json.Marshal(entity.OpeningHours)", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
 	}
 
 	holidays, holidaysErr := json.Marshal(entity.Holidays)
+
 	if holidaysErr != nil {
-		return types.ApiError{
-			Msg:      holidaysErr.Error(),
-			Function: "Save -> json.Marshal(entity.Holidays)",
-			File:     "pg-business-repository.go",
-			Values: []string{
-				query.String(),
-				entity.Id,
-				entity.Name,
-				entity.ContactPhone,
-				entity.Email,
-			},
-		}
+		return exception.New(holidaysErr.Error()).
+			Trace("json.Marshal(entity.Holidays)", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
 	}
 
 	_, err := r.connection.Exec(
@@ -255,27 +238,15 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	)
 
 	if err != nil {
-		return types.ApiError{
-			Msg:      err.Error(),
-			Function: "Save -> r.connection.Exec()",
-			File:     "pg-business-repository.go",
-			Values: []string{
-				query.String(),
-				entity.Id,
-				entity.Name,
-				entity.ContactPhone,
-				entity.Email,
-			},
-		}
+		return exception.New(err.Error()).
+			Trace("r.connection.Exec", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
 	}
 
 	return nil
 }
 
 func (r *PgBusinessRepository) Update(_ types.Business) error {
-	return types.ApiError{
-		Msg:      "Method not implemented yet",
-		Function: "Update",
-		File:     "pg-business-repository.go",
-	}
+	return exception.New("Method not implemented").
+		Trace("Update", "pg-business-repository.go")
 }

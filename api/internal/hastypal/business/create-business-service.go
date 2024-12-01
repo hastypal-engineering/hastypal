@@ -1,6 +1,7 @@
 package business
 
 import (
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 )
 
@@ -16,7 +17,7 @@ func NewCreateBusinessService(repository types.Repository[types.Business]) *Crea
 
 func (s *CreateBusinessService) Execute(request types.Business) error {
 	if err := s.repository.Save(request); err != nil {
-		return err
+		return exception.Wrap("s.repository.Save", "create-business-service.go", err)
 	}
 
 	return nil
