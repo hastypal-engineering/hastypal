@@ -2,9 +2,10 @@ package business
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"net/http"
 )
 
 type CreateBusinessHandler struct {
@@ -26,7 +27,7 @@ func (h *CreateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) 
 		return types.ApiError{
 			Msg:      decodeErr.Error(),
 			Function: "Handler -> json.NewDecoder().Decode()",
-			File:     "create-business.go",
+			File:     "create-business-handler.go",
 		}
 	}
 

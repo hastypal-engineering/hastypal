@@ -4,9 +4,10 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"strings"
 )
 
 type PgBusinessRepository struct {
@@ -114,29 +115,29 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 	}
 
 	var (
-		id                  string
-		name                string
-		communication_phone string
-		email               string
-		password            string
-		service_catalog     []types.ServiceCatalog
-		opening_hours       map[string][]string
-		channel_name        string
-		location            string
-		created_at          string
-		updated_at          string
+		id            string
+		name          string
+		contact_phone string
+		email         string
+		password      string
+		channel_name  string
+		location      string
+		opening_hours []uint8
+		holidays      []uint8
+		created_at    string
+		updated_at    string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
 		&id,
 		&name,
-		&communication_phone,
+		&contact_phone,
 		&email,
 		&password,
-		&service_catalog,
-		&opening_hours,
 		&channel_name,
 		&location,
+		&opening_hours,
+		&holidays,
 		&created_at,
 		&updated_at,
 	); scanErr != nil {
@@ -158,18 +159,44 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		}
 	}
 
+	var openingHours map[string][]string
+
+	openingHoursUnMarshalErr := json.Unmarshal(opening_hours, &openingHours)
+
+	if openingHoursUnMarshalErr != nil {
+		return types.Business{}, types.ApiError{
+			Msg:      openingHoursUnMarshalErr.Error(),
+			Function: "FindOne -> json.Unmarshal(openingHours)",
+			File:     "pg-business-repository.go",
+			Values:   []string{query},
+		}
+	}
+
+	var holidaysMap map[string][]string
+
+	holidaysUnMarshalErr := json.Unmarshal(holidays, &holidaysMap)
+
+	if holidaysUnMarshalErr != nil {
+		return types.Business{}, types.ApiError{
+			Msg:      holidaysUnMarshalErr.Error(),
+			Function: "FindOne -> json.Unmarshal(holidays)",
+			File:     "pg-business-repository.go",
+			Values:   []string{query},
+		}
+	}
+
 	return types.Business{
-		Id:             id,
-		Name:           name,
-		ContactPhone:   communication_phone,
-		Email:          email,
-		Password:       password,
-		ServiceCatalog: service_catalog,
-		OpeningHours:   opening_hours,
-		ChannelName:    channel_name,
-		Location:       location,
-		CreatedAt:      created_at,
-		UpdatedAt:      updated_at,
+		Id:           id,
+		Name:         name,
+		ContactPhone: contact_phone,
+		Email:        email,
+		Password:     password,
+		OpeningHours: openingHours,
+		Holidays:     holidaysMap,
+		ChannelName:  channel_name,
+		Location:     location,
+		CreatedAt:    created_at,
+		UpdatedAt:    updated_at,
 	}, nil
 }
 
