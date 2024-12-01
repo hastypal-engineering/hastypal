@@ -107,7 +107,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 func (s *StartCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
 	filters := make([]types.Filter, 1)
 
-	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: "businessId"}
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
 
 	criteria := types.Criteria{Filters: filters}
 
