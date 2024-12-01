@@ -14,6 +14,7 @@ const (
 	TelegramApiBotUrl        = "TELEGRAM_BOT_API_URL"
 	GoogleClientId           = "GOOGLE_CLIENT_ID"
 	GoogleClientSecret       = "GOOGLE_CLIENT_SECRET"
+	JwtKey                   = "JWT_KEY"
 )
 
 // Criteria
