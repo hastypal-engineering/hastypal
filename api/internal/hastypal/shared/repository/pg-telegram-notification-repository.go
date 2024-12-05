@@ -51,6 +51,8 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 		scheduled_at  string
 		chat_id       int
 		business_name string
+		service_name  string
+		booking_date  string
 		created_at    string
 	)
 
@@ -65,6 +67,8 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			&scheduled_at,
 			&chat_id,
 			&business_name,
+			&service_name,
+			&booking_date,
 			&created_at,
 		); scanErr != nil {
 			return nil, exception.
@@ -74,14 +78,16 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 		}
 
 		results = append(results, types.TelegramNotification{
-			Id:          id,
-			SessionId:   session_id,
-			BusinessId:  business_id,
-			BookingId:   booking_id,
-			ScheduledAt: scheduled_at,
-			ChatId:      chat_id,
-			From:        business_name,
-			CreatedAt:   created_at,
+			Id:           id,
+			SessionId:    session_id,
+			BusinessId:   business_id,
+			BookingId:    booking_id,
+			ScheduledAt:  scheduled_at,
+			ChatId:       chat_id,
+			BusinessName: business_name,
+			ServiceName:  service_name,
+			BookingDate:  booking_date,
+			CreatedAt:    created_at,
 		})
 	}
 
@@ -105,6 +111,8 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		scheduled_at  string
 		chat_id       int
 		business_name string
+		service_name  string
+		booking_date  string
 		created_at    string
 	)
 
@@ -116,6 +124,8 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		&scheduled_at,
 		&chat_id,
 		&business_name,
+		&service_name,
+		&booking_date,
 		&created_at,
 	); scanErr != nil {
 		if errors.Is(scanErr, sql.ErrNoRows) {
@@ -133,14 +143,16 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 	}
 
 	return types.TelegramNotification{
-		Id:          id,
-		SessionId:   session_id,
-		BusinessId:  business_id,
-		BookingId:   booking_id,
-		ScheduledAt: scheduled_at,
-		ChatId:      chat_id,
-		From:        business_name,
-		CreatedAt:   created_at,
+		Id:           id,
+		SessionId:    session_id,
+		BusinessId:   business_id,
+		BookingId:    booking_id,
+		ScheduledAt:  scheduled_at,
+		ChatId:       chat_id,
+		BusinessName: business_name,
+		ServiceName:  service_name,
+		BookingDate:  booking_date,
+		CreatedAt:    created_at,
 	}, nil
 }
 
@@ -148,8 +160,9 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO telegram_notification `)
-	query.WriteString(`(id, session_id, business_id, booking_id, scheduled_at, chat_id, business_name, created_at) `)
-	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`)
+	query.WriteString(`(id, session_id, business_id, booking_id, scheduled_at, chat_id, business_name, `)
+	query.WriteString(`service_name, booking_date, created_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`)
 
 	_, err := r.connection.Exec(
 		query.String(),
@@ -159,7 +172,9 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 		entity.BookingId,
 		entity.ScheduledAt,
 		entity.ChatId,
-		entity.From,
+		entity.BusinessName,
+		entity.ServiceName,
+		entity.BookingDate,
 		entity.CreatedAt,
 	)
 
@@ -173,7 +188,9 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 				entity.BusinessId,
 				entity.BookingId,
 				entity.ScheduledAt,
-				entity.From,
+				entity.BusinessName,
+				entity.ServiceName,
+				entity.BookingDate,
 				entity.CreatedAt,
 			})
 	}
