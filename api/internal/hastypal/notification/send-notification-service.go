@@ -12,12 +12,12 @@ import (
 
 type SendNotificationService struct {
 	repository types.Repository[types.TelegramNotification]
-	bot        service.TelegramBot
+	bot        *service.TelegramBot
 }
 
 func NewSendNotificationService(
 	repository types.Repository[types.TelegramNotification],
-	bot service.TelegramBot,
+	bot *service.TelegramBot,
 ) *SendNotificationService {
 	return &SendNotificationService{
 		repository: repository,
@@ -48,7 +48,19 @@ func (s *SendNotificationService) Execute() error {
 			notification.BusinessName,
 		)
 
+		bookingService := fmt.Sprintf(
+			"![🟢](tg://emoji?id=5368324170671202286) Para %s\n\n",
+			notification.ServiceName,
+		)
+
+		bookingDate := fmt.Sprintf(
+			"![⌚️](tg://emoji?id=5368324170671202286) En la siguiente fecha %s\n\n",
+			notification.BookingDate,
+		)
+
 		markdownText.WriteString(welcome)
+		markdownText.WriteString(bookingService)
+		markdownText.WriteString(bookingDate)
 
 		message := types.SendTelegramMessage{
 			ChatId:         notification.ChatId,
@@ -57,7 +69,13 @@ func (s *SendNotificationService) Execute() error {
 			ProtectContent: true,
 		}
 
-		s.bot.SendMsg(message)
+		if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"send-notification-service.go",
+				botSendMsgErr,
+			)
+		}
 	}
 
 	return nil
