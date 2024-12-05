@@ -241,6 +241,8 @@ func (s *FinishCommandTelegramService) registerNotification(
 		ScheduledAt:  notificationDate.Format(time.DateTime),
 		ChatId:       update.CallbackQuery.From.Id,
 		BusinessName: business.Name,
+		ServiceName:  "placeholder-test",
+		BookingDate:  booking.When,
 		CreatedAt:    time.Now().Format(time.DateTime),
 	}
 
