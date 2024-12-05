@@ -50,7 +50,7 @@ func (s *SendNotificationService) Execute() error {
 
 		bookingService := fmt.Sprintf(
 			"![🟢](tg://emoji?id=5368324170671202286) Para %s\n\n",
-			notification.ServiceName,
+			"Corte de pelo y barba express 18€",
 		)
 
 		bookingDate := fmt.Sprintf(
