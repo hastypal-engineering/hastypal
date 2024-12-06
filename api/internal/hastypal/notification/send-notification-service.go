@@ -109,6 +109,12 @@ func (s *SendNotificationService) Execute() error {
 				botSendMsgErr,
 			)
 		}
+
+		notification.MarkAsSent()
+
+		if updateErr := s.repository.Update(notification); updateErr != nil {
+			return exception.Wrap("s.repository.Update", "send-notification-service.go", updateErr)
+		}
 	}
 
 	return nil

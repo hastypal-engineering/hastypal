@@ -1,5 +1,7 @@
 package types
 
+import "time"
+
 type TelegramNotification struct {
 	Id           string `json:"id"`
 	SessionId    string `json:"sessionId"`
@@ -13,4 +15,9 @@ type TelegramNotification struct {
 	Sent         bool   `json:"sent"`
 	SentAt       string `json:"sentAt,omitempty"`
 	CreatedAt    string `json:"createdAt"`
+}
+
+func (tn *TelegramNotification) MarkAsSent() {
+	tn.Sent = true
+	tn.SentAt = time.Now().Format(time.DateTime)
 }

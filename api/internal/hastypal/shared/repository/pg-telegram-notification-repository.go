@@ -6,6 +6,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"strconv"
 	"strings"
 )
 
@@ -212,8 +213,30 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 	return nil
 }
 
-func (r *PgTelegramNotificationRepository) Update(_ types.TelegramNotification) error {
-	return exception.
-		New("Method not implemented").
-		Trace("Update", "pg-telegram-notification-repository.go")
+func (r *PgTelegramNotificationRepository) Update(entity types.TelegramNotification) error {
+	var query strings.Builder
+
+	query.WriteString(`UPDATE telegram_notification `)
+	query.WriteString(`SET sent = $2, sent_at = $3 WHERE id = $1;`)
+
+	_, err := r.connection.Exec(
+		query.String(),
+		entity.Id,
+		entity.Sent,
+		entity.SentAt,
+	)
+
+	if err != nil {
+		return exception.
+			New(err.Error()).
+			Trace("r.connection.Exec", "pg-telegram-notification-repository.go").
+			WithValues([]string{
+				query.String(),
+				entity.Id,
+				entity.BusinessId,
+				strconv.Itoa(entity.ChatId),
+			})
+	}
+
+	return nil
 }
