@@ -28,7 +28,8 @@ func (tb *TelegramBot) SendMsg(msg types.SendTelegramMessage) error {
 	if jsonEncodeError != nil {
 		return exception.
 			New(jsonEncodeError.Error()).
-			Trace("json.Marshal", "telegram-bot.go")
+			Trace("json.Marshal", "telegram-bot.go").
+			WithValues([]string{msg.Text})
 	}
 
 	request, requestCreationError := http.NewRequest(
