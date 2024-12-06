@@ -40,25 +40,65 @@ func (s *SendNotificationService) Execute() error {
 		return exception.Wrap("s.repository.Find", "send-notification-service.go", findErr)
 	}
 
+	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
+
+	if loadLocationErr != nil {
+		return exception.New(loadLocationErr.Error()).
+			Trace("time.LoadLocation", "send-notification-service.go").
+			WithValues([]string{"Europe/Madrid"})
+	}
+
+	time.Local = location
+
+	spanishMonths := map[time.Month]string{
+		time.January:   "Enero",
+		time.February:  "Febrero",
+		time.March:     "Marzo",
+		time.April:     "Abril",
+		time.May:       "Mayo",
+		time.June:      "Junio",
+		time.July:      "Julio",
+		time.August:    "Agosto",
+		time.September: "Septiembre",
+		time.October:   "Octubre",
+		time.November:  "Noviembre",
+		time.December:  "Diciembre",
+	}
+
 	for _, notification := range notifications {
 		var markdownText strings.Builder
 
-		welcome := fmt.Sprintf(
-			"Hola ![👋](tg://emoji?id=5368324170671202286), recuerda que tienes una cita en %s\n\n",
+		welcome := "![👋](tg://emoji?id=5368324170671202286) Hola y "
+
+		apologyForBother := fmt.Sprintf(
+			"perdona las molestias, recuerda que tienes una cita en %s ",
 			notification.BusinessName,
 		)
 
 		bookingService := fmt.Sprintf(
-			"![🟢](tg://emoji?id=5368324170671202286) Para %s\n\n",
+			"para %s ",
 			"Corte de pelo y barba express 18€",
 		)
 
-		bookingDate := fmt.Sprintf(
-			"![⌚️](tg://emoji?id=5368324170671202286) En la siguiente fecha %s\n\n",
-			notification.BookingDate,
+		parsedBookingDate, bookingDateParseErr := time.Parse(time.DateTime, notification.BookingDate)
+
+		if bookingDateParseErr != nil {
+			return exception.New(bookingDateParseErr.Error()).
+				Trace("time.Parse", "send-notification-service.go").
+				WithValues([]string{notification.BookingDate})
+		}
+
+		bookingDate := fmt.Sprintf("el día %d de %s, %d a las %02d:%02d %s",
+			parsedBookingDate.Day(),
+			spanishMonths[parsedBookingDate.Month()],
+			parsedBookingDate.Year(),
+			parsedBookingDate.Hour(),
+			parsedBookingDate.Minute(),
+			parsedBookingDate.Format("PM"),
 		)
 
 		markdownText.WriteString(welcome)
+		markdownText.WriteString(apologyForBother)
 		markdownText.WriteString(bookingService)
 		markdownText.WriteString(bookingDate)
 
@@ -67,6 +107,7 @@ func (s *SendNotificationService) Execute() error {
 			Text:           markdownText.String(),
 			ParseMode:      constants.TelegramMarkdown,
 			ProtectContent: true,
+			ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: make([][]types.KeyboardButton, 0)},
 		}
 
 		if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
