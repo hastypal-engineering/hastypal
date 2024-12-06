@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS telegram_notification (
     business_name VARCHAR(255) NOT NULL,
     service_name VARCHAR(255) NOT NULL,
     booking_date VARCHAR(60) NOT NULL,
+    sent BOOLEAN NOT NULL,
+    sent_at VARCHAR(60) NULL,
     created_at VARCHAR(60) NOT NULL,
     FOREIGN KEY (session_id) REFERENCES booking_session(id),
     FOREIGN KEY (booking_id) REFERENCES booking(id),

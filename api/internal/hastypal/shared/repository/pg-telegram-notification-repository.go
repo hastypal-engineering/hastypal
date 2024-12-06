@@ -53,6 +53,8 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 		business_name string
 		service_name  string
 		booking_date  string
+		sent          bool
+		sent_at       string
 		created_at    string
 	)
 
@@ -69,6 +71,8 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			&business_name,
 			&service_name,
 			&booking_date,
+			&sent,
+			&sent_at,
 			&created_at,
 		); scanErr != nil {
 			return nil, exception.
@@ -87,6 +91,8 @@ func (r *PgTelegramNotificationRepository) Find(criteria types.Criteria) ([]type
 			BusinessName: business_name,
 			ServiceName:  service_name,
 			BookingDate:  booking_date,
+			Sent:         sent,
+			SentAt:       sent_at,
 			CreatedAt:    created_at,
 		})
 	}
@@ -113,6 +119,8 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		business_name string
 		service_name  string
 		booking_date  string
+		sent          bool
+		sent_at       string
 		created_at    string
 	)
 
@@ -126,6 +134,8 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		&business_name,
 		&service_name,
 		&booking_date,
+		&sent,
+		&sent_at,
 		&created_at,
 	); scanErr != nil {
 		if errors.Is(scanErr, sql.ErrNoRows) {
@@ -152,6 +162,8 @@ func (r *PgTelegramNotificationRepository) FindOne(criteria types.Criteria) (typ
 		BusinessName: business_name,
 		ServiceName:  service_name,
 		BookingDate:  booking_date,
+		Sent:         sent,
+		SentAt:       sent_at,
 		CreatedAt:    created_at,
 	}, nil
 }
@@ -161,8 +173,8 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 
 	query.WriteString(`INSERT INTO telegram_notification `)
 	query.WriteString(`(id, session_id, business_id, booking_id, scheduled_at, chat_id, business_name, `)
-	query.WriteString(`service_name, booking_date, created_at) `)
-	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);`)
+	query.WriteString(`service_name, booking_date, sent, sent_at, created_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);`)
 
 	_, err := r.connection.Exec(
 		query.String(),
@@ -175,6 +187,8 @@ func (r *PgTelegramNotificationRepository) Save(entity types.TelegramNotificatio
 		entity.BusinessName,
 		entity.ServiceName,
 		entity.BookingDate,
+		entity.Sent,
+		entity.SentAt,
 		entity.CreatedAt,
 	)
 

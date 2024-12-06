@@ -243,6 +243,7 @@ func (s *FinishCommandTelegramService) registerNotification(
 		BusinessName: business.Name,
 		ServiceName:  "placeholder-test",
 		BookingDate:  booking.When,
+		Sent:         false,
 		CreatedAt:    time.Now().Format(time.DateTime),
 	}
 

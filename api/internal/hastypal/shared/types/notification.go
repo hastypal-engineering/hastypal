@@ -10,5 +10,7 @@ type TelegramNotification struct {
 	BusinessName string `json:"businessName"`
 	ServiceName  string `json:"serviceName"`
 	BookingDate  string `json:"bookingDate"`
+	Sent         bool   `json:"sent"`
+	SentAt       string `json:"sentAt,omitempty"`
 	CreatedAt    string `json:"createdAt"`
 }
