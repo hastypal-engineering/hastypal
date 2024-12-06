@@ -26,18 +26,10 @@ func NewSendNotificationService(
 }
 
 func (s *SendNotificationService) Execute() error {
-	filter := types.Filter{
-		Name:    "scheduled_at",
-		Operand: constants.LessThanOrEqual,
-		Value:   time.Now().Format(time.DateTime),
-	}
+	notifications, getNotificationsErr := s.getNotifications()
 
-	criteria := types.Criteria{Filters: []types.Filter{filter}, Join: []string{"booking_id"}}
-
-	notifications, findErr := s.repository.Find(criteria)
-
-	if findErr != nil {
-		return exception.Wrap("s.repository.Find", "send-notification-service.go", findErr)
+	if getNotificationsErr != nil {
+		return exception.Wrap("s.getNotifications", "send-notification-service.go", getNotificationsErr)
 	}
 
 	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
@@ -120,4 +112,28 @@ func (s *SendNotificationService) Execute() error {
 	}
 
 	return nil
+}
+
+func (s *SendNotificationService) getNotifications() ([]types.TelegramNotification, error) {
+	scheduledAtFilter := types.Filter{
+		Name:    "scheduled_at",
+		Operand: constants.LessThanOrEqual,
+		Value:   time.Now().Format(time.DateTime),
+	}
+
+	notSentFilter := types.Filter{
+		Name:    "sent",
+		Operand: constants.Equal,
+		Value:   false,
+	}
+
+	criteria := types.Criteria{Filters: []types.Filter{scheduledAtFilter, notSentFilter}}
+
+	notifications, findErr := s.repository.Find(criteria)
+
+	if findErr != nil {
+		return nil, exception.Wrap("s.repository.Find", "send-notification-service.go", findErr)
+	}
+
+	return notifications, nil
 }
