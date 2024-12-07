@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/adriein/hastypal/internal/hastypal/notification"
 	"log"
 	"net/http"
 	"os"
@@ -66,9 +67,10 @@ func main() {
 
 	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
-
 	api.Route("POST /business", constructCreateBusinessHandler(api, database))
 	api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
+
+	api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
 
 	api.Start()
 
@@ -149,6 +151,17 @@ func constructLoginBusinessHandler(api *server.HastypalApiServer, database *sql.
 	loginBusinessService := business.NewLoginBusinessService(businessRepository)
 
 	controller := business.NewLoginBusinessHandler(loginBusinessService)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructSendNotificationHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
+	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
+
+	sendNotificationService := notification.NewSendNotificationService(notificationRepository, bot)
+
+	controller := notification.NewSendNotificationHandler(sendNotificationService)
 
 	return api.NewHandler(controller.Handler)
 }

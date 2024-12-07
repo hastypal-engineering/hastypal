@@ -234,14 +234,17 @@ func (s *FinishCommandTelegramService) registerNotification(
 	)
 
 	notification := types.TelegramNotification{
-		Id:          uuid.New().String(),
-		SessionId:   booking.SessionId,
-		BookingId:   booking.Id,
-		BusinessId:  business.Id,
-		ScheduledAt: notificationDate.Format(time.DateTime),
-		ChatId:      update.CallbackQuery.From.Id,
-		From:        business.Name,
-		CreatedAt:   time.Now().Format(time.DateTime),
+		Id:           uuid.New().String(),
+		SessionId:    booking.SessionId,
+		BookingId:    booking.Id,
+		BusinessId:   business.Id,
+		ScheduledAt:  notificationDate.Format(time.DateTime),
+		ChatId:       update.CallbackQuery.From.Id,
+		BusinessName: business.Name,
+		ServiceName:  "placeholder-test",
+		BookingDate:  booking.When,
+		Sent:         false,
+		CreatedAt:    time.Now().Format(time.DateTime),
 	}
 
 	if err := s.notificationRepository.Save(notification); err != nil {

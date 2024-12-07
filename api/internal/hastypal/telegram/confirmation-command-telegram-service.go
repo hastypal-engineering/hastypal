@@ -101,7 +101,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 
 	welcome := "![🙂](tg://emoji?id=5368324170671202286) Último paso te lo prometo\\! Confirma que todo esta correcto:\n\n"
 
-	service := fmt.Sprintf(
+	bookedService := fmt.Sprintf(
 		"![🟢](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Corte de pelo y barba express 18€",
 	)
@@ -116,7 +116,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	processInstructions := "*Pulsa confirmar si todo es correcto o cancelar de lo contrario*\n\n"
 
 	markdownText.WriteString(welcome)
-	markdownText.WriteString(service)
+	markdownText.WriteString(bookedService)
 	markdownText.WriteString(date)
 	markdownText.WriteString(hourMarkdown)
 	markdownText.WriteString(processInstructions)

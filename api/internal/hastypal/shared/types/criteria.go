@@ -8,4 +8,5 @@ type Filter struct {
 
 type Criteria struct {
 	Filters []Filter
+	Join    []string
 }
