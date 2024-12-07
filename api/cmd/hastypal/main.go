@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/notification"
+	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"log"
 	"net/http"
 	"os"
@@ -86,11 +87,12 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
 
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
+	translations := translation.New()
 
 	startCommandService := telegram.NewStartCommandTelegramService(bot, sessionRepository, businessRepository)
-	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository)
-	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository)
-	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository)
+	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository, translations)
+	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository, translations)
+	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository, translations)
 	finishCommandService := telegram.NewFinishCommandTelegramService(
 		bot,
 		googleApi,
