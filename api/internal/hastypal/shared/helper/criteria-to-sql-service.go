@@ -26,8 +26,9 @@ func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error
 	sql := "SELECT * FROM" + " " + c.table + " WHERE "
 
 	for _, filter := range criteria.Filters {
-		_, ok := filter.Value.(string)
-		if ok {
+		_, isStringValue := filter.Value.(string)
+
+		if isStringValue {
 			sqlStringValue := fmt.Sprintf("'%s'", filter.Value)
 
 			clause := filter.Name + " " + filter.Operand + " " + sqlStringValue
@@ -37,9 +38,33 @@ func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error
 			continue
 		}
 
-		sqlStringValue := fmt.Sprintf("%s", filter.Value)
+		_, isIntValue := filter.Value.(int)
 
-		clause := filter.Name + " " + filter.Operand + " " + sqlStringValue
+		if isIntValue {
+			sqlIntValue := fmt.Sprintf("%d", filter.Value)
+
+			clause := filter.Name + " " + filter.Operand + " " + sqlIntValue
+
+			where = append(where, clause)
+
+			continue
+		}
+
+		_, isFloatValue := filter.Value.(float64)
+
+		if isFloatValue {
+			sqlIntValue := fmt.Sprintf("%d", filter.Value)
+
+			clause := filter.Name + " " + filter.Operand + " " + sqlIntValue
+
+			where = append(where, clause)
+
+			continue
+		}
+
+		sqlBooleanValue := fmt.Sprintf("%t", filter.Value)
+
+		clause := filter.Name + " " + filter.Operand + " " + sqlBooleanValue
 
 		where = append(where, clause)
 	}
