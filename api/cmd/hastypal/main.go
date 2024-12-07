@@ -160,8 +160,9 @@ func constructLoginBusinessHandler(api *server.HastypalApiServer, database *sql.
 func constructSendNotificationHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
 	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
+	translations := translation.New()
 
-	sendNotificationService := notification.NewSendNotificationService(notificationRepository, bot)
+	sendNotificationService := notification.NewSendNotificationService(notificationRepository, bot, translations)
 
 	controller := notification.NewSendNotificationHandler(sendNotificationService)
 
