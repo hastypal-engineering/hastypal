@@ -124,7 +124,7 @@ func (s *SendNotificationService) getNotifications() ([]types.TelegramNotificati
 	scheduledAtFilter := types.Filter{
 		Name:    "scheduled_at",
 		Operand: constants.LessThanOrEqual,
-		Value:   time.Now().Format(time.DateTime),
+		Value:   time.Now().UTC().Format(time.DateTime),
 	}
 
 	notSentFilter := types.Filter{

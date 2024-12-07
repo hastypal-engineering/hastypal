@@ -244,7 +244,7 @@ func (s *FinishCommandTelegramService) registerNotification(
 		ServiceName:  "placeholder-test",
 		BookingDate:  booking.When,
 		Sent:         false,
-		CreatedAt:    time.Now().Format(time.DateTime),
+		CreatedAt:    time.Now().UTC().Format(time.DateTime),
 	}
 
 	if err := s.notificationRepository.Save(notification); err != nil {
@@ -297,7 +297,7 @@ func (s *FinishCommandTelegramService) createBooking(
 		BusinessId: business.Id,
 		ServiceId:  session.ServiceId,
 		When:       bookingDateWithHour.Format(time.DateTime),
-		CreatedAt:  time.Now().Format(time.DateTime),
+		CreatedAt:  time.Now().UTC().Format(time.DateTime),
 	}
 
 	return booking, nil

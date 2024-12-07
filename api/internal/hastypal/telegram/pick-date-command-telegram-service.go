@@ -6,6 +6,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 	"strings"
@@ -13,17 +14,20 @@ import (
 )
 
 type PickDateCommandTelegramService struct {
-	bot        *service.TelegramBot
-	repository types.Repository[types.BookingSession]
+	bot         *service.TelegramBot
+	repository  types.Repository[types.BookingSession]
+	translation *translation.Translation
 }
 
 func NewPickDateCommandTelegramService(
 	bot *service.TelegramBot,
 	repository types.Repository[types.BookingSession],
+	translation *translation.Translation,
 ) *PickDateCommandTelegramService {
 	return &PickDateCommandTelegramService{
-		bot:        bot,
-		repository: repository,
+		bot:         bot,
+		repository:  repository,
+		translation: translation,
 	}
 }
 
@@ -109,7 +113,7 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
 
 		day := dateParts[0]
-		month := dateParts[1]
+		month := s.translation.GetSpanishMonthShortForm(newDate.Month())
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
@@ -175,7 +179,7 @@ func (s *PickDateCommandTelegramService) updateSession(actualSession types.Booki
 		Date:       "",
 		Hour:       "",
 		CreatedAt:  actualSession.CreatedAt,
-		UpdatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		UpdatedAt:  time.Now().UTC().Format(time.DateTime), //We refresh the created at on purpose
 		Ttl:        actualSession.Ttl,
 	}
 

@@ -52,8 +52,8 @@ func (g *GoogleApi) ExchangeToken(state string, code string) (types.GoogleToken,
 		AccessToken:  token.AccessToken,
 		TokenType:    token.TokenType,
 		RefreshToken: token.RefreshToken,
-		CreatedAt:    time.Now().Format(time.DateTime),
-		UpdatedAt:    time.Now().Format(time.DateTime),
+		CreatedAt:    time.Now().UTC().Format(time.DateTime),
+		UpdatedAt:    time.Now().UTC().Format(time.DateTime),
 	}
 
 	return googleToken, nil

@@ -6,6 +6,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 	"strings"
@@ -13,17 +14,20 @@ import (
 )
 
 type PickHourCommandTelegramService struct {
-	bot        *service.TelegramBot
-	repository types.Repository[types.BookingSession]
+	bot         *service.TelegramBot
+	repository  types.Repository[types.BookingSession]
+	translation *translation.Translation
 }
 
 func NewPickHourCommandTelegramService(
 	bot *service.TelegramBot,
 	repository types.Repository[types.BookingSession],
+	translation *translation.Translation,
 ) *PickHourCommandTelegramService {
 	return &PickHourCommandTelegramService{
-		bot:        bot,
-		repository: repository,
+		bot:         bot,
+		repository:  repository,
+		translation: translation,
 	}
 }
 
@@ -101,13 +105,13 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
 
 	day := dateParts[0]
-	month := dateParts[1]
+	month := s.translation.GetSpanishMonthShortForm(selectedDate.Month())
 
 	welcome := fmt.Sprintf(
 		"![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para:\n\n",
 	)
 
-	service := fmt.Sprintf(
+	selectedService := fmt.Sprintf(
 		"![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
 		"Corte de pelo y barba express 18€",
 	)
@@ -120,7 +124,7 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 	processInstructions := "*Selecciona una hora y te escribiré un resumen para que puedas confirmar la reserva*\n\n"
 
 	markdownText.WriteString(welcome)
-	markdownText.WriteString(service)
+	markdownText.WriteString(selectedService)
 	markdownText.WriteString(date)
 	markdownText.WriteString(processInstructions)
 
@@ -197,7 +201,7 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 		Date:       date,
 		Hour:       "",
 		CreatedAt:  actualSession.CreatedAt,
-		UpdatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		UpdatedAt:  time.Now().UTC().Format(time.DateTime), //We refresh the created at on purpose
 		Ttl:        actualSession.Ttl,
 	}
 
