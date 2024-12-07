@@ -6,6 +6,7 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
 	"strings"
@@ -13,17 +14,20 @@ import (
 )
 
 type ConfirmationCommandTelegramService struct {
-	bot        *service.TelegramBot
-	repository types.Repository[types.BookingSession]
+	bot         *service.TelegramBot
+	repository  types.Repository[types.BookingSession]
+	translation *translation.Translation
 }
 
 func NewConfirmationCommandTelegramService(
 	bot *service.TelegramBot,
 	repository types.Repository[types.BookingSession],
+	translation *translation.Translation,
 ) *ConfirmationCommandTelegramService {
 	return &ConfirmationCommandTelegramService{
-		bot:        bot,
-		repository: repository,
+		bot:         bot,
+		repository:  repository,
+		translation: translation,
 	}
 }
 
@@ -97,7 +101,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
 
 	day := dateParts[0]
-	month := dateParts[1]
+	month := s.translation.GetSpanishMonthShortForm(selectedDate.Month())
 
 	welcome := "![🙂](tg://emoji?id=5368324170671202286) Último paso te lo prometo\\! Confirma que todo esta correcto:\n\n"
 
@@ -193,7 +197,7 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 		Date:       actualSession.Date,
 		Hour:       hour,
 		CreatedAt:  actualSession.CreatedAt,
-		UpdatedAt:  time.Now().Format(time.DateTime), //We refresh the created at on purpose
+		UpdatedAt:  time.Now().UTC().Format(time.DateTime), //We refresh the created at on purpose
 		Ttl:        actualSession.Ttl,
 	}
 

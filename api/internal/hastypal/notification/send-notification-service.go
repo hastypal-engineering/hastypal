@@ -5,23 +5,27 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
+	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"strings"
 	"time"
 )
 
 type SendNotificationService struct {
-	repository types.Repository[types.TelegramNotification]
-	bot        *service.TelegramBot
+	repository  types.Repository[types.TelegramNotification]
+	bot         *service.TelegramBot
+	translation *translation.Translation
 }
 
 func NewSendNotificationService(
 	repository types.Repository[types.TelegramNotification],
 	bot *service.TelegramBot,
+	translation *translation.Translation,
 ) *SendNotificationService {
 	return &SendNotificationService{
-		repository: repository,
-		bot:        bot,
+		repository:  repository,
+		bot:         bot,
+		translation: translation,
 	}
 }
 
@@ -30,31 +34,6 @@ func (s *SendNotificationService) Execute() error {
 
 	if getNotificationsErr != nil {
 		return exception.Wrap("s.getNotifications", "send-notification-service.go", getNotificationsErr)
-	}
-
-	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
-
-	if loadLocationErr != nil {
-		return exception.New(loadLocationErr.Error()).
-			Trace("time.LoadLocation", "send-notification-service.go").
-			WithValues([]string{"Europe/Madrid"})
-	}
-
-	time.Local = location
-
-	spanishMonths := map[time.Month]string{
-		time.January:   "Enero",
-		time.February:  "Febrero",
-		time.March:     "Marzo",
-		time.April:     "Abril",
-		time.May:       "Mayo",
-		time.June:      "Junio",
-		time.July:      "Julio",
-		time.August:    "Agosto",
-		time.September: "Septiembre",
-		time.October:   "Octubre",
-		time.November:  "Noviembre",
-		time.December:  "Diciembre",
 	}
 
 	for _, notification := range notifications {
@@ -82,7 +61,7 @@ func (s *SendNotificationService) Execute() error {
 
 		bookingDate := fmt.Sprintf("el día %d de %s, %d a las %02d:%02d %s",
 			parsedBookingDate.Day(),
-			spanishMonths[parsedBookingDate.Month()],
+			s.translation.GetSpanishMonth(parsedBookingDate.Month()),
 			parsedBookingDate.Year(),
 			parsedBookingDate.Hour(),
 			parsedBookingDate.Minute(),
@@ -124,7 +103,7 @@ func (s *SendNotificationService) getNotifications() ([]types.TelegramNotificati
 	scheduledAtFilter := types.Filter{
 		Name:    "scheduled_at",
 		Operand: constants.LessThanOrEqual,
-		Value:   time.Now().Format(time.DateTime),
+		Value:   time.Now().UTC().Format(time.DateTime),
 	}
 
 	notSentFilter := types.Filter{

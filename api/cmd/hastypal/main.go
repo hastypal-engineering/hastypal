@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/notification"
+	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"log"
 	"net/http"
 	"os"
@@ -86,11 +87,12 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
 
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
+	translations := translation.New()
 
 	startCommandService := telegram.NewStartCommandTelegramService(bot, sessionRepository, businessRepository)
-	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository)
-	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository)
-	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository)
+	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository, translations)
+	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository, translations)
+	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository, translations)
 	finishCommandService := telegram.NewFinishCommandTelegramService(
 		bot,
 		googleApi,
@@ -158,8 +160,9 @@ func constructLoginBusinessHandler(api *server.HastypalApiServer, database *sql.
 func constructSendNotificationHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
 	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
+	translations := translation.New()
 
-	sendNotificationService := notification.NewSendNotificationService(notificationRepository, bot)
+	sendNotificationService := notification.NewSendNotificationService(notificationRepository, bot, translations)
 
 	controller := notification.NewSendNotificationHandler(sendNotificationService)
 
