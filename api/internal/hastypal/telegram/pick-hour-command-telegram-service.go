@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
@@ -14,20 +15,20 @@ import (
 )
 
 type PickHourCommandTelegramService struct {
-	bot         *service.TelegramBot
-	repository  types.Repository[types.BookingSession]
-	translation *translation.Translation
+	bot               *service.TelegramBot
+	sessionRepository types.Repository[types.BookingSession]
+	translation       *translation.Translation
 }
 
 func NewPickHourCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
 	translation *translation.Translation,
 ) *PickHourCommandTelegramService {
 	return &PickHourCommandTelegramService{
-		bot:         bot,
-		repository:  repository,
-		translation: translation,
+		bot:               bot,
+		sessionRepository: sessionRepository,
+		translation:       translation,
 	}
 }
 
@@ -179,7 +180,7 @@ func (s *PickHourCommandTelegramService) getCurrentSession(sessionId string) (ty
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
@@ -205,7 +206,7 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 		Ttl:        actualSession.Ttl,
 	}
 
-	if err := s.repository.Update(updatedSession); err != nil {
+	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"pick-hour-command-telegram-service.go",
@@ -214,4 +215,54 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 	}
 
 	return nil
+}
+
+func (s *PickHourCommandTelegramService) isHourAlreadyPicked(date time.Time, hour string) (bool, error) {
+	bookingSessionOnDate := types.Filter{
+		Name:    "date",
+		Operand: constants.Equal,
+		Value:   date.Format(time.DateTime),
+	}
+
+	bookingSessionHour := types.Filter{
+		Name:    "hour",
+		Operand: constants.Equal,
+		Value:   hour,
+	}
+
+	join := types.Relation{
+		Table: "booking",
+		Field: "session_id",
+	}
+
+	criteria := types.Criteria{
+		Filters: []types.Filter{bookingSessionOnDate, bookingSessionHour},
+		Join:    []types.Relation{join},
+	}
+
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
+
+	var domainErr exception.HastypalError
+
+	if findOneErr != nil && errors.As(findOneErr, &domainErr) {
+		if domainErr.IsDomain() {
+			return false, nil
+		}
+
+		return false, exception.Wrap(
+			"s.sessionRepository.FindOne",
+			"pick-hour-command-telegram-service.go",
+			findOneErr,
+		)
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		if session.Booking != nil {
+			return true, nil
+		}
+
+		return false, nil
+	}
+
+	return true, nil
 }

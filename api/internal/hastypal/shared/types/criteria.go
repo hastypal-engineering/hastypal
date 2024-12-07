@@ -6,7 +6,12 @@ type Filter struct {
 	Value   any
 }
 
+type Relation struct {
+	Table string
+	Field string
+}
+
 type Criteria struct {
 	Filters []Filter
-	Join    []string
+	Join    []Relation
 }
