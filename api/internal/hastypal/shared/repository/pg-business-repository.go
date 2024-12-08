@@ -16,7 +16,7 @@ type PgBusinessRepository struct {
 }
 
 func NewPgBusinessRepository(connection *sql.DB) *PgBusinessRepository {
-	transformer := helper.NewCriteriaToSqlService("business")
+	transformer, _ := helper.NewCriteriaToSqlService(&types.Business{})
 
 	return &PgBusinessRepository{
 		connection:  connection,
