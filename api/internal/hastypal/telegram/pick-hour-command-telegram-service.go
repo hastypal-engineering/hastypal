@@ -134,6 +134,18 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 	for i := 8; i <= len(buttons)+7; i++ {
 		hour := fmt.Sprintf("%02d:00", i)
 
+		criteria := s.similarSessionCriteria(selectedDate, hour)
+
+		isAlreadyPicked, err := s.isHourAlreadyPicked(criteria)
+
+		if err != nil {
+			return exception.Wrap("s.isHourAlreadyPicked", "pick-hour-command-telegram-service.go", err)
+		}
+
+		if isAlreadyPicked {
+			continue
+		}
+
 		buttons[i-8] = types.KeyboardButton{
 			Text: fmt.Sprintf("%s", hour),
 			CallbackData: fmt.Sprintf(
@@ -217,29 +229,7 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 	return nil
 }
 
-func (s *PickHourCommandTelegramService) isHourAlreadyPicked(date time.Time, hour string) (bool, error) {
-	bookingSessionOnDate := types.Filter{
-		Name:    "date",
-		Operand: constants.Equal,
-		Value:   date.Format(time.DateTime),
-	}
-
-	bookingSessionHour := types.Filter{
-		Name:    "hour",
-		Operand: constants.Equal,
-		Value:   hour,
-	}
-
-	join := types.Relation{
-		Table: "booking",
-		Field: "session_id",
-	}
-
-	criteria := types.Criteria{
-		Filters: []types.Filter{bookingSessionOnDate, bookingSessionHour},
-		Join:    []types.Relation{join},
-	}
-
+func (s *PickHourCommandTelegramService) isHourAlreadyPicked(criteria types.Criteria) (bool, error) {
 	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	var domainErr exception.HastypalError
@@ -265,4 +255,14 @@ func (s *PickHourCommandTelegramService) isHourAlreadyPicked(date time.Time, hou
 	}
 
 	return true, nil
+}
+
+func (s *PickHourCommandTelegramService) similarSessionCriteria(
+	date time.Time,
+	hour string,
+) types.Criteria {
+	return *types.NewCriteria().
+		Equal("date", date.Format(time.DateTime)).
+		Equal("hour", hour).
+		LeftJoin(&types.Booking{}, "session_id")
 }

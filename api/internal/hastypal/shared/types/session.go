@@ -18,6 +18,24 @@ type BookingSession struct {
 	Booking    *Booking `json:"booking"`
 }
 
+// Database
+
+func (s *BookingSession) DatabaseMappings() map[string]string {
+	return map[string]string{
+		"Id":         "id",
+		"BusinessId": "business_id",
+		"ChatId":     "chat_id",
+		"ServiceId":  "service",
+		"Date":       "date",
+		"Hour":       "hour",
+		"CreatedAt":  "created_at",
+		"UpdatedAt":  "updated_at",
+		"Ttl":        "ttl",
+		"Pk":         "id",
+		"Fk":         "business_id,business,id",
+	}
+}
+
 func (s *BookingSession) EnsureIsValid() error {
 	updatedAt, err := time.Parse(time.DateTime, s.UpdatedAt)
 

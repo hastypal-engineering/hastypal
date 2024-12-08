@@ -15,7 +15,7 @@ type PgGoogleTokenRepository struct {
 }
 
 func NewPgGoogleTokenRepository(connection *sql.DB) *PgGoogleTokenRepository {
-	transformer := helper.NewCriteriaToSqlService("google_token")
+	transformer, _ := helper.NewCriteriaToSqlService(&types.GoogleToken{})
 
 	return &PgGoogleTokenRepository{
 		connection:  connection,

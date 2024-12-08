@@ -2,7 +2,9 @@ package helper
 
 import (
 	"fmt"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"reflect"
 	"strings"
 )
 
@@ -10,10 +12,40 @@ type CriteriaToSqlService struct {
 	table string
 }
 
-func NewCriteriaToSqlService(table string) *CriteriaToSqlService {
-	return &CriteriaToSqlService{
-		table: table,
+func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) {
+	v := reflect.ValueOf(entity)
+
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		return nil, exception.
+			New("Entity provided is not a struct pointer").
+			Trace("reflect.ValueOf", "criteria-to-sql-service.go")
 	}
+
+	structValue := v.Elem()
+	structType := structValue.Type()
+
+	var scanTargets []interface{}
+	var columnNames []string
+
+	for i := 0; i < structValue.NumField(); i++ {
+		field := structValue.Field(i)
+		fieldType := structType.Field(i)
+
+		columnName := fieldType.Tag.Get("db")
+
+		if columnName == "" {
+			continue
+		}
+
+		if field.CanAddr() {
+			scanTargets = append(scanTargets, field.Addr().Interface())
+			columnNames = append(columnNames, columnName)
+		}
+	}
+
+	return &CriteriaToSqlService{
+		table: CamelToSnake(structType.Name()),
+	}, nil
 }
 
 func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error) {
@@ -21,9 +53,25 @@ func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error
 		return "SELECT * FROM" + " " + c.table, nil
 	}
 
-	var where []string
+	if len(criteria.Join) > 0 {
+		joinClause := c.constructJoinClause(criteria)
 
-	sql := "SELECT * FROM" + " " + c.table + " WHERE "
+		sql := "SELECT * FROM " + c.table + " " + joinClause + " WHERE "
+
+		completeSQL := sql + c.constructWhereClause(criteria)
+
+		return completeSQL, nil
+	}
+
+	sql := "SELECT * FROM " + c.table + " WHERE "
+
+	completeSQL := sql + c.constructWhereClause(criteria)
+
+	return completeSQL, nil
+}
+
+func (c *CriteriaToSqlService) constructWhereClause(criteria types.Criteria) string {
+	var where []string
 
 	for _, filter := range criteria.Filters {
 		_, isStringValue := filter.Value.(string)
@@ -69,7 +117,25 @@ func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error
 		where = append(where, clause)
 	}
 
-	completeSQL := sql + strings.Join(where, " AND ")
+	return strings.Join(where, " AND ")
+}
 
-	return completeSQL, nil
+func (c *CriteriaToSqlService) constructJoinClause(criteria types.Criteria) string {
+	var join []string
+
+	for _, relation := range criteria.Join {
+		relationTableAlias := relation.Table[:3]
+
+		join = append(join, fmt.Sprintf(
+			"%s JOIN %s %s ON %s.id = %s.%s",
+			relation.Type,
+			relation.Table,
+			relationTableAlias,
+			c.table,
+			relationTableAlias,
+			relation.Field,
+		))
+	}
+
+	return strings.Join(join, " ")
 }
