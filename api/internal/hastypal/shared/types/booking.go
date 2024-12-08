@@ -11,7 +11,6 @@ type Booking struct {
 
 func (s *Booking) DatabaseMappings() map[string]string {
 	return map[string]string{
-		"Pk": "id",
-		"Fk": "session_id,session,id;business_id,business,id",
+		"session_id": "session;id",
 	}
 }

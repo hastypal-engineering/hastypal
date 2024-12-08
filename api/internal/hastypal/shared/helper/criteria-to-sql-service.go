@@ -9,7 +9,8 @@ import (
 )
 
 type CriteriaToSqlService struct {
-	table string
+	table   string
+	columns []string
 }
 
 func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) {
@@ -36,6 +37,7 @@ func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) 
 		if columnName == "" {
 			continue
 		}
+		fmt.Println(fieldType.Type)
 
 		if field.CanAddr() {
 			scanTargets = append(scanTargets, field.Addr().Interface())
@@ -44,7 +46,8 @@ func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) 
 	}
 
 	return &CriteriaToSqlService{
-		table: CamelToSnake(structType.Name()),
+		table:   CamelToSnake(structType.Name()),
+		columns: columnNames,
 	}, nil
 }
 
