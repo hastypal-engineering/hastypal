@@ -3,9 +3,10 @@ package business
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"net/http"
 	"os"
+
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
@@ -48,7 +49,7 @@ func (h *LoginBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) e
 		"name":  business.Name,
 	})
 
-	signedJwt, jwtErr := token.SignedString(os.Getenv(constants.JwtKey))
+	signedJwt, jwtErr := token.SignedString([]byte(os.Getenv(constants.JwtKey)))
 
 	if jwtErr != nil {
 		return exception.Wrap(
