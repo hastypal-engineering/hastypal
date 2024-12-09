@@ -17,17 +17,20 @@ import (
 type PickHourCommandTelegramService struct {
 	bot               *service.TelegramBot
 	sessionRepository types.Repository[types.BookingSession]
+	bookingRepository types.Repository[types.Booking]
 	translation       *translation.Translation
 }
 
 func NewPickHourCommandTelegramService(
 	bot *service.TelegramBot,
 	sessionRepository types.Repository[types.BookingSession],
+	bookingRepository types.Repository[types.Booking],
 	translation *translation.Translation,
 ) *PickHourCommandTelegramService {
 	return &PickHourCommandTelegramService{
 		bot:               bot,
 		sessionRepository: sessionRepository,
+		bookingRepository: bookingRepository,
 		translation:       translation,
 	}
 }
@@ -232,10 +235,10 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 func (s *PickHourCommandTelegramService) isHourAlreadyPicked(criteria types.Criteria) (bool, error) {
 	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
-	var domainErr exception.HastypalError
+	var sessionNotFoundErr exception.HastypalError
 
-	if findOneErr != nil && errors.As(findOneErr, &domainErr) {
-		if domainErr.IsDomain() {
+	if findOneErr != nil && errors.As(findOneErr, &sessionNotFoundErr) {
+		if sessionNotFoundErr.IsDomain() {
 			return false, nil
 		}
 
@@ -247,22 +250,37 @@ func (s *PickHourCommandTelegramService) isHourAlreadyPicked(criteria types.Crit
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		if session.Booking != nil {
-			return true, nil
+		bookingCriteria := s.bookingCriteria(session.Id)
+
+		_, findOneBookingErr := s.bookingRepository.FindOne(bookingCriteria)
+
+		var bookingNotFoundErr exception.HastypalError
+
+		if findOneBookingErr != nil && errors.As(findOneErr, &bookingNotFoundErr) {
+			if sessionNotFoundErr.IsDomain() {
+				return false, nil
+			}
+
+			return false, exception.Wrap(
+				"s.bookingRepository.FindOne",
+				"pick-hour-command-telegram-service.go",
+				findOneErr,
+			)
 		}
 
-		return false, nil
+		return true, nil
 	}
 
 	return true, nil
 }
 
-func (s *PickHourCommandTelegramService) similarSessionCriteria(
-	date time.Time,
-	hour string,
-) types.Criteria {
-	return *types.NewCriteria().
+func (s *PickHourCommandTelegramService) similarSessionCriteria(date time.Time, hour string) types.Criteria {
+	return types.NewCriteria().
 		Equal("date", date.Format(time.DateTime)).
-		Equal("hour", hour).
-		LeftJoin(&types.Booking{}, "session_id")
+		Equal("hour", hour)
+}
+
+func (s *PickHourCommandTelegramService) bookingCriteria(sessionId string) types.Criteria {
+	return types.NewCriteria().
+		Equal("session_id", sessionId)
 }

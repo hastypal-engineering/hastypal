@@ -70,7 +70,7 @@ func (*ReflectionHelper) ExtractDatabaseFields(entity interface{}) ([]interface{
 	structValue := v.Elem()
 	structType := structValue.Type()
 
-	scanTargets := make([]interface{}, structType.NumField())
+	var scanTargets []interface{}
 
 	fieldMap := make(map[string]int)
 
@@ -85,7 +85,7 @@ func (*ReflectionHelper) ExtractDatabaseFields(entity interface{}) ([]interface{
 
 		fieldMap[dbTag] = i
 
-		scanTargets[i] = structValue.Field(i).Addr().Interface()
+		scanTargets = append(scanTargets, structValue.Field(i).Addr().Interface())
 	}
 
 	return scanTargets, nil
@@ -110,7 +110,7 @@ func (*ReflectionHelper) ExtractTableFk(entity interface{}) (string, error) {
 	v := reflect.ValueOf(entity)
 
 	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-		return nil, exception.
+		return "", exception.
 			New("Entity provided is not a struct pointer").
 			Trace("reflect.ValueOf", "reflection.go")
 	}
@@ -136,5 +136,5 @@ func (*ReflectionHelper) ExtractTableFk(entity interface{}) (string, error) {
 		scanTargets[i] = structValue.Field(i).Addr().Interface()
 	}
 
-	return scanTargets, nil
+	return "scanTargets", nil
 }

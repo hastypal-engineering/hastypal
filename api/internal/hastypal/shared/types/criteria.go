@@ -21,17 +21,17 @@ type Criteria struct {
 	Join    []Relation
 }
 
-func NewCriteria() *Criteria {
-	return &Criteria{}
+func NewCriteria() Criteria {
+	return Criteria{}
 }
 
-func (c *Criteria) Equal(fieldName string, value any) *Criteria {
+func (c Criteria) Equal(fieldName string, value any) Criteria {
 	c.Filters = append(c.Filters, Filter{Name: fieldName, Operand: constants.Equal, Value: value})
 
 	return c
 }
 
-func (c *Criteria) LeftJoin(withTable interface{}, onField string) *Criteria {
+func (c Criteria) LeftJoin(withTable interface{}, onField string) Criteria {
 	c.Join = append(c.Join, Relation{Type: constants.LeftJoin, Table: withTable, Field: onField})
 
 	return c

@@ -6,16 +6,15 @@ import (
 )
 
 type BookingSession struct {
-	Id         string   `json:"id" db:"id"`
-	BusinessId string   `json:"businessId" db:"business_id"`
-	ChatId     int      `json:"chatId" db:"chat_id"`
-	ServiceId  string   `json:"serviceId" db:"service_id"`
-	Date       string   `json:"date" db:"date"`
-	Hour       string   `json:"hour" db:"hour"`
-	CreatedAt  string   `json:"createdAt" db:"created_at"`
-	UpdatedAt  string   `json:"updatedAt" db:"updated_at"`
-	Ttl        int64    `json:"ttl" db:"ttl"`
-	Booking    *Booking `json:"booking,omitempty"`
+	Id         string `json:"id" db:"id"`
+	BusinessId string `json:"businessId" db:"business_id"`
+	ChatId     int    `json:"chatId" db:"chat_id"`
+	ServiceId  string `json:"serviceId" db:"service_id"`
+	Date       string `json:"date" db:"date"`
+	Hour       string `json:"hour" db:"hour"`
+	CreatedAt  string `json:"createdAt" db:"created_at"`
+	UpdatedAt  string `json:"updatedAt" db:"updated_at"`
+	Ttl        int64  `json:"ttl" db:"ttl"`
 }
 
 func (s *BookingSession) EnsureIsValid() error {

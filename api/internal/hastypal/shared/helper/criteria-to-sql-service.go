@@ -9,18 +9,15 @@ import (
 type CriteriaToSqlService struct {
 	Reflection *ReflectionHelper
 	Table      string
-	Fields     []interface{}
 }
 
 func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) {
 	reflection := NewReflectionHelper()
 
-	fields, _ := reflection.ExtractDatabaseFields(entity)
 	table, _ := reflection.ExtractTableName(entity)
 
 	return &CriteriaToSqlService{
 		Table:      table,
-		Fields:     fields,
 		Reflection: reflection,
 	}, nil
 }
@@ -103,10 +100,6 @@ func (c *CriteriaToSqlService) constructJoinClause(criteria types.Criteria) stri
 	for _, relation := range criteria.Join {
 		relationTableName, _ := c.Reflection.ExtractTableName(relation.Table)
 		relationTableAlias := relationTableName[:3]
-
-		joinTableFields, _ := c.Reflection.ExtractDatabaseFields(relation.Table)
-
-		c.Fields = append(c.Fields, joinTableFields...)
 
 		join = append(join, fmt.Sprintf(
 			"%s JOIN %s %s ON %s.id = %s.%s",
