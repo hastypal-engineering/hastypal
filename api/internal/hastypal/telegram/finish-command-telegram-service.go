@@ -128,17 +128,18 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 		)
 	}
 
-	if registerEventErr := s.registerEventInBusinessCalendar(business, booking); registerEventErr != nil {
+	/*if registerEventErr := s.registerEventInBusinessCalendar(business, booking); registerEventErr != nil {
 		return exception.Wrap(
 			"s.registerEventInBusinessCalendar",
 			"finish-command-telegram-service.go",
 			registerEventErr,
 		)
-	}
+	}*/
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
-	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
-	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286)\n\n")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) ")
+	markdownText.WriteString("Te avisaré un día antes para recordarte la cita\n\n")
+	markdownText.WriteString("![💙](tg://emoji?id=5368324170671202286) Muchas gracias por la confianza depositada")
 
 	buttons := make([][]types.KeyboardButton, 0)
 
