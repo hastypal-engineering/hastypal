@@ -201,11 +201,7 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 		Ttl:        actualSession.Ttl,
 	}
 
-	reflection := helper.NewReflectionHelper[types.BookingSession]()
-
-	mergedSession := reflection.Merge(actualSession, updatedSession)
-
-	if err := s.repository.Update(mergedSession); err != nil {
+	if err := s.repository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"confirmation-command-telegram-service.go",

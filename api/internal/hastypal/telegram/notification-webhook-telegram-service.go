@@ -62,7 +62,7 @@ func (s *NotificationWebhookTelegramService) Execute(update types.TelegramUpdate
 }
 
 func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.TelegramUpdate) error {
-	reflection := helper.NewReflectionHelper[types.TelegramUpdate]()
+	reflection := helper.NewReflectionHelper()
 
 	if !reflection.HasField(update, constants.TelegramMessageField) {
 		return nil
@@ -85,7 +85,7 @@ func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.Tele
 }
 
 func (s *NotificationWebhookTelegramService) resolveCallbackQueryCommand(update types.TelegramUpdate) error {
-	reflection := helper.NewReflectionHelper[types.TelegramUpdate]()
+	reflection := helper.NewReflectionHelper()
 
 	if !reflection.HasField(update, constants.TelegramCallbackQueryField) {
 		return nil

@@ -16,7 +16,7 @@ type PgTelegramNotificationRepository struct {
 }
 
 func NewPgTelegramNotificationRepository(connection *sql.DB) *PgTelegramNotificationRepository {
-	transformer := helper.NewCriteriaToSqlService("telegram_notification")
+	transformer, _ := helper.NewCriteriaToSqlService(&types.TelegramNotification{})
 
 	return &PgTelegramNotificationRepository{
 		connection:  connection,

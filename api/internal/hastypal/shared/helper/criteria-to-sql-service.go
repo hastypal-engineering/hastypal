@@ -7,23 +7,45 @@ import (
 )
 
 type CriteriaToSqlService struct {
-	table string
+	Reflection *ReflectionHelper
+	Table      string
 }
 
-func NewCriteriaToSqlService(table string) *CriteriaToSqlService {
+func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) {
+	reflection := NewReflectionHelper()
+
+	table, _ := reflection.ExtractTableName(entity)
+
 	return &CriteriaToSqlService{
-		table: table,
-	}
+		Table:      table,
+		Reflection: reflection,
+	}, nil
 }
 
 func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error) {
 	if len(criteria.Filters) == 0 {
-		return "SELECT * FROM" + " " + c.table, nil
+		return "SELECT * FROM" + " " + c.Table, nil
 	}
 
-	var where []string
+	if len(criteria.Join) > 0 {
+		joinClause := c.constructJoinClause(criteria)
 
-	sql := "SELECT * FROM" + " " + c.table + " WHERE "
+		sql := "SELECT * FROM " + c.Table + " " + joinClause + " WHERE "
+
+		completeSQL := sql + c.constructWhereClause(criteria)
+
+		return completeSQL, nil
+	}
+
+	sql := "SELECT * FROM " + c.Table + " WHERE "
+
+	completeSQL := sql + c.constructWhereClause(criteria)
+
+	return completeSQL, nil
+}
+
+func (c *CriteriaToSqlService) constructWhereClause(criteria types.Criteria) string {
+	var where []string
 
 	for _, filter := range criteria.Filters {
 		_, isStringValue := filter.Value.(string)
@@ -69,7 +91,26 @@ func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error
 		where = append(where, clause)
 	}
 
-	completeSQL := sql + strings.Join(where, " AND ")
+	return strings.Join(where, " AND ")
+}
 
-	return completeSQL, nil
+func (c *CriteriaToSqlService) constructJoinClause(criteria types.Criteria) string {
+	var join []string
+
+	for _, relation := range criteria.Join {
+		relationTableName, _ := c.Reflection.ExtractTableName(relation.Table)
+		relationTableAlias := relationTableName[:3]
+
+		join = append(join, fmt.Sprintf(
+			"%s JOIN %s %s ON %s.id = %s.%s",
+			relation.Type,
+			relationTableName,
+			relationTableAlias,
+			c.Table,
+			relationTableAlias,
+			relation.Field,
+		))
+	}
+
+	return strings.Join(join, " ")
 }
