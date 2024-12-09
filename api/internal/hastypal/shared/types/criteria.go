@@ -12,7 +12,7 @@ type Filter struct {
 
 type Relation struct {
 	Type  string
-	Table string
+	Table interface{}
 	Field string
 }
 
@@ -31,8 +31,8 @@ func (c *Criteria) Equal(fieldName string, value any) *Criteria {
 	return c
 }
 
-func (c *Criteria) LeftJoin(leftTable interface{}, rightTable interface{}) *Criteria {
-	c.Join = append(c.Join, Relation{Type: constants.LeftJoin, Table: "withTable", Field: "onField"})
+func (c *Criteria) LeftJoin(withTable interface{}, onField string) *Criteria {
+	c.Join = append(c.Join, Relation{Type: constants.LeftJoin, Table: withTable, Field: onField})
 
 	return c
 }

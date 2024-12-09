@@ -15,15 +15,7 @@ type BookingSession struct {
 	CreatedAt  string   `json:"createdAt" db:"created_at"`
 	UpdatedAt  string   `json:"updatedAt" db:"updated_at"`
 	Ttl        int64    `json:"ttl" db:"ttl"`
-	Booking    *Booking `json:"booking" db:"booking"`
-}
-
-// Database
-
-func (s *BookingSession) DatabaseMappings() map[string]string {
-	return map[string]string{
-		"booking": "booking;session_id",
-	}
+	Booking    *Booking `json:"booking,omitempty"`
 }
 
 func (s *BookingSession) EnsureIsValid() error {

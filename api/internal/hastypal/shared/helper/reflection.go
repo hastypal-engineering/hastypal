@@ -1,16 +1,17 @@
 package helper
 
 import (
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"reflect"
 )
 
-type ReflectionHelper[T interface{}] struct{}
+type ReflectionHelper struct{}
 
-func NewReflectionHelper[T interface{}]() *ReflectionHelper[T] {
-	return &ReflectionHelper[T]{}
+func NewReflectionHelper() *ReflectionHelper {
+	return &ReflectionHelper{}
 }
 
-func (*ReflectionHelper[T]) HasField(obj T, name string) bool {
+func (*ReflectionHelper) HasField(obj interface{}, name string) bool {
 	hasField := false
 
 	structType := reflect.TypeOf(obj)
@@ -34,7 +35,7 @@ func (*ReflectionHelper[T]) HasField(obj T, name string) bool {
 	return hasField
 }
 
-func (*ReflectionHelper[T]) Merge(actual T, updated T) T {
+func (*ReflectionHelper) Merge(actual interface{}, updated interface{}) interface{} {
 	merged := actual
 
 	structType := reflect.TypeOf(actual)
@@ -55,4 +56,85 @@ func (*ReflectionHelper[T]) Merge(actual T, updated T) T {
 	}
 
 	return merged
+}
+
+func (*ReflectionHelper) ExtractDatabaseFields(entity interface{}) ([]interface{}, error) {
+	v := reflect.ValueOf(entity)
+
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		return nil, exception.
+			New("Entity provided is not a struct pointer").
+			Trace("reflect.ValueOf", "reflection.go")
+	}
+
+	structValue := v.Elem()
+	structType := structValue.Type()
+
+	scanTargets := make([]interface{}, structType.NumField())
+
+	fieldMap := make(map[string]int)
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+
+		dbTag := field.Tag.Get("db")
+
+		if dbTag == "" {
+			continue
+		}
+
+		fieldMap[dbTag] = i
+
+		scanTargets[i] = structValue.Field(i).Addr().Interface()
+	}
+
+	return scanTargets, nil
+}
+
+func (*ReflectionHelper) ExtractTableName(entity interface{}) (string, error) {
+	v := reflect.ValueOf(entity)
+
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		return "", exception.
+			New("Entity provided is not a struct pointer").
+			Trace("reflect.ValueOf", "reflection.go")
+	}
+
+	structValue := v.Elem()
+	structType := structValue.Type()
+
+	return CamelToSnake(structType.Name()), nil
+}
+
+func (*ReflectionHelper) ExtractTableFk(entity interface{}) (string, error) {
+	v := reflect.ValueOf(entity)
+
+	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
+		return nil, exception.
+			New("Entity provided is not a struct pointer").
+			Trace("reflect.ValueOf", "reflection.go")
+	}
+
+	structValue := v.Elem()
+	structType := structValue.Type()
+
+	scanTargets := make([]interface{}, structType.NumField())
+
+	fieldMap := make(map[string]int)
+
+	for i := 0; i < structType.NumField(); i++ {
+		field := structType.Field(i)
+
+		dbTag := field.Tag.Get("db")
+
+		if dbTag == "" {
+			continue
+		}
+
+		fieldMap[dbTag] = i
+
+		scanTargets[i] = structValue.Field(i).Addr().Interface()
+	}
+
+	return scanTargets, nil
 }

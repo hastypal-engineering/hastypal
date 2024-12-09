@@ -2,72 +2,45 @@ package helper
 
 import (
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"reflect"
 	"strings"
 )
 
 type CriteriaToSqlService struct {
-	table       string
-	columns     []string
-	ScanTargets []interface{}
+	Reflection *ReflectionHelper
+	Table      string
+	Fields     []interface{}
 }
 
 func NewCriteriaToSqlService(entity interface{}) (*CriteriaToSqlService, error) {
-	v := reflect.ValueOf(entity)
+	reflection := NewReflectionHelper()
 
-	if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Struct {
-		return nil, exception.
-			New("Entity provided is not a struct pointer").
-			Trace("reflect.ValueOf", "criteria-to-sql-service.go")
-	}
-
-	structValue := v.Elem()
-	structType := structValue.Type()
-
-	var scanTargets []interface{}
-	var columnNames []string
-
-	for i := 0; i < structValue.NumField(); i++ {
-		field := structValue.Field(i)
-		fieldType := structType.Field(i)
-
-		columnName := fieldType.Tag.Get("db")
-
-		if columnName == "" {
-			continue
-		}
-
-		if field.CanAddr() {
-			scanTargets = append(scanTargets, field.Addr().Interface())
-			columnNames = append(columnNames, columnName)
-		}
-	}
+	fields, _ := reflection.ExtractDatabaseFields(entity)
+	table, _ := reflection.ExtractTableName(entity)
 
 	return &CriteriaToSqlService{
-		table:       CamelToSnake(structType.Name()),
-		columns:     columnNames,
-		ScanTargets: scanTargets,
+		Table:      table,
+		Fields:     fields,
+		Reflection: reflection,
 	}, nil
 }
 
 func (c *CriteriaToSqlService) Transform(criteria types.Criteria) (string, error) {
 	if len(criteria.Filters) == 0 {
-		return "SELECT * FROM" + " " + c.table, nil
+		return "SELECT * FROM" + " " + c.Table, nil
 	}
 
 	if len(criteria.Join) > 0 {
 		joinClause := c.constructJoinClause(criteria)
 
-		sql := "SELECT * FROM " + c.table + " " + joinClause + " WHERE "
+		sql := "SELECT * FROM " + c.Table + " " + joinClause + " WHERE "
 
 		completeSQL := sql + c.constructWhereClause(criteria)
 
 		return completeSQL, nil
 	}
 
-	sql := "SELECT * FROM " + c.table + " WHERE "
+	sql := "SELECT * FROM " + c.Table + " WHERE "
 
 	completeSQL := sql + c.constructWhereClause(criteria)
 
@@ -128,14 +101,19 @@ func (c *CriteriaToSqlService) constructJoinClause(criteria types.Criteria) stri
 	var join []string
 
 	for _, relation := range criteria.Join {
-		relationTableAlias := relation.Table[:3]
+		relationTableName, _ := c.Reflection.ExtractTableName(relation.Table)
+		relationTableAlias := relationTableName[:3]
+
+		joinTableFields, _ := c.Reflection.ExtractDatabaseFields(relation.Table)
+
+		c.Fields = append(c.Fields, joinTableFields...)
 
 		join = append(join, fmt.Sprintf(
 			"%s JOIN %s %s ON %s.id = %s.%s",
 			relation.Type,
-			relation.Table,
+			relationTableName,
 			relationTableAlias,
-			c.table,
+			c.Table,
 			relationTableAlias,
 			relation.Field,
 		))
