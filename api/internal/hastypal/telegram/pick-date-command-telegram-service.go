@@ -227,8 +227,6 @@ func (s *PickDateCommandTelegramService) dateHasAvailableSlots(date time.Time) (
 
 	totalHoursOpened := closeTime.Sub(openTime)
 
-	realBookedSessions := make([]types.BookingSession, totalHoursOpened)
-
 	openSessionsCriteria := s.similarSessionCriteria(date, openTime, closeTime)
 
 	sessions, findSessionErr := s.sessionRepository.Find(openSessionsCriteria)
@@ -240,6 +238,8 @@ func (s *PickDateCommandTelegramService) dateHasAvailableSlots(date time.Time) (
 			findSessionErr,
 		)
 	}
+
+	bookingsCounter := 0
 
 	for _, session := range sessions {
 		if expiredSession := session.EnsureIsValid(); expiredSession != nil {
@@ -261,15 +261,15 @@ func (s *PickDateCommandTelegramService) dateHasAvailableSlots(date time.Time) (
 				)
 			}
 
-			realBookedSessions = append(realBookedSessions, session)
+			bookingsCounter++
 
 			continue
 		}
 
-		realBookedSessions = append(realBookedSessions, session)
+		bookingsCounter++
 	}
 
-	hasAvailableSlots := len(realBookedSessions) != int(totalHoursOpened.Hours())
+	hasAvailableSlots := bookingsCounter != int(totalHoursOpened.Hours())
 
 	return hasAvailableSlots, nil
 }
