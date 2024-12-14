@@ -23,6 +23,7 @@ const (
 	Equal              = "="
 	GreaterThanOrEqual = ">="
 	LessThanOrEqual    = "<="
+	LeftJoin           = "LEFT"
 )
 
 // Errors

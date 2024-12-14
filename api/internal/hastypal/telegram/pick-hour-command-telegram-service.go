@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
@@ -14,20 +15,23 @@ import (
 )
 
 type PickHourCommandTelegramService struct {
-	bot         *service.TelegramBot
-	repository  types.Repository[types.BookingSession]
-	translation *translation.Translation
+	bot               *service.TelegramBot
+	sessionRepository types.Repository[types.BookingSession]
+	bookingRepository types.Repository[types.Booking]
+	translation       *translation.Translation
 }
 
 func NewPickHourCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	bookingRepository types.Repository[types.Booking],
 	translation *translation.Translation,
 ) *PickHourCommandTelegramService {
 	return &PickHourCommandTelegramService{
-		bot:         bot,
-		repository:  repository,
-		translation: translation,
+		bot:               bot,
+		sessionRepository: sessionRepository,
+		bookingRepository: bookingRepository,
+		translation:       translation,
 	}
 }
 
@@ -133,6 +137,18 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 	for i := 8; i <= len(buttons)+7; i++ {
 		hour := fmt.Sprintf("%02d:00", i)
 
+		criteria := s.similarSessionCriteria(selectedDate, hour)
+
+		isAlreadyPicked, err := s.isHourAlreadyPicked(criteria)
+
+		if err != nil {
+			return exception.Wrap("s.isHourAlreadyPicked", "pick-hour-command-telegram-service.go", err)
+		}
+
+		if isAlreadyPicked {
+			continue
+		}
+
 		buttons[i-8] = types.KeyboardButton{
 			Text: fmt.Sprintf("%s", hour),
 			CallbackData: fmt.Sprintf(
@@ -179,7 +195,7 @@ func (s *PickHourCommandTelegramService) getCurrentSession(sessionId string) (ty
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
@@ -205,7 +221,7 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 		Ttl:        actualSession.Ttl,
 	}
 
-	if err := s.repository.Update(updatedSession); err != nil {
+	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"pick-hour-command-telegram-service.go",
@@ -214,4 +230,57 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 	}
 
 	return nil
+}
+
+func (s *PickHourCommandTelegramService) isHourAlreadyPicked(criteria types.Criteria) (bool, error) {
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
+
+	var sessionNotFoundErr exception.HastypalError
+
+	if findOneErr != nil && errors.As(findOneErr, &sessionNotFoundErr) {
+		if sessionNotFoundErr.IsDomain() {
+			return false, nil
+		}
+
+		return false, exception.Wrap(
+			"s.sessionRepository.FindOne",
+			"pick-hour-command-telegram-service.go",
+			findOneErr,
+		)
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		bookingCriteria := s.bookingCriteria(session.Id)
+
+		_, findOneBookingErr := s.bookingRepository.FindOne(bookingCriteria)
+
+		var bookingNotFoundErr exception.HastypalError
+
+		if findOneBookingErr != nil && errors.As(findOneErr, &bookingNotFoundErr) {
+			if sessionNotFoundErr.IsDomain() {
+				return false, nil
+			}
+
+			return false, exception.Wrap(
+				"s.bookingRepository.FindOne",
+				"pick-hour-command-telegram-service.go",
+				findOneErr,
+			)
+		}
+
+		return true, nil
+	}
+
+	return true, nil
+}
+
+func (s *PickHourCommandTelegramService) similarSessionCriteria(date time.Time, hour string) types.Criteria {
+	return types.NewCriteria().
+		Equal("date", date.Format(time.DateTime)).
+		Equal("hour", hour)
+}
+
+func (s *PickHourCommandTelegramService) bookingCriteria(sessionId string) types.Criteria {
+	return types.NewCriteria().
+		Equal("session_id", sessionId)
 }
