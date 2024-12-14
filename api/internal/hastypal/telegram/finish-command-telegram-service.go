@@ -128,13 +128,13 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 		)
 	}
 
-	/*if registerEventErr := s.registerEventInBusinessCalendar(business, booking); registerEventErr != nil {
+	if registerEventErr := s.registerEventInBusinessCalendar(business, booking); registerEventErr != nil {
 		return exception.Wrap(
 			"s.registerEventInBusinessCalendar",
 			"finish-command-telegram-service.go",
 			registerEventErr,
 		)
-	}*/
+	}
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
 	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) ")
