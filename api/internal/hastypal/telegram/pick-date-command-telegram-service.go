@@ -136,6 +136,13 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 		}
 	}
 
+	backButton := types.KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/service?sessionId=%s", session.Id),
+	}
+
+	buttons = append(buttons, backButton)
+
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 
 	inlineKeyboard := array.Chunk(buttons, 5)

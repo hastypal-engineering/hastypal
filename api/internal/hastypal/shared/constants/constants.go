@@ -44,6 +44,7 @@ const (
 
 const (
 	StartCommand        string = "/start"
+	ServiceCommand      string = "/service"
 	DatesCommand        string = "/dates"
 	HoursCommand        string = "/hours"
 	ConfirmationCommand string = "/confirmation"
