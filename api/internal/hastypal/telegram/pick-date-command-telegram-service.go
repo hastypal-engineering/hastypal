@@ -70,11 +70,19 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return exception.Wrap(
-			"session.EnsureIsValid",
-			"pick-date-command-telegram-service.go",
-			invalidSession,
-		)
+		message := types.SendTelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		if botSendMsgErr := s.bot.SendMsg(expiredSessionMessage); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"pick-date-command-telegram-service.go",
+				botSendMsgErr,
+			)
+		}
+
+		return nil
 	}
 
 	if updateSessionErr := s.updateSession(session, serviceId); updateSessionErr != nil {
