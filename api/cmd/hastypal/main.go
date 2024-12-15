@@ -90,7 +90,8 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 	translations := translation.New()
 
 	startCommandService := telegram.NewStartCommandTelegramService(bot, sessionRepository, businessRepository)
-	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository, translations)
+	serviceCatalogCommandService := telegram.NewPickServiceCommandTelegramService(bot, sessionRepository)
+	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository, bookingRepository, translations)
 	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository, bookingRepository, translations)
 	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository, translations)
 	finishCommandService := telegram.NewFinishCommandTelegramService(
@@ -105,6 +106,7 @@ func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sq
 
 	webhookService := telegram.NewNotificationWebhookTelegramService(
 		startCommandService,
+		serviceCatalogCommandService,
 		datesCommandService,
 		hoursCommandService,
 		confirmationCommandService,

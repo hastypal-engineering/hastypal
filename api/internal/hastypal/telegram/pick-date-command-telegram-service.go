@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
@@ -14,20 +15,23 @@ import (
 )
 
 type PickDateCommandTelegramService struct {
-	bot         *service.TelegramBot
-	repository  types.Repository[types.BookingSession]
-	translation *translation.Translation
+	bot               *service.TelegramBot
+	sessionRepository types.Repository[types.BookingSession]
+	bookingRepository types.Repository[types.Booking]
+	translation       *translation.Translation
 }
 
 func NewPickDateCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	bookingRepository types.Repository[types.Booking],
 	translation *translation.Translation,
 ) *PickDateCommandTelegramService {
 	return &PickDateCommandTelegramService{
-		bot:         bot,
-		repository:  repository,
-		translation: translation,
+		bot:               bot,
+		sessionRepository: sessionRepository,
+		bookingRepository: bookingRepository,
+		translation:       translation,
 	}
 }
 
@@ -104,11 +108,22 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 	time.Local = location
 
 	today := time.Now()
+	today = time.Date(today.Year(), today.Month(), today.Day(), 07, 0, 0, 0, location)
 
 	buttons := make([]types.KeyboardButton, 15)
 
 	for i := 0; i < 15; i++ {
 		newDate := today.AddDate(0, 0, i)
+
+		hasAvailableSlots, err := s.dateHasAvailableSlots(newDate)
+
+		if err != nil {
+			return exception.Wrap("s.dateHasAvailableSlots", "pick-date-command-telegram-service.go", err)
+		}
+
+		if !hasAvailableSlots {
+			continue
+		}
 
 		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
 
@@ -120,6 +135,13 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 			CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, newDate.Format(time.DateOnly)),
 		}
 	}
+
+	backButton := types.KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/service?sessionId=%s", session.Id),
+	}
+
+	buttons = append(buttons, backButton)
 
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 
@@ -153,7 +175,7 @@ func (s *PickDateCommandTelegramService) getCurrentSession(sessionId string) (ty
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
@@ -183,7 +205,7 @@ func (s *PickDateCommandTelegramService) updateSession(actualSession types.Booki
 		Ttl:        actualSession.Ttl,
 	}
 
-	if err := s.repository.Update(updatedSession); err != nil {
+	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"pick-date-command-telegram-service.go",
@@ -192,4 +214,69 @@ func (s *PickDateCommandTelegramService) updateSession(actualSession types.Booki
 	}
 
 	return nil
+}
+
+func (s *PickDateCommandTelegramService) similarSessionCriteria(date, openTime, closeTime time.Time) types.Criteria {
+	return types.NewCriteria().
+		Equal("date", date.Format(time.DateTime)).
+		GreaterThanOrEqual("hour", openTime.Format(time.TimeOnly)).
+		LessThanOrEqual("hour", closeTime.Format(time.TimeOnly))
+}
+
+func (s *PickDateCommandTelegramService) bookingCriteria(sessionId string) types.Criteria {
+	return types.NewCriteria().
+		Equal("session_id", sessionId)
+}
+
+func (s *PickDateCommandTelegramService) dateHasAvailableSlots(date time.Time) (bool, error) {
+	openTime := time.Date(0, 0, 0, 8, 0, 0, 0, time.UTC)
+	closeTime := time.Date(0, 0, 0, 19, 0, 0, 0, time.UTC)
+
+	totalHoursOpened := closeTime.Sub(openTime)
+
+	openSessionsCriteria := s.similarSessionCriteria(date, openTime, closeTime)
+
+	sessions, findSessionErr := s.sessionRepository.Find(openSessionsCriteria)
+
+	if findSessionErr != nil {
+		return false, exception.Wrap(
+			"s.repository.Find",
+			"pick-date-command-telegram-service.go",
+			findSessionErr,
+		)
+	}
+
+	bookingsCounter := 0
+
+	for _, session := range sessions {
+		if expiredSession := session.EnsureIsValid(); expiredSession != nil {
+			bookingCriteria := s.bookingCriteria(session.Id)
+
+			_, findOneBookingErr := s.bookingRepository.FindOne(bookingCriteria)
+
+			var bookingNotFoundErr exception.HastypalError
+
+			if findOneBookingErr != nil && errors.As(findOneBookingErr, &bookingNotFoundErr) {
+				if bookingNotFoundErr.IsDomain() {
+					continue
+				}
+
+				return false, exception.Wrap(
+					"s.bookingRepository.FindOne",
+					"pick-date-command-telegram-service.go",
+					findOneBookingErr,
+				)
+			}
+
+			bookingsCounter++
+
+			continue
+		}
+
+		bookingsCounter++
+	}
+
+	hasAvailableSlots := bookingsCounter != int(totalHoursOpened.Hours())
+
+	return hasAvailableSlots, nil
 }

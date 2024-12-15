@@ -127,17 +127,19 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 
 	buttons := make([]types.KeyboardButton, 2)
 
-	availableButtons := [2]string{"Confirmar", "Cancelar"}
-
-	for i, text := range availableButtons {
-		buttons[i] = types.KeyboardButton{
-			Text: text,
-			CallbackData: fmt.Sprintf(
-				"/book?session=%s",
-				sessionId,
-			),
-		}
+	confirmButton := types.KeyboardButton{
+		Text:         "Confirmar",
+		CallbackData: fmt.Sprintf("/book?session=%s", sessionId),
 	}
+
+	buttons = append(buttons, confirmButton)
+
+	backButton := types.KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, selectedDate.Format(time.DateOnly)),
+	}
+
+	buttons = append(buttons, backButton)
 
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 

@@ -31,6 +31,18 @@ func (c Criteria) Equal(fieldName string, value any) Criteria {
 	return c
 }
 
+func (c Criteria) GreaterThanOrEqual(fieldName string, value any) Criteria {
+	c.Filters = append(c.Filters, Filter{Name: fieldName, Operand: constants.GreaterThanOrEqual, Value: value})
+
+	return c
+}
+
+func (c Criteria) LessThanOrEqual(fieldName string, value any) Criteria {
+	c.Filters = append(c.Filters, Filter{Name: fieldName, Operand: constants.LessThanOrEqual, Value: value})
+
+	return c
+}
+
 func (c Criteria) LeftJoin(withTable interface{}, onField string) Criteria {
 	c.Join = append(c.Join, Relation{Type: constants.LeftJoin, Table: withTable, Field: onField})
 
