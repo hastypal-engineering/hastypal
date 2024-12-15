@@ -2,7 +2,6 @@ package types
 
 import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"strings"
 )
 
@@ -130,24 +129,18 @@ func (stm *SendTelegramMessage) SessionExpired() SendTelegramMessage {
 	markdownText.WriteString(processInstructionsIcon)
 	markdownText.WriteString(processInstructions)
 
-	buttons := make([]KeyboardButton, 1)
-
-	confirmButton := KeyboardButton{
+	startAgainButton := KeyboardButton{
 		Text: "Volver a empezar",
 	}
 
-	buttons = append(buttons, confirmButton)
-
-	array := helper.NewArrayHelper[KeyboardButton]()
-
-	inlineKeyboard := array.Chunk(buttons, 1)
+	chunked := [][]KeyboardButton{{startAgainButton}}
 
 	return SendTelegramMessage{
 		ChatId:         stm.ChatId,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
-		ReplyMarkup:    ReplyMarkup{InlineKeyboard: inlineKeyboard},
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: chunked},
 	}
 }
 
