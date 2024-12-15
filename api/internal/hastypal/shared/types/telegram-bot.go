@@ -1,5 +1,11 @@
 package types
 
+import (
+	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	"strings"
+)
+
 //Domain Services
 
 type ResolveTelegramUpdate func(update TelegramUpdate) error
@@ -110,6 +116,39 @@ type SendTelegramMessage struct {
 	ParseMode      string      `json:"parse_mode"`
 	ProtectContent bool        `json:"protect_content"`
 	ReplyMarkup    ReplyMarkup `json:"reply_markup"`
+}
+
+func (stm *SendTelegramMessage) SessionExpired() SendTelegramMessage {
+	var markdownText strings.Builder
+
+	expiredSession := "![🙂‍↕️](tg://emoji?id=5368324170671202286) Lo sentimos, la sesión ha caducado\\!\n\n"
+
+	processInstructionsIcon := "![‍ℹ️️](tg://emoji?id=5368324170671202286)"
+	processInstructions := " Pulsa *Volver a empezar* y te redirigiremos al canal de donde vienes"
+
+	markdownText.WriteString(expiredSession)
+	markdownText.WriteString(processInstructionsIcon)
+	markdownText.WriteString(processInstructions)
+
+	buttons := make([]KeyboardButton, 1)
+
+	confirmButton := KeyboardButton{
+		Text: "Volver a empezar",
+	}
+
+	buttons = append(buttons, confirmButton)
+
+	array := helper.NewArrayHelper[KeyboardButton]()
+
+	inlineKeyboard := array.Chunk(buttons, 1)
+
+	return SendTelegramMessage{
+		ChatId:         stm.ChatId,
+		Text:           markdownText.String(),
+		ParseMode:      constants.TelegramMarkdown,
+		ProtectContent: true,
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: inlineKeyboard},
+	}
 }
 
 type AnswerCallbackQuery struct {
