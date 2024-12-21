@@ -123,7 +123,7 @@ func (stm *SendTelegramMessage) SessionExpired() SendTelegramMessage {
 	expiredSession := "![🙂‍↕️](tg://emoji?id=5368324170671202286) Lo sentimos, la sesión ha caducado\\!\n\n"
 
 	processInstructionsIcon := "![‍ℹ️️](tg://emoji?id=5368324170671202286)"
-	processInstructions := " Pulsa *Volver a empezar* y te redirigiremos al canal de donde vienes"
+	processInstructions := " *Pulsa Volver a empezar y te redirigiremos al canal de donde vienes*"
 
 	markdownText.WriteString(expiredSession)
 	markdownText.WriteString(processInstructionsIcon)
