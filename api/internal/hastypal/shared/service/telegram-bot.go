@@ -26,9 +26,9 @@ func (tb *TelegramBot) SendMsg(dto types.BookingTelegramMessage) error {
 	telegramMessage := dto.Message
 
 	textWithHeader := fmt.Sprintf(
-		"\\#%s %s\n\n\n%s",
-		dto.BookingSessionId,
+		"*%s* \\#%s\n\n%s",
 		dto.BusinessName,
+		dto.BookingSessionId,
 		telegramMessage.Text,
 	)
 
