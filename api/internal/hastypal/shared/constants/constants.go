@@ -50,3 +50,9 @@ const (
 	ConfirmationCommand string = "/confirmation"
 	FinishCommand       string = "/book"
 )
+
+// Domain
+
+const (
+	DaysPerPage int = 15
+)
