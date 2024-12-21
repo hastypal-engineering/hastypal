@@ -14,19 +14,21 @@ import (
 )
 
 type PickServiceCommandTelegramService struct {
-	bot               *service.TelegramBot
-	sessionRepository types.Repository[types.BookingSession]
-	bookingRepository types.Repository[types.Booking]
-	translation       *translation.Translation
+	bot                *service.TelegramBot
+	sessionRepository  types.Repository[types.BookingSession]
+	businessRepository types.Repository[types.Business]
+	translation        *translation.Translation
 }
 
 func NewPickServiceCommandTelegramService(
 	bot *service.TelegramBot,
 	sessionRepository types.Repository[types.BookingSession],
+	businessRepository types.Repository[types.Business],
 ) *PickServiceCommandTelegramService {
 	return &PickServiceCommandTelegramService{
-		bot:               bot,
-		sessionRepository: sessionRepository,
+		bot:                bot,
+		sessionRepository:  sessionRepository,
+		businessRepository: businessRepository,
 	}
 }
 
@@ -63,12 +65,28 @@ func (s *PickServiceCommandTelegramService) Execute(update types.TelegramUpdate)
 		)
 	}
 
+	business, getBusinessErr := s.getBusiness(session.BusinessId)
+
+	if getBusinessErr != nil {
+		return exception.Wrap(
+			"s.getBusiness",
+			"pick-service-command-telegram-service.go",
+			getBusinessErr,
+		)
+	}
+
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		message := types.SendTelegramMessage{ChatId: update.CallbackQuery.From.Id}
+		message := types.TelegramMessage{ChatId: update.CallbackQuery.From.Id}
 
 		expiredSessionMessage := message.SessionExpired()
 
-		if botSendMsgErr := s.bot.SendMsg(expiredSessionMessage); botSendMsgErr != nil {
+		bookingExpiredSessionMessage := types.BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingExpiredSessionMessage); botSendMsgErr != nil {
 			return exception.Wrap(
 				"s.bot.SendMsg",
 				"pick-service-command-telegram-service.go",
@@ -107,7 +125,7 @@ func (s *PickServiceCommandTelegramService) Execute(update types.TelegramUpdate)
 
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types.SendTelegramMessage{
+	message := types.TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -115,7 +133,13 @@ func (s *PickServiceCommandTelegramService) Execute(update types.TelegramUpdate)
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"pick-service-command-telegram-service.go",
@@ -174,4 +198,24 @@ func (s *PickServiceCommandTelegramService) updateSession(actualSession types.Bo
 	}
 
 	return nil
+}
+
+func (s *PickServiceCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+	filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.businessRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.Business{}, exception.Wrap(
+			"s.businessRepository.FindOne",
+			"pick-service-command-telegram-service.go",
+			err,
+		)
+	}
+
+	return business, nil
 }

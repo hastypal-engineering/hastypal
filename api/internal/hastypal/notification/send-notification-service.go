@@ -39,18 +39,6 @@ func (s *SendNotificationService) Execute() error {
 	for _, notification := range notifications {
 		var markdownText strings.Builder
 
-		welcome := "![👋](tg://emoji?id=5368324170671202286) Hola y "
-
-		apologyForBother := fmt.Sprintf(
-			"perdona las molestias, recuerda que tienes una cita en %s ",
-			notification.BusinessName,
-		)
-
-		bookingService := fmt.Sprintf(
-			"para %s ",
-			"Corte de pelo y barba express 18€",
-		)
-
 		parsedBookingDate, bookingDateParseErr := time.Parse(time.DateTime, notification.BookingDate)
 
 		if bookingDateParseErr != nil {
@@ -59,21 +47,29 @@ func (s *SendNotificationService) Execute() error {
 				WithValues([]string{notification.BookingDate})
 		}
 
-		bookingDate := fmt.Sprintf("el día %d de %s, %d a las %02d:%02d %s",
-			parsedBookingDate.Day(),
-			s.translation.GetSpanishMonth(parsedBookingDate.Month()),
-			parsedBookingDate.Year(),
-			parsedBookingDate.Hour(),
-			parsedBookingDate.Minute(),
-			parsedBookingDate.Format("PM"),
+		bookedService := fmt.Sprintf(
+			"![🟢](tg://emoji?id=5368324170671202286) %s\n\n",
+			"Corte de pelo y barba express 18€",
 		)
 
-		markdownText.WriteString(welcome)
-		markdownText.WriteString(apologyForBother)
-		markdownText.WriteString(bookingService)
-		markdownText.WriteString(bookingDate)
+		date := fmt.Sprintf(
+			"![📅](tg://emoji?id=5368324170671202286) %d %s\n\n",
+			parsedBookingDate.Day(),
+			s.translation.GetSpanishMonth(parsedBookingDate.Month()),
+		)
 
-		message := types.SendTelegramMessage{
+		hour := fmt.Sprintf(
+			"![⌚️](tg://emoji?id=5368324170671202286) %02d:%02dH",
+			parsedBookingDate.Hour(),
+			parsedBookingDate.Minute(),
+		)
+
+		markdownText.WriteString("![⏰](tg://emoji?id=5368324170671202286) *¡Recordatorio para tu cita\\!*\n\n")
+		markdownText.WriteString(bookedService)
+		markdownText.WriteString(date)
+		markdownText.WriteString(hour)
+
+		message := types.TelegramMessage{
 			ChatId:         notification.ChatId,
 			Text:           markdownText.String(),
 			ParseMode:      constants.TelegramMarkdown,
@@ -81,7 +77,13 @@ func (s *SendNotificationService) Execute() error {
 			ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: make([][]types.KeyboardButton, 0)},
 		}
 
-		if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+		bookingMessage := types.BookingTelegramMessage{
+			BusinessName:     notification.BusinessName,
+			BookingSessionId: notification.SessionId,
+			Message:          message,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 			return exception.Wrap(
 				"s.bot.SendMsg",
 				"send-notification-service.go",
