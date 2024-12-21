@@ -15,10 +15,10 @@ type TelegramCommandHandler interface {
 
 //Domain objects
 
-type TelegramBotMessage struct {
-	From    string `json:"from"`
-	To      string `json:"to"`
-	Content string `json:"content"`
+type BookingTelegramMessage struct {
+	BusinessName     string          `json:"businessName"`
+	BookingSessionId string          `json:"bookingSessionId"`
+	Message          TelegramMessage `json:"telegramMessage"`
 }
 
 type TelegramBotCommand struct {
@@ -109,7 +109,7 @@ type ReplyMarkup struct {
 	InlineKeyboard [][]KeyboardButton `json:"inline_keyboard"`
 }
 
-type SendTelegramMessage struct {
+type TelegramMessage struct {
 	ChatId         int         `json:"chat_id"`
 	Text           string      `json:"text"`
 	ParseMode      string      `json:"parse_mode"`
@@ -117,7 +117,7 @@ type SendTelegramMessage struct {
 	ReplyMarkup    ReplyMarkup `json:"reply_markup"`
 }
 
-func (stm *SendTelegramMessage) SessionExpired() SendTelegramMessage {
+func (stm *TelegramMessage) SessionExpired() TelegramMessage {
 	var markdownText strings.Builder
 
 	expiredSession := "![🙂‍↕️](tg://emoji?id=5368324170671202286) Lo sentimos, la sesión ha caducado\\!\n\n"
@@ -136,7 +136,7 @@ func (stm *SendTelegramMessage) SessionExpired() SendTelegramMessage {
 
 	chunked := [][]KeyboardButton{{startAgainButton}}
 
-	return SendTelegramMessage{
+	return TelegramMessage{
 		ChatId:         stm.ChatId,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,

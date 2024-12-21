@@ -85,7 +85,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types.SendTelegramMessage{
+	message := types.TelegramMessage{
 		ChatId:         update.Message.Chat.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -93,7 +93,13 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"start-command-telegram-service",

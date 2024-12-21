@@ -14,20 +14,23 @@ import (
 )
 
 type ConfirmationCommandTelegramService struct {
-	bot         *service.TelegramBot
-	repository  types.Repository[types.BookingSession]
-	translation *translation.Translation
+	bot                *service.TelegramBot
+	sessionRepository  types.Repository[types.BookingSession]
+	businessRepository types.Repository[types.Business]
+	translation        *translation.Translation
 }
 
 func NewConfirmationCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	businessRepository types.Repository[types.Business],
 	translation *translation.Translation,
 ) *ConfirmationCommandTelegramService {
 	return &ConfirmationCommandTelegramService{
-		bot:         bot,
-		repository:  repository,
-		translation: translation,
+		bot:                bot,
+		sessionRepository:  sessionRepository,
+		businessRepository: businessRepository,
+		translation:        translation,
 	}
 }
 
@@ -74,12 +77,28 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 		)
 	}
 
+	business, getBusinessErr := s.getBusiness(session.BusinessId)
+
+	if getBusinessErr != nil {
+		return exception.Wrap(
+			"s.getBusiness",
+			"confirmation-command-telegram-service.go",
+			getBusinessErr,
+		)
+	}
+
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		message := types.SendTelegramMessage{ChatId: update.CallbackQuery.From.Id}
+		message := types.TelegramMessage{ChatId: update.CallbackQuery.From.Id}
 
 		expiredSessionMessage := message.SessionExpired()
 
-		if botSendMsgErr := s.bot.SendMsg(expiredSessionMessage); botSendMsgErr != nil {
+		bookingExpiredSessionMessage := types.BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingExpiredSessionMessage); botSendMsgErr != nil {
 			return exception.Wrap(
 				"s.bot.SendMsg",
 				"confirmation-command-telegram-service.go",
@@ -153,7 +172,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types.SendTelegramMessage{
+	message := types.TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -161,7 +180,13 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"confirmation-command-telegram-service.go",
@@ -185,7 +210,7 @@ func (s *ConfirmationCommandTelegramService) getCurrentSession(sessionId string)
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
@@ -211,7 +236,7 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 		Ttl:        actualSession.Ttl,
 	}
 
-	if err := s.repository.Update(updatedSession); err != nil {
+	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"confirmation-command-telegram-service.go",
@@ -220,4 +245,24 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 	}
 
 	return nil
+}
+
+func (s *ConfirmationCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+	filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.businessRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.Business{}, exception.Wrap(
+			"s.businessRepository.FindOne",
+			"confirmation-command-telegram-service.go",
+			err,
+		)
+	}
+
+	return business, nil
 }

@@ -73,7 +73,7 @@ func (s *SendNotificationService) Execute() error {
 		markdownText.WriteString(bookingService)
 		markdownText.WriteString(bookingDate)
 
-		message := types.SendTelegramMessage{
+		message := types.TelegramMessage{
 			ChatId:         notification.ChatId,
 			Text:           markdownText.String(),
 			ParseMode:      constants.TelegramMarkdown,
@@ -81,7 +81,13 @@ func (s *SendNotificationService) Execute() error {
 			ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: make([][]types.KeyboardButton, 0)},
 		}
 
-		if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+		bookingMessage := types.BookingTelegramMessage{
+			BusinessName:     notification.BusinessName,
+			BookingSessionId: notification.SessionId,
+			Message:          message,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 			return exception.Wrap(
 				"s.bot.SendMsg",
 				"send-notification-service.go",

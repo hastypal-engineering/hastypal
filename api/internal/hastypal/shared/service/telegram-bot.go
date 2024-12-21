@@ -22,14 +22,31 @@ func NewTelegramBot(url string, token string) *TelegramBot {
 	}
 }
 
-func (tb *TelegramBot) SendMsg(msg types.SendTelegramMessage) error {
-	byteEncodedBody, jsonEncodeError := json.Marshal(msg)
+func (tb *TelegramBot) SendMsg(dto types.BookingTelegramMessage) error {
+	telegramMessage := dto.Message
+
+	textWithHeader := fmt.Sprintf(
+		"\\#%s %s\n\n\n%s",
+		dto.BookingSessionId,
+		dto.BusinessName,
+		telegramMessage.Text,
+	)
+
+	updatedTelegramMessage := types.TelegramMessage{
+		ChatId:         telegramMessage.ChatId,
+		Text:           textWithHeader,
+		ParseMode:      telegramMessage.ParseMode,
+		ProtectContent: telegramMessage.ProtectContent,
+		ReplyMarkup:    telegramMessage.ReplyMarkup,
+	}
+
+	byteEncodedBody, jsonEncodeError := json.Marshal(updatedTelegramMessage)
 
 	if jsonEncodeError != nil {
 		return exception.
 			New(jsonEncodeError.Error()).
 			Trace("json.Marshal", "telegram-bot.go").
-			WithValues([]string{msg.Text})
+			WithValues([]string{updatedTelegramMessage.Text})
 	}
 
 	request, requestCreationError := http.NewRequest(
