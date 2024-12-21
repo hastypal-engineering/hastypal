@@ -131,6 +131,7 @@ func (stm *SendTelegramMessage) SessionExpired() SendTelegramMessage {
 
 	startAgainButton := KeyboardButton{
 		Text: "Volver a empezar",
+		Url:  "t.me/+0djgKpMfYY5lY2I8",
 	}
 
 	chunked := [][]KeyboardButton{{startAgainButton}}
