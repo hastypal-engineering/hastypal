@@ -75,11 +75,19 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return exception.Wrap(
-			"session.EnsureIsValid",
-			"confirmation-command-telegram-service.go",
-			invalidSession,
-		)
+		message := types.SendTelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		if botSendMsgErr := s.bot.SendMsg(expiredSessionMessage); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"confirmation-command-telegram-service.go",
+				botSendMsgErr,
+			)
+		}
+
+		return nil
 	}
 
 	if updateSessionErr := s.updateSession(session, hour); updateSessionErr != nil {

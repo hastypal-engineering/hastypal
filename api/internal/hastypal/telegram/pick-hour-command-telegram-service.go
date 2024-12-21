@@ -91,11 +91,19 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 	}
 
 	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return exception.Wrap(
-			"session.EnsureIsValid",
-			"pick-hour-command-telegram-service.go",
-			invalidSession,
-		)
+		message := types.SendTelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		if botSendMsgErr := s.bot.SendMsg(expiredSessionMessage); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"pick-hour-command-telegram-service.go",
+				botSendMsgErr,
+			)
+		}
+
+		return nil
 	}
 
 	if updateSessionErr := s.updateSession(session, stringSelectedDate); updateSessionErr != nil {
