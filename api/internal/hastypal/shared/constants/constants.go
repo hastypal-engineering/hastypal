@@ -54,5 +54,7 @@ const (
 // Domain
 
 const (
-	DaysPerPage int = 15
+	DaysPerPage        int = 15
+	MinAllowedDatePage int = 0
+	MaxAllowedDatePage int = 23
 )

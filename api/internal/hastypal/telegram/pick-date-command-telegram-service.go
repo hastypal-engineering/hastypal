@@ -359,7 +359,7 @@ func (s *PickDateCommandTelegramService) addNavigationButtonsToInlineKeyboard(
 ) [][]types.KeyboardButton {
 	navigationButtons := make([]types.KeyboardButton, 3)
 
-	if currentPage == 0 {
+	if currentPage == constants.MinAllowedDatePage {
 		moreDaysButton := types.KeyboardButton{
 			Text:         "Más fechas",
 			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage+1),
@@ -377,7 +377,7 @@ func (s *PickDateCommandTelegramService) addNavigationButtonsToInlineKeyboard(
 		return append(inlineKeyboard, navigationKeyboard...)
 	}
 
-	if currentPage == 23 {
+	if currentPage == constants.MaxAllowedDatePage {
 		lessDaysButton := types.KeyboardButton{
 			Text:         "Menos fechas",
 			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage-1),
