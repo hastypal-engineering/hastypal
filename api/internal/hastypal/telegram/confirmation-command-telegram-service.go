@@ -140,7 +140,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	date := fmt.Sprintf("![📅](tg://emoji?id=5368324170671202286) %s %s\n\n", day, month)
 
 	hourMarkdown := fmt.Sprintf(
-		"![⌚️](tg://emoji?id=5368324170671202286) %s\n\nH",
+		"![⌚️](tg://emoji?id=5368324170671202286) %sH\n\n",
 		hour,
 	)
 
