@@ -64,7 +64,7 @@ func (s *SendNotificationService) Execute() error {
 			parsedBookingDate.Minute(),
 		)
 
-		markdownText.WriteString("![⏰](tg://emoji?id=5368324170671202286) *¡Recordatorio para tu cita\\!*\n\n")
+		markdownText.WriteString("![⏰](tg://emoji?id=5368324170671202286) *¡Recordatorio de tu próxima cita\\!*\n\n")
 		markdownText.WriteString(bookedService)
 		markdownText.WriteString(date)
 		markdownText.WriteString(hour)

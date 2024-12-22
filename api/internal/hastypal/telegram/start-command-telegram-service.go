@@ -77,7 +77,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
 		}
 	}
 
