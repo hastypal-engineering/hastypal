@@ -159,7 +159,6 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 	startDateWithHour = startDateWithHour.AddDate(0, 0, constants.DaysPerPage*currentPage)
 
 	buttons := make([]types.KeyboardButton, 15)
-	navigationButtons := make([]types.KeyboardButton, 3)
 
 	for i := 0; i < 15; i++ {
 		newDate := startDateWithHour.AddDate(0, 0, i)
@@ -185,30 +184,11 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 		}
 	}
 
-	moreDaysButton := types.KeyboardButton{
-		Text:         "Mostrar más",
-		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", session.Id, serviceId, currentPage+1),
-	}
-
-	lessDaysButton := types.KeyboardButton{
-		Text:         "Mostrar menos",
-		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", session.Id, serviceId, currentPage-1),
-	}
-
-	backButton := types.KeyboardButton{
-		Text:         "Atrás",
-		CallbackData: fmt.Sprintf("/service?sessionId=%s", session.Id),
-	}
-
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 
-	inlineKeyboard := array.Chunk(buttons, 5)
+	inlineKeyboard := array.Chunk(buttons, 3)
 
-	navigationButtons = append(navigationButtons, moreDaysButton, lessDaysButton, backButton)
-
-	navigationKeyboard := array.Chunk(navigationButtons, 1)
-
-	inlineKeyboard = append(inlineKeyboard, navigationKeyboard...)
+	inlineKeyboard = s.addNavigationButtonsToInlineKeyboard(session.Id, serviceId, currentPage, array, inlineKeyboard)
 
 	message := types.TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
@@ -368,4 +348,71 @@ func (s *PickDateCommandTelegramService) getBusiness(businessId string) (types.B
 	}
 
 	return business, nil
+}
+
+func (s *PickDateCommandTelegramService) addNavigationButtonsToInlineKeyboard(
+	sessionId string,
+	serviceId string,
+	currentPage int,
+	array *helper.ArrayHelper[types.KeyboardButton],
+	inlineKeyboard [][]types.KeyboardButton,
+) [][]types.KeyboardButton {
+	navigationButtons := make([]types.KeyboardButton, 3)
+
+	if currentPage == 0 {
+		moreDaysButton := types.KeyboardButton{
+			Text:         "Más fechas",
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage+1),
+		}
+
+		backButton := types.KeyboardButton{
+			Text:         "Atrás",
+			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionId),
+		}
+
+		navigationButtons = append(navigationButtons, moreDaysButton, backButton)
+
+		navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+		return append(inlineKeyboard, navigationKeyboard...)
+	}
+
+	if currentPage == 23 {
+		lessDaysButton := types.KeyboardButton{
+			Text:         "Menos fechas",
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage-1),
+		}
+
+		backButton := types.KeyboardButton{
+			Text:         "Atrás",
+			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionId),
+		}
+
+		navigationButtons = append(navigationButtons, lessDaysButton, backButton)
+
+		navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+		return append(inlineKeyboard, navigationKeyboard...)
+	}
+
+	lessDaysButton := types.KeyboardButton{
+		Text:         "Menos fechas",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage-1),
+	}
+
+	moreDaysButton := types.KeyboardButton{
+		Text:         "Más fechas",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage+1),
+	}
+
+	backButton := types.KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionId),
+	}
+
+	navigationButtons = append(navigationButtons, lessDaysButton, moreDaysButton, backButton)
+
+	navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+	return append(inlineKeyboard, navigationKeyboard...)
 }
