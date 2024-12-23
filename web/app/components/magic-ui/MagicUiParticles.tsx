@@ -55,7 +55,7 @@ function hexToRgb(hex: string): number[] {
     return [red, green, blue];
 }
 
-export const Particles: React.FC<ParticlesProps> = ({
+export const MagicUiParticles: React.FC<ParticlesProps> = ({
     className = "",
     quantity = 100,
     staticity = 50,

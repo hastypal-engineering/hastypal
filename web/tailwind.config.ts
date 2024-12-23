@@ -54,6 +54,7 @@ export default {
   		},
 		animation: {
 			orbit: "orbit calc(var(--duration)*1s) linear infinite",
+			'fade-in': 'fadeIn var(--animation-delay, 0ms) ease-in-out',
 		},
 		keyframes: {
 			orbit: {
@@ -65,6 +66,10 @@ export default {
 					transform:
 						"rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg)",
 				},
+			},
+			fadeIn: {
+				'0%': { opacity: '0', transform: 'translateY(-1rem)' },
+				'100%': { opacity: '1', transform: 'translateY(0)' },
 			},
 		},
   	}

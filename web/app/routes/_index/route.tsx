@@ -1,5 +1,6 @@
 import type {MetaFunction} from "@remix-run/node";
 import {MagicUiOrbitingCircles} from "~/components/magic-ui/MagicUiOrbitingCircles";
+import {MagicUiParticles} from "~/components/magic-ui/MagicUiParticles";
 
 export const meta: MetaFunction = () => {
     return [
@@ -138,10 +139,10 @@ export default function Landing() {
         ),
     }
     return (
-        <div>
-            <header className="w-full translate-y-[-1rem] animate-fade-in border-b backdrop-blur-[12px] [--animation-delay:600ms]">
-                <div className="container flex h-[3.5rem] items-center justify-between">
-                    <a className="text-md flex items-center" href="/">Magic UI</a>
+        <div className="min-h-screen bg-background w-full">
+            <header className="fixed left-0 top-0 z-50 w-full animate-fade-in border-b backdrop-blur-[12px] [--animation-delay:600ms]">
+                <div className="flex h-[3.5rem] items-center justify-between px-16">
+                    <a className="text-md flex items-center" href="/">Hastypal</a>
                     <div className="ml-auto flex h-full items-center">
                         <a className="mr-6 text-sm" href="/signin">Log in</a>
                         <a className="inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 mr-6 text-sm"
@@ -149,6 +150,21 @@ export default function Landing() {
                     </div>
                 </div>
             </header>
+            <main>
+
+            </main>
+            <div className="relative flex h-[500px] w-full flex-col items-center justify-center overflow-hidden rounded-lg bg-background">
+                <span className="pointer-events-none whitespace-pre-wrap bg-gradient-to-b from-black to-gray-300/80 bg-clip-text text-center text-8xl font-semibold leading-none text-transparent dark:from-white dark:to-slate-900/10">
+                    Particles
+                </span>
+                <MagicUiParticles
+                    className="absolute inset-0"
+                    quantity={100}
+                    ease={80}
+                    color={"#ffffff"}
+                    refresh
+                />
+            </div>
             <div>
                 <h1>Hastypal ayuda a tus clientes a contratar tus servicios</h1>
                 <h3>Una forma más fácil de vender tus servicios con ayuda de nuevas herramientas</h3>
