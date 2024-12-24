@@ -58,3 +58,9 @@ const (
 	MinAllowedDatePage int = 0
 	MaxAllowedDatePage int = 23
 )
+
+type contextKey string
+
+const (
+	ClaimsContextKey contextKey = "claims"
+)
