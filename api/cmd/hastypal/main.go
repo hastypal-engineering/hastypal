@@ -65,6 +65,7 @@ func main() {
 		log.Fatal(dbConnErr.Error())
 	}
 
+	// To define middlewares:
 	// cronMiddlewares := middleware.NewMiddlewareChain(
 	// 	middleware.NewAuthMiddleWare,
 	// )
@@ -73,9 +74,11 @@ func main() {
 
 	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
-	// api.Route("POST /business", cronMiddlewares.ApplyOn(constructCreateBusinessHandler(api, database)))
 	api.Route("POST /business", constructCreateBusinessHandler(api, database))
 	api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
+
+	// To apply auth middleware in an endpoint:
+	// api.Route("VERB /endpoint", cronMiddlewares.ApplyOn(handlerConstructor))
 
 	api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
 

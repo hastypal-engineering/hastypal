@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -37,7 +38,9 @@ func NewAuthMiddleWare(handler http.Handler) http.Handler {
 		})
 
 		if err != nil {
-			http.Error(w, "Error validating token", http.StatusUnauthorized)
+			http.Error(w, "Invalid token", http.StatusUnauthorized)
+
+			return
 		}
 
 		if !token.Valid {
@@ -47,7 +50,8 @@ func NewAuthMiddleWare(handler http.Handler) http.Handler {
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			fmt.Println("Token Claims:", claims)
+			ctx := context.WithValue(r.Context(), constants.ClaimsContextKey, claims)
+			r = r.WithContext(ctx)
 		}
 
 		handler.ServeHTTP(w, r)

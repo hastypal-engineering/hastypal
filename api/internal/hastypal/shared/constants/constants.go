@@ -48,3 +48,9 @@ const (
 	ConfirmationCommand string = "/confirmation"
 	FinishCommand       string = "/book"
 )
+
+type contextKey string
+
+const (
+	ClaimsContextKey contextKey = "claims"
+)
