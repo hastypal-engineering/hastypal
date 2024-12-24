@@ -77,7 +77,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 
 		buttons[i] = types.KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
 		}
 	}
 
@@ -85,7 +85,7 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types.SendTelegramMessage{
+	message := types.TelegramMessage{
 		ChatId:         update.Message.Chat.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -93,7 +93,13 @@ func (s *StartCommandTelegramService) Execute(update types.TelegramUpdate) error
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"start-command-telegram-service",

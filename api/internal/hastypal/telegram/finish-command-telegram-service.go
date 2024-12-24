@@ -76,14 +76,6 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 		)
 	}
 
-	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
-		return exception.Wrap(
-			"session.EnsureIsValid",
-			"finish-command-telegram-service.go",
-			invalidSession,
-		)
-	}
-
 	business, getBusinessErr := s.getBusiness(session.BusinessId)
 
 	if getBusinessErr != nil {
@@ -92,6 +84,28 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 			"finish-command-telegram-service.go",
 			getBusinessErr,
 		)
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		message := types.TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := types.BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingExpiredSessionMessage); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"finish-command-telegram-service.go",
+				botSendMsgErr,
+			)
+		}
+
+		return nil
 	}
 
 	if duplicatedErr := s.ensureNotDuplicatedNotification(session); duplicatedErr != nil {
@@ -137,12 +151,13 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 	}
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
-	markdownText.WriteString("Te avisaremos un día antes para recordarte la cita ")
-	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286)\n\n")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) ")
+	markdownText.WriteString("Te avisaré un día antes para recordarte la cita\n\n")
+	markdownText.WriteString("![💙](tg://emoji?id=5368324170671202286) Muchas gracias por la confianza depositada")
 
 	buttons := make([][]types.KeyboardButton, 0)
 
-	message := types.SendTelegramMessage{
+	message := types.TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -150,7 +165,13 @@ func (s *FinishCommandTelegramService) Execute(update types.TelegramUpdate) erro
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: buttons},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"finish-command-telegram-service.go",

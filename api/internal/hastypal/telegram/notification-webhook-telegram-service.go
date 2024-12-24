@@ -11,26 +11,29 @@ import (
 )
 
 type NotificationWebhookTelegramService struct {
-	startCommandHandler        types.TelegramCommandHandler
-	datesCommandHandler        types.TelegramCommandHandler
-	hoursCommandHandler        types.TelegramCommandHandler
-	confirmationCommandHandler types.TelegramCommandHandler
-	finishCommandHandler       types.TelegramCommandHandler
+	startCommandHandler          types.TelegramCommandHandler
+	serviceCatalogCommandHandler types.TelegramCommandHandler
+	datesCommandHandler          types.TelegramCommandHandler
+	hoursCommandHandler          types.TelegramCommandHandler
+	confirmationCommandHandler   types.TelegramCommandHandler
+	finishCommandHandler         types.TelegramCommandHandler
 }
 
 func NewNotificationWebhookTelegramService(
 	startCommandHandler types.TelegramCommandHandler,
+	serviceCatalogCommandHandler types.TelegramCommandHandler,
 	datesCommandHandler types.TelegramCommandHandler,
 	hoursCommandHandler types.TelegramCommandHandler,
 	confirmationCommandHandler types.TelegramCommandHandler,
 	finishCommandHandler types.TelegramCommandHandler,
 ) *NotificationWebhookTelegramService {
 	return &NotificationWebhookTelegramService{
-		startCommandHandler:        startCommandHandler,
-		datesCommandHandler:        datesCommandHandler,
-		hoursCommandHandler:        hoursCommandHandler,
-		confirmationCommandHandler: confirmationCommandHandler,
-		finishCommandHandler:       finishCommandHandler,
+		startCommandHandler:          startCommandHandler,
+		serviceCatalogCommandHandler: serviceCatalogCommandHandler,
+		datesCommandHandler:          datesCommandHandler,
+		hoursCommandHandler:          hoursCommandHandler,
+		confirmationCommandHandler:   confirmationCommandHandler,
+		finishCommandHandler:         finishCommandHandler,
 	}
 }
 
@@ -62,7 +65,7 @@ func (s *NotificationWebhookTelegramService) Execute(update types.TelegramUpdate
 }
 
 func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.TelegramUpdate) error {
-	reflection := helper.NewReflectionHelper[types.TelegramUpdate]()
+	reflection := helper.NewReflectionHelper()
 
 	if !reflection.HasField(update, constants.TelegramMessageField) {
 		return nil
@@ -85,7 +88,7 @@ func (s *NotificationWebhookTelegramService) resolveBotCommand(update types.Tele
 }
 
 func (s *NotificationWebhookTelegramService) resolveCallbackQueryCommand(update types.TelegramUpdate) error {
-	reflection := helper.NewReflectionHelper[types.TelegramUpdate]()
+	reflection := helper.NewReflectionHelper()
 
 	if !reflection.HasField(update, constants.TelegramCallbackQueryField) {
 		return nil
@@ -116,6 +119,8 @@ func (s *NotificationWebhookTelegramService) resolveHandler(command string) (typ
 	switch command {
 	case constants.StartCommand:
 		return s.startCommandHandler, nil
+	case constants.ServiceCommand:
+		return s.serviceCatalogCommandHandler, nil
 	case constants.DatesCommand:
 		return s.datesCommandHandler, nil
 	case constants.HoursCommand:

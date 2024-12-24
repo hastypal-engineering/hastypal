@@ -23,6 +23,7 @@ const (
 	Equal              = "="
 	GreaterThanOrEqual = ">="
 	LessThanOrEqual    = "<="
+	LeftJoin           = "LEFT"
 )
 
 // Errors
@@ -43,10 +44,19 @@ const (
 
 const (
 	StartCommand        string = "/start"
+	ServiceCommand      string = "/service"
 	DatesCommand        string = "/dates"
 	HoursCommand        string = "/hours"
 	ConfirmationCommand string = "/confirmation"
 	FinishCommand       string = "/book"
+)
+
+// Domain
+
+const (
+	DaysPerPage        int = 15
+	MinAllowedDatePage int = 0
+	MaxAllowedDatePage int = 23
 )
 
 type contextKey string

@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
@@ -9,25 +10,32 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
 
 type PickDateCommandTelegramService struct {
-	bot         *service.TelegramBot
-	repository  types.Repository[types.BookingSession]
-	translation *translation.Translation
+	bot                *service.TelegramBot
+	sessionRepository  types.Repository[types.BookingSession]
+	bookingRepository  types.Repository[types.Booking]
+	businessRepository types.Repository[types.Business]
+	translation        *translation.Translation
 }
 
 func NewPickDateCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	bookingRepository types.Repository[types.Booking],
+	businessRepository types.Repository[types.Business],
 	translation *translation.Translation,
 ) *PickDateCommandTelegramService {
 	return &PickDateCommandTelegramService{
-		bot:         bot,
-		repository:  repository,
-		translation: translation,
+		bot:                bot,
+		sessionRepository:  sessionRepository,
+		bookingRepository:  bookingRepository,
+		businessRepository: businessRepository,
+		translation:        translation,
 	}
 }
 
@@ -54,6 +62,15 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 
 	sessionId := queryParams.Get("session")
 	serviceId := queryParams.Get("service")
+	page := queryParams.Get("page")
+
+	currentPage, stringToIntErr := strconv.Atoi(page)
+
+	if stringToIntErr != nil {
+		return exception.New(stringToIntErr.Error()).
+			Trace("strconv.Atoi", "pick-date-command-telegram-service.go").
+			WithValues([]string{page})
+	}
 
 	session, getSessionErr := s.getCurrentSession(sessionId)
 
@@ -65,12 +82,36 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 		)
 	}
 
-	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+	business, getBusinessErr := s.getBusiness(session.BusinessId)
+
+	if getBusinessErr != nil {
 		return exception.Wrap(
-			"session.EnsureIsValid",
+			"s.getBusiness",
 			"pick-date-command-telegram-service.go",
-			invalidSession,
+			getBusinessErr,
 		)
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		message := types.TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := types.BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingExpiredSessionMessage); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"pick-date-command-telegram-service.go",
+				botSendMsgErr,
+			)
+		}
+
+		return nil
 	}
 
 	if updateSessionErr := s.updateSession(session, serviceId); updateSessionErr != nil {
@@ -103,12 +144,34 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 
 	time.Local = location
 
-	today := time.Now()
+	startDate := time.Now()
+	startDateWithHour := time.Date(
+		startDate.Year(),
+		startDate.Month(),
+		startDate.Day(),
+		07,
+		0,
+		0,
+		0,
+		location,
+	)
+
+	startDateWithHour = startDateWithHour.AddDate(0, 0, constants.DaysPerPage*currentPage)
 
 	buttons := make([]types.KeyboardButton, 15)
 
 	for i := 0; i < 15; i++ {
-		newDate := today.AddDate(0, 0, i)
+		newDate := startDateWithHour.AddDate(0, 0, i)
+
+		hasAvailableSlots, err := s.dateHasAvailableSlots(newDate)
+
+		if err != nil {
+			return exception.Wrap("s.dateHasAvailableSlots", "pick-date-command-telegram-service.go", err)
+		}
+
+		if !hasAvailableSlots {
+			continue
+		}
 
 		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
 
@@ -123,9 +186,11 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 
-	inlineKeyboard := array.Chunk(buttons, 5)
+	inlineKeyboard := array.Chunk(buttons, 3)
 
-	message := types.SendTelegramMessage{
+	inlineKeyboard = s.addNavigationButtonsToInlineKeyboard(session.Id, serviceId, currentPage, array, inlineKeyboard)
+
+	message := types.TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -133,7 +198,13 @@ func (s *PickDateCommandTelegramService) Execute(update types.TelegramUpdate) er
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"pick-date-command-telegram-service.go",
@@ -153,7 +224,7 @@ func (s *PickDateCommandTelegramService) getCurrentSession(sessionId string) (ty
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
@@ -183,7 +254,7 @@ func (s *PickDateCommandTelegramService) updateSession(actualSession types.Booki
 		Ttl:        actualSession.Ttl,
 	}
 
-	if err := s.repository.Update(updatedSession); err != nil {
+	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"pick-date-command-telegram-service.go",
@@ -192,4 +263,156 @@ func (s *PickDateCommandTelegramService) updateSession(actualSession types.Booki
 	}
 
 	return nil
+}
+
+func (s *PickDateCommandTelegramService) similarSessionCriteria(date, openTime, closeTime time.Time) types.Criteria {
+	return types.NewCriteria().
+		Equal("date", date.Format(time.DateTime)).
+		GreaterThanOrEqual("hour", openTime.Format(time.TimeOnly)).
+		LessThanOrEqual("hour", closeTime.Format(time.TimeOnly))
+}
+
+func (s *PickDateCommandTelegramService) bookingCriteria(sessionId string) types.Criteria {
+	return types.NewCriteria().
+		Equal("session_id", sessionId)
+}
+
+func (s *PickDateCommandTelegramService) dateHasAvailableSlots(date time.Time) (bool, error) {
+	openTime := time.Date(0, 0, 0, 8, 0, 0, 0, time.UTC)
+	closeTime := time.Date(0, 0, 0, 19, 0, 0, 0, time.UTC)
+
+	totalHoursOpened := closeTime.Sub(openTime)
+
+	openSessionsCriteria := s.similarSessionCriteria(date, openTime, closeTime)
+
+	sessions, findSessionErr := s.sessionRepository.Find(openSessionsCriteria)
+
+	if findSessionErr != nil {
+		return false, exception.Wrap(
+			"s.repository.Find",
+			"pick-date-command-telegram-service.go",
+			findSessionErr,
+		)
+	}
+
+	bookingsCounter := 0
+
+	for _, session := range sessions {
+		if expiredSession := session.EnsureIsValid(); expiredSession != nil {
+			bookingCriteria := s.bookingCriteria(session.Id)
+
+			_, findOneBookingErr := s.bookingRepository.FindOne(bookingCriteria)
+
+			var bookingNotFoundErr exception.HastypalError
+
+			if findOneBookingErr != nil && errors.As(findOneBookingErr, &bookingNotFoundErr) {
+				if bookingNotFoundErr.IsDomain() {
+					continue
+				}
+
+				return false, exception.Wrap(
+					"s.bookingRepository.FindOne",
+					"pick-date-command-telegram-service.go",
+					findOneBookingErr,
+				)
+			}
+
+			bookingsCounter++
+
+			continue
+		}
+
+		bookingsCounter++
+	}
+
+	hasAvailableSlots := bookingsCounter != int(totalHoursOpened.Hours())
+
+	return hasAvailableSlots, nil
+}
+
+func (s *PickDateCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+	filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.businessRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.Business{}, exception.Wrap(
+			"s.businessRepository.FindOne",
+			"pick-date-command-telegram-service.go",
+			err,
+		)
+	}
+
+	return business, nil
+}
+
+func (s *PickDateCommandTelegramService) addNavigationButtonsToInlineKeyboard(
+	sessionId string,
+	serviceId string,
+	currentPage int,
+	array *helper.ArrayHelper[types.KeyboardButton],
+	inlineKeyboard [][]types.KeyboardButton,
+) [][]types.KeyboardButton {
+	navigationButtons := make([]types.KeyboardButton, 3)
+
+	if currentPage == constants.MinAllowedDatePage {
+		moreDaysButton := types.KeyboardButton{
+			Text:         "Más fechas",
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage+1),
+		}
+
+		backButton := types.KeyboardButton{
+			Text:         "Atrás",
+			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionId),
+		}
+
+		navigationButtons = append(navigationButtons, moreDaysButton, backButton)
+
+		navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+		return append(inlineKeyboard, navigationKeyboard...)
+	}
+
+	if currentPage == constants.MaxAllowedDatePage {
+		lessDaysButton := types.KeyboardButton{
+			Text:         "Menos fechas",
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage-1),
+		}
+
+		backButton := types.KeyboardButton{
+			Text:         "Atrás",
+			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionId),
+		}
+
+		navigationButtons = append(navigationButtons, lessDaysButton, backButton)
+
+		navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+		return append(inlineKeyboard, navigationKeyboard...)
+	}
+
+	lessDaysButton := types.KeyboardButton{
+		Text:         "Menos fechas",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage-1),
+	}
+
+	moreDaysButton := types.KeyboardButton{
+		Text:         "Más fechas",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionId, serviceId, currentPage+1),
+	}
+
+	backButton := types.KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionId),
+	}
+
+	navigationButtons = append(navigationButtons, lessDaysButton, moreDaysButton, backButton)
+
+	navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+	return append(inlineKeyboard, navigationKeyboard...)
 }

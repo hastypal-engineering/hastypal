@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"errors"
 	"fmt"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
@@ -14,20 +15,26 @@ import (
 )
 
 type PickHourCommandTelegramService struct {
-	bot         *service.TelegramBot
-	repository  types.Repository[types.BookingSession]
-	translation *translation.Translation
+	bot                *service.TelegramBot
+	sessionRepository  types.Repository[types.BookingSession]
+	bookingRepository  types.Repository[types.Booking]
+	businessRepository types.Repository[types.Business]
+	translation        *translation.Translation
 }
 
 func NewPickHourCommandTelegramService(
 	bot *service.TelegramBot,
-	repository types.Repository[types.BookingSession],
+	sessionRepository types.Repository[types.BookingSession],
+	bookingRepository types.Repository[types.Booking],
+	businessRepository types.Repository[types.Business],
 	translation *translation.Translation,
 ) *PickHourCommandTelegramService {
 	return &PickHourCommandTelegramService{
-		bot:         bot,
-		repository:  repository,
-		translation: translation,
+		bot:                bot,
+		sessionRepository:  sessionRepository,
+		bookingRepository:  bookingRepository,
+		businessRepository: businessRepository,
+		translation:        translation,
 	}
 }
 
@@ -86,12 +93,36 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 		)
 	}
 
-	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+	business, getBusinessErr := s.getBusiness(session.BusinessId)
+
+	if getBusinessErr != nil {
 		return exception.Wrap(
-			"session.EnsureIsValid",
+			"s.getBusiness",
 			"pick-hour-command-telegram-service.go",
-			invalidSession,
+			getBusinessErr,
 		)
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		message := types.TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := types.BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if botSendMsgErr := s.bot.SendMsg(bookingExpiredSessionMessage); botSendMsgErr != nil {
+			return exception.Wrap(
+				"s.bot.SendMsg",
+				"pick-hour-command-telegram-service.go",
+				botSendMsgErr,
+			)
+		}
+
+		return nil
 	}
 
 	if updateSessionErr := s.updateSession(session, stringSelectedDate); updateSessionErr != nil {
@@ -133,6 +164,18 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 	for i := 8; i <= len(buttons)+7; i++ {
 		hour := fmt.Sprintf("%02d:00", i)
 
+		criteria := s.similarSessionCriteria(selectedDate, hour)
+
+		isAlreadyPicked, err := s.isHourAlreadyPicked(criteria)
+
+		if err != nil {
+			return exception.Wrap("s.isHourAlreadyPicked", "pick-hour-command-telegram-service.go", err)
+		}
+
+		if isAlreadyPicked {
+			continue
+		}
+
 		buttons[i-8] = types.KeyboardButton{
 			Text: fmt.Sprintf("%s", hour),
 			CallbackData: fmt.Sprintf(
@@ -143,11 +186,18 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 		}
 	}
 
+	backButton := types.KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
+	}
+
+	buttons = append(buttons, backButton)
+
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 
 	inlineKeyboard := array.Chunk(buttons, 3)
 
-	message := types.SendTelegramMessage{
+	message := types.TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
@@ -155,7 +205,13 @@ func (s *PickHourCommandTelegramService) Execute(update types.TelegramUpdate) er
 		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(message); botSendMsgErr != nil {
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
 			"pick-hour-command-telegram-service.go",
@@ -179,7 +235,7 @@ func (s *PickHourCommandTelegramService) getCurrentSession(sessionId string) (ty
 
 	criteria := types.Criteria{Filters: []types.Filter{filter}}
 
-	session, findOneErr := s.repository.FindOne(criteria)
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
 
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
@@ -205,7 +261,7 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 		Ttl:        actualSession.Ttl,
 	}
 
-	if err := s.repository.Update(updatedSession); err != nil {
+	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
 			"pick-hour-command-telegram-service.go",
@@ -214,4 +270,77 @@ func (s *PickHourCommandTelegramService) updateSession(actualSession types.Booki
 	}
 
 	return nil
+}
+
+func (s *PickHourCommandTelegramService) isHourAlreadyPicked(criteria types.Criteria) (bool, error) {
+	session, findOneErr := s.sessionRepository.FindOne(criteria)
+
+	var sessionNotFoundErr exception.HastypalError
+
+	if findOneErr != nil && errors.As(findOneErr, &sessionNotFoundErr) {
+		if sessionNotFoundErr.IsDomain() {
+			return false, nil
+		}
+
+		return false, exception.Wrap(
+			"s.sessionRepository.FindOne",
+			"pick-hour-command-telegram-service.go",
+			findOneErr,
+		)
+	}
+
+	if invalidSession := session.EnsureIsValid(); invalidSession != nil {
+		bookingCriteria := s.bookingCriteria(session.Id)
+
+		_, findOneBookingErr := s.bookingRepository.FindOne(bookingCriteria)
+
+		var bookingNotFoundErr exception.HastypalError
+
+		if findOneBookingErr != nil && errors.As(findOneErr, &bookingNotFoundErr) {
+			if sessionNotFoundErr.IsDomain() {
+				return false, nil
+			}
+
+			return false, exception.Wrap(
+				"s.bookingRepository.FindOne",
+				"pick-hour-command-telegram-service.go",
+				findOneErr,
+			)
+		}
+
+		return true, nil
+	}
+
+	return true, nil
+}
+
+func (s *PickHourCommandTelegramService) similarSessionCriteria(date time.Time, hour string) types.Criteria {
+	return types.NewCriteria().
+		Equal("date", date.Format(time.DateTime)).
+		Equal("hour", hour)
+}
+
+func (s *PickHourCommandTelegramService) bookingCriteria(sessionId string) types.Criteria {
+	return types.NewCriteria().
+		Equal("session_id", sessionId)
+}
+
+func (s *PickHourCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+	filters := make([]types.Filter, 1)
+
+	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
+
+	criteria := types.Criteria{Filters: filters}
+
+	business, err := s.businessRepository.FindOne(criteria)
+
+	if err != nil {
+		return types.Business{}, exception.Wrap(
+			"s.businessRepository.FindOne",
+			"pick-hour-command-telegram-service.go",
+			err,
+		)
+	}
+
+	return business, nil
 }

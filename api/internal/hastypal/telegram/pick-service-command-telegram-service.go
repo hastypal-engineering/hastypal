@@ -13,66 +13,54 @@ import (
 	"time"
 )
 
-type ConfirmationCommandTelegramService struct {
+type PickServiceCommandTelegramService struct {
 	bot                *service.TelegramBot
 	sessionRepository  types.Repository[types.BookingSession]
 	businessRepository types.Repository[types.Business]
 	translation        *translation.Translation
 }
 
-func NewConfirmationCommandTelegramService(
+func NewPickServiceCommandTelegramService(
 	bot *service.TelegramBot,
 	sessionRepository types.Repository[types.BookingSession],
 	businessRepository types.Repository[types.Business],
-	translation *translation.Translation,
-) *ConfirmationCommandTelegramService {
-	return &ConfirmationCommandTelegramService{
+) *PickServiceCommandTelegramService {
+	return &PickServiceCommandTelegramService{
 		bot:                bot,
 		sessionRepository:  sessionRepository,
 		businessRepository: businessRepository,
-		translation:        translation,
 	}
 }
 
-func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate) error {
+func (s *PickServiceCommandTelegramService) Execute(update types.TelegramUpdate) error {
 	if ackErr := s.ackToTelegramClient(update.CallbackQuery.Id); ackErr != nil {
 		return exception.Wrap(
 			"s.ackToTelegramClient",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			ackErr,
 		)
 	}
 
 	var markdownText strings.Builder
 
-	location, loadLocationErr := time.LoadLocation("Europe/Madrid")
-
-	if loadLocationErr != nil {
-		return exception.New(loadLocationErr.Error()).
-			Trace("time.LoadLocation", "confirmation-command-telegram-service.go").
-			WithValues([]string{"Europe/Madrid"})
-	}
-
-	time.Local = location
-
 	parsedUrl, parseUrlErr := url.Parse(update.CallbackQuery.Data)
 
 	if parseUrlErr != nil {
 		return exception.New(parseUrlErr.Error()).
-			Trace("url.Parse(update.CallbackQuery.Data)", "confirmation-command-telegram-service.go").
+			Trace("url.Parse(update.CallbackQuery.Data)", "pick-service-command-telegram-service.go").
 			WithValues([]string{update.CallbackQuery.Data})
 	}
 
 	queryParams := parsedUrl.Query()
-	sessionId := queryParams.Get("session")
-	hour := queryParams.Get("hour")
+
+	sessionId := queryParams.Get("sessionId")
 
 	session, getSessionErr := s.getCurrentSession(sessionId)
 
 	if getSessionErr != nil {
 		return exception.Wrap(
 			"s.getCurrentSession",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			getSessionErr,
 		)
 	}
@@ -82,7 +70,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	if getBusinessErr != nil {
 		return exception.Wrap(
 			"s.getBusiness",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			getBusinessErr,
 		)
 	}
@@ -101,7 +89,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 		if botSendMsgErr := s.bot.SendMsg(bookingExpiredSessionMessage); botSendMsgErr != nil {
 			return exception.Wrap(
 				"s.bot.SendMsg",
-				"confirmation-command-telegram-service.go",
+				"pick-service-command-telegram-service.go",
 				botSendMsgErr,
 			)
 		}
@@ -109,64 +97,29 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 		return nil
 	}
 
-	if updateSessionErr := s.updateSession(session, hour); updateSessionErr != nil {
-		return exception.Wrap(
-			"s.updateSession",
-			"confirmation-command-telegram-service.go",
-			updateSessionErr,
-		)
+	if updateSessionErr := s.updateSession(session); updateSessionErr != nil {
+		return exception.Wrap("s.updateSession", "pick-service-command-telegram-service.go", updateSessionErr)
 	}
 
-	selectedDate, timeParseErr := time.Parse(time.DateTime, session.Date)
-
-	if timeParseErr != nil {
-		return exception.New(timeParseErr.Error()).
-			Trace("time.Parse(time.DateTime, session.Date)", "confirmation-command-telegram-service.go").
-			WithValues([]string{session.Date})
-	}
-
-	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
-
-	day := dateParts[0]
-	month := s.translation.GetSpanishMonthShortForm(selectedDate.Month())
-
-	welcome := "![🙂](tg://emoji?id=5368324170671202286) Último paso te lo prometo\\! Confirma que todo esta correcto:\n\n"
-
-	bookedService := fmt.Sprintf(
-		"![🟢](tg://emoji?id=5368324170671202286) %s\n\n",
+	services := []string{
 		"Corte de pelo y barba express 18€",
-	)
-
-	date := fmt.Sprintf("![📅](tg://emoji?id=5368324170671202286) %s %s\n\n", day, month)
-
-	hourMarkdown := fmt.Sprintf(
-		"![⌚️](tg://emoji?id=5368324170671202286) %sH\n\n",
-		hour,
-	)
-
-	processInstructions := "*Pulsa confirmar si todo es correcto o cancelar de lo contrario*\n\n"
-
-	markdownText.WriteString(welcome)
-	markdownText.WriteString(bookedService)
-	markdownText.WriteString(date)
-	markdownText.WriteString(hourMarkdown)
-	markdownText.WriteString(processInstructions)
-
-	buttons := make([]types.KeyboardButton, 2)
-
-	confirmButton := types.KeyboardButton{
-		Text:         "Confirmar",
-		CallbackData: fmt.Sprintf("/book?session=%s", sessionId),
+		"Corte de pelo y barba premium 22€",
 	}
 
-	buttons = append(buttons, confirmButton)
+	emoji := "![🔸](tg://emoji?id=5368324170671202286)"
 
-	backButton := types.KeyboardButton{
-		Text:         "Atrás",
-		CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, selectedDate.Format(time.DateOnly)),
+	markdownText.WriteString("*Te muestro a continuación los servicios que ofrecemos:*\n\n")
+
+	buttons := make([]types.KeyboardButton, len(services))
+
+	for i, serv := range services {
+		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, serv))
+
+		buttons[i] = types.KeyboardButton{
+			Text:         fmt.Sprintf("%s 📅", services[i]),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
+		}
 	}
-
-	buttons = append(buttons, backButton)
 
 	array := helper.NewArrayHelper[types.KeyboardButton]()
 
@@ -189,7 +142,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
 		return exception.Wrap(
 			"s.bot.SendMsg",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			botSendMsgErr,
 		)
 	}
@@ -197,11 +150,7 @@ func (s *ConfirmationCommandTelegramService) Execute(update types.TelegramUpdate
 	return nil
 }
 
-func (s *ConfirmationCommandTelegramService) ackToTelegramClient(callbackQueryId string) error {
-	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
-}
-
-func (s *ConfirmationCommandTelegramService) getCurrentSession(sessionId string) (types.BookingSession, error) {
+func (s *PickServiceCommandTelegramService) getCurrentSession(sessionId string) (types.BookingSession, error) {
 	filter := types.Filter{
 		Name:    "id",
 		Operand: constants.Equal,
@@ -215,7 +164,7 @@ func (s *ConfirmationCommandTelegramService) getCurrentSession(sessionId string)
 	if findOneErr != nil {
 		return types.BookingSession{}, exception.Wrap(
 			"s.repository.FindOne",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			findOneErr,
 		)
 	}
@@ -223,14 +172,18 @@ func (s *ConfirmationCommandTelegramService) getCurrentSession(sessionId string)
 	return session, nil
 }
 
-func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.BookingSession, hour string) error {
+func (s *PickServiceCommandTelegramService) ackToTelegramClient(callbackQueryId string) error {
+	return s.bot.AnswerCallbackQuery(types.AnswerCallbackQuery{CallbackQueryId: callbackQueryId})
+}
+
+func (s *PickServiceCommandTelegramService) updateSession(actualSession types.BookingSession) error {
 	updatedSession := types.BookingSession{
 		Id:         actualSession.Id,
 		BusinessId: actualSession.BusinessId,
 		ChatId:     actualSession.ChatId,
-		ServiceId:  actualSession.ServiceId,
-		Date:       actualSession.Date,
-		Hour:       hour,
+		ServiceId:  "",
+		Date:       "",
+		Hour:       "",
 		CreatedAt:  actualSession.CreatedAt,
 		UpdatedAt:  time.Now().UTC().Format(time.DateTime), //We refresh the created at on purpose
 		Ttl:        actualSession.Ttl,
@@ -239,7 +192,7 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 	if err := s.sessionRepository.Update(updatedSession); err != nil {
 		return exception.Wrap(
 			"s.repository.Update",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			err,
 		)
 	}
@@ -247,7 +200,7 @@ func (s *ConfirmationCommandTelegramService) updateSession(actualSession types.B
 	return nil
 }
 
-func (s *ConfirmationCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
+func (s *PickServiceCommandTelegramService) getBusiness(businessId string) (types.Business, error) {
 	filters := make([]types.Filter, 1)
 
 	filters[0] = types.Filter{Name: "id", Operand: constants.Equal, Value: businessId}
@@ -259,7 +212,7 @@ func (s *ConfirmationCommandTelegramService) getBusiness(businessId string) (typ
 	if err != nil {
 		return types.Business{}, exception.Wrap(
 			"s.businessRepository.FindOne",
-			"confirmation-command-telegram-service.go",
+			"pick-service-command-telegram-service.go",
 			err,
 		)
 	}
