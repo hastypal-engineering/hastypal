@@ -10,7 +10,10 @@ type Business struct {
 	OpeningHours   map[string][]string `json:"openingHours"`
 	Holidays       map[string][]string `json:"holidays"`
 	ChannelName    string              `json:"channelName"`
-	Location       string              `json:"location"`
+	Street         string              `json:"street"`
+	PostCode       string              `json:"postCode"`
+	City           string              `json:"city"`
+	Country        string              `json:"country"`
 	CreatedAt      string              `json:"createdAt"`
 	UpdatedAt      string              `json:"updatedAt"`
 }

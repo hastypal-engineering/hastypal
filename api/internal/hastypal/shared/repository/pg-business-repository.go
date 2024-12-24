@@ -4,10 +4,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"strings"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"strings"
 )
 
 type PgBusinessRepository struct {
@@ -50,7 +51,10 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		email         string
 		password      string
 		channel_name  string
-		location      string
+		street        string
+		post_code     string
+		city          string
+		country       string
 		opening_hours []uint8
 		holidays      []uint8
 		created_at    string
@@ -67,7 +71,10 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			&email,
 			&password,
 			&channel_name,
-			&location,
+			&street,
+			&post_code,
+			&city,
+			&country,
 			&opening_hours,
 			&holidays,
 			&created_at,
@@ -105,7 +112,10 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			OpeningHours: openingHours,
 			Holidays:     holidaysMap,
 			ChannelName:  channel_name,
-			Location:     location,
+			Street:       street,
+			PostCode:     post_code,
+			City:         city,
+			Country:      country,
 			CreatedAt:    created_at,
 			UpdatedAt:    updated_at,
 		})
@@ -129,7 +139,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		email         string
 		password      string
 		channel_name  string
-		location      string
+		street        string
+		post_code     string
+		city          string
+		country       string
 		opening_hours []uint8
 		holidays      []uint8
 		created_at    string
@@ -143,7 +156,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&email,
 		&password,
 		&channel_name,
-		&location,
+		&street,
+		&post_code,
+		&city,
+		&country,
 		&opening_hours,
 		&holidays,
 		&created_at,
@@ -195,7 +211,10 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		OpeningHours: openingHours,
 		Holidays:     holidaysMap,
 		ChannelName:  channel_name,
-		Location:     location,
+		Street:       street,
+		PostCode:     post_code,
+		City:         city,
+		Country:      country,
 		CreatedAt:    created_at,
 		UpdatedAt:    updated_at,
 	}, nil
@@ -205,8 +224,8 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	var query strings.Builder
 
 	query.WriteString(`INSERT INTO business `)
-	query.WriteString(`(id, name, contact_phone, email, password, opening_hours, holidays, channel_name, location, created_at, updated_at) `)
-	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`)
+	query.WriteString(`(id, name, contact_phone, email, password, opening_hours, holidays, channel_name, street, post_code, city, country, created_at, updated_at) `)
+	query.WriteString(`VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);`)
 
 	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
 	if openingHoursErr != nil {
@@ -233,7 +252,10 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 		openingHours,
 		holidays,
 		entity.ChannelName,
-		entity.Location,
+		entity.Street,
+		entity.PostCode,
+		entity.City,
+		entity.Country,
 		entity.CreatedAt,
 		entity.UpdatedAt,
 	)
