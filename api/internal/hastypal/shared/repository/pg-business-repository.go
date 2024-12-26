@@ -269,7 +269,51 @@ func (r *PgBusinessRepository) Save(entity types.Business) error {
 	return nil
 }
 
-func (r *PgBusinessRepository) Update(_ types.Business) error {
-	return exception.New("Method not implemented").
-		Trace("Update", "pg-business-repository.go")
+func (r *PgBusinessRepository) Update(entity types.Business) error {
+	var query strings.Builder
+
+	query.WriteString(`UPDATE business `)
+	query.WriteString(`SET name = $2, contact_phone = $3, email = $4, password = $5, opening_hours = $6, holidays = $7, channel_name = $8, street = $9, post_code = $10, city = $11, country = $12, created_at = $13, updated_at = $14 `)
+	query.WriteString(`WHERE id = $1;`)
+
+	openingHours, openingHoursErr := json.Marshal(entity.OpeningHours)
+	if openingHoursErr != nil {
+		return exception.New(openingHoursErr.Error()).
+			Trace("json.Marshal(entity.OpeningHours)", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
+	}
+
+	holidays, holidaysErr := json.Marshal(entity.Holidays)
+
+	if holidaysErr != nil {
+		return exception.New(holidaysErr.Error()).
+			Trace("json.Marshal(entity.Holidays)", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
+	}
+
+	_, err := r.connection.Exec(
+		query.String(),
+		entity.Id,
+		entity.Name,
+		entity.ContactPhone,
+		entity.Email,
+		entity.Password,
+		openingHours,
+		holidays,
+		entity.ChannelName,
+		entity.Street,
+		entity.PostCode,
+		entity.City,
+		entity.Country,
+		entity.CreatedAt,
+		entity.UpdatedAt,
+	)
+
+	if err != nil {
+		return exception.New(err.Error()).
+			Trace("r.connection.Exec", "pg-business-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.ContactPhone, entity.Email})
+	}
+
+	return nil
 }
