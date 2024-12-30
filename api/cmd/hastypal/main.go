@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/internal/hastypal/notification"
+	"github.com/adriein/hastypal/internal/hastypal/shared/middleware"
 	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 
 	"github.com/adriein/hastypal/internal/hastypal/business"
@@ -65,20 +66,18 @@ func main() {
 		log.Fatal(dbConnErr.Error())
 	}
 
-	// To define middlewares:
-	// cronMiddlewares := middleware.NewMiddlewareChain(
-	// 	middleware.NewAuthMiddleWare,
-	// )
+	cronMiddlewares := middleware.NewMiddlewareChain(
+		middleware.NewAuthMiddleWare,
+	)
 
 	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
 
 	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
+
 	api.Route("POST /business", constructCreateBusinessHandler(api, database))
 	api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
-
-	// To apply auth middleware in an endpoint:
-	// api.Route("VERB /endpoint", cronMiddlewares.ApplyOn(handlerConstructor))
+	api.Route("PUT /business", cronMiddlewares.ApplyOn(constructUpdateBusinessHandler(api, database)))
 
 	api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
 
@@ -154,6 +153,16 @@ func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql
 	createBusinessService := business.NewCreateBusinessService(businessRepository)
 
 	controller := business.NewCreateBusinessHandler(createBusinessService)
+
+	return api.NewHandler(controller.Handler)
+}
+
+func constructUpdateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
+	businessRepository := repository.NewPgBusinessRepository(database)
+
+	updateBusinessService := business.NewUpdateBusinessService(businessRepository)
+
+	controller := business.NewUpdateBusinessHandler(updateBusinessService)
 
 	return api.NewHandler(controller.Handler)
 }
