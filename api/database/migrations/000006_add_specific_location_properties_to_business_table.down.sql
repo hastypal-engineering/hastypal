@@ -1,6 +1,5 @@
 ALTER TABLE business
-ADD location VARCHAR(36),
+    RENAME COLUMN country to location,
     DROP COLUMN street,
     DROP COLUMN post_code,
-    DROP COLUMN city,
-    DROP COLUMN country;
+    DROP COLUMN city;
