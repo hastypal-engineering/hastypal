@@ -21,7 +21,7 @@ func NewUpdateBusinessHandler(
 	}
 }
 
-func (h *UpdateBusinessHandler) Handler(w http.ResponseWriter, r http.Request) error {
+func (h *UpdateBusinessHandler) Handler(w http.ResponseWriter, r *http.Request) error {
 	var request types.Business
 
 	if decodeErr := json.NewDecoder(r.Body).Decode(&request); decodeErr != nil {
