@@ -51,14 +51,14 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 		email         string
 		password      string
 		channel_name  string
-		street        string
-		post_code     string
-		city          string
 		country       string
 		opening_hours []uint8
 		holidays      []uint8
 		created_at    string
 		updated_at    string
+		street        string
+		post_code     string
+		city          string
 	)
 
 	var results []types.Business
@@ -71,14 +71,14 @@ func (r *PgBusinessRepository) Find(criteria types.Criteria) ([]types.Business, 
 			&email,
 			&password,
 			&channel_name,
-			&street,
-			&post_code,
-			&city,
 			&country,
 			&opening_hours,
 			&holidays,
 			&created_at,
 			&updated_at,
+			&street,
+			&post_code,
+			&city,
 		); scanErr != nil {
 			return nil, exception.New(scanErr.Error()).
 				Trace("rows.Scan", "pg-business-repository.go").
@@ -139,14 +139,14 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		email         string
 		password      string
 		channel_name  string
-		street        string
-		post_code     string
-		city          string
 		country       string
 		opening_hours []uint8
 		holidays      []uint8
 		created_at    string
 		updated_at    string
+		street        string
+		post_code     string
+		city          string
 	)
 
 	if scanErr := r.connection.QueryRow(query).Scan(
@@ -156,14 +156,14 @@ func (r *PgBusinessRepository) FindOne(criteria types.Criteria) (types.Business,
 		&email,
 		&password,
 		&channel_name,
-		&street,
-		&post_code,
-		&city,
 		&country,
 		&opening_hours,
 		&holidays,
 		&created_at,
 		&updated_at,
+		&street,
+		&post_code,
+		&city,
 	); scanErr != nil {
 		if errors.Is(scanErr, sql.ErrNoRows) {
 			return types.Business{}, exception.
