@@ -1,6 +1,8 @@
 package business
 
 import (
+	"fmt"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -17,10 +19,16 @@ func NewUpdateBusinessService(repository types.Repository[types.Business]) *Upda
 }
 
 func (s *UpdateBusinessService) Execute(request types.Business) error {
+	s.ensureBusinessExists(request)
+
 	if err := s.repository.Update(request); err != nil {
 		return exception.Wrap(
 			"s.repository.Update", "update-business-service.go", err,
 		)
+	}
+
+	if len(request.ServiceCatalog) != 0 {
+		fmt.Println("SAVE SERVICE CATALOG...")
 	}
 
 	return nil
@@ -40,10 +48,6 @@ func (s *UpdateBusinessService) ensureBusinessExists(business types.Business) er
 	if err != nil {
 		return exception.Wrap("s.repository.FindOne", "update-business-service.go", err)
 	}
-
-	// if result {
-
-	// }
 
 	return nil
 }
