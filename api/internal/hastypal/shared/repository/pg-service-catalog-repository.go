@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"strings"
 
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
@@ -29,10 +30,53 @@ func (r *PgServiceCatalogRepository) Find(criteria types.Criteria) error {
 		Trace("Find", "pg-service-catalog-repository.go")
 }
 
-func (r *PgServiceCatalogRepository) FindOne(criteria types.Criteria) error {
-	return exception.
-		New("Method not implemented").
-		Trace("FindOne", "pg-service-catalog-repository.go")
+func (r *PgServiceCatalogRepository) FindOne(criteria types.Criteria) (types.ServiceCatalog, error) {
+	query, err := r.transformer.Transform(criteria)
+
+	if err != nil {
+		return types.ServiceCatalog{}, exception.New(err.Error()).
+			Trace("FindOne", "pg-service-catalog-repository.go")
+	}
+
+	var (
+		id          string
+		name        string
+		price       int
+		currency    string
+		duration    string
+		business_id string
+	)
+
+	if scanErr := r.connection.QueryRow(query).Scan(
+		&id,
+		&name,
+		&price,
+		&currency,
+		&duration,
+		&business_id,
+	); scanErr != nil {
+		if errors.Is(scanErr, sql.ErrNoRows) {
+			return types.ServiceCatalog{}, exception.
+				New("Entity Service Catalog not found").
+				Trace("r.connection.QueryRow.Scan", "pg-service-catalog-repository.go").
+				WithValues([]string{query}).
+				Domain()
+		}
+
+		return types.ServiceCatalog{}, exception.
+			New(scanErr.Error()).
+			Trace("r.connection.QueryRow.Scan", "pg-service-catalog-repository.go").
+			WithValues([]string{query})
+	}
+
+	return types.ServiceCatalog{
+		Id:         id,
+		Name:       name,
+		Price:      price,
+		Currency:   currency,
+		Duration:   duration,
+		BusinessId: business_id,
+	}, nil
 }
 
 func (r *PgServiceCatalogRepository) Save(entity types.ServiceCatalog) error {
