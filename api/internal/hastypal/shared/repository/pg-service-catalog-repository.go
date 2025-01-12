@@ -107,9 +107,30 @@ func (r *PgServiceCatalogRepository) Save(entity types.ServiceCatalog) error {
 }
 
 func (r *PgServiceCatalogRepository) Update(entity types.ServiceCatalog) error {
-	return exception.
-		New("Method not implemented").
-		Trace("Update", "pg-service-catalog-repository.go")
+	var query strings.Builder
+
+	query.WriteString(`UPDATE service_catalog `)
+	query.WriteString(`SET name = $2, price = $3, currency = $4, duration = $5, business_id = $6 `)
+	query.WriteString(`WHERE id = $1;`)
+
+	_, err := r.connection.Exec(
+		query.String(),
+		entity.Id,
+		entity.Name,
+		entity.Price,
+		entity.Currency,
+		entity.Duration,
+		entity.BusinessId,
+	)
+
+	if err != nil {
+		return exception.
+			New(err.Error()).
+			Trace("r.connection.Exec", "pg-service-catalog-repository.go").
+			WithValues([]string{query.String(), entity.Id, entity.Name, entity.BusinessId})
+	}
+
+	return nil
 }
 
 func (r *PgServiceCatalogRepository) Delete(criteria types.Criteria) error {
