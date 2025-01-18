@@ -29,10 +29,19 @@ func (s *UpdateBusinessService) Execute(request types.Business) error {
 
 	if len(request.ServiceCatalog) != 0 {
 		for i := 0; i < len(request.ServiceCatalog); i++ {
+			currentServiceCatalog := types.ServiceCatalog{
+				Id:         request.ServiceCatalog[i].Id,
+				Name:       request.ServiceCatalog[i].Name,
+				Price:      request.ServiceCatalog[i].Price,
+				Currency:   request.ServiceCatalog[i].Currency,
+				Duration:   request.ServiceCatalog[i].Duration,
+				BusinessId: request.Id,
+			}
+
 			filter := types.Filter{
 				Name:    "id",
 				Operand: constants.Equal,
-				Value:   request.ServiceCatalog[i].Id,
+				Value:   currentServiceCatalog.Id,
 			}
 
 			criteria := types.Criteria{Filters: []types.Filter{filter}}
@@ -40,14 +49,14 @@ func (s *UpdateBusinessService) Execute(request types.Business) error {
 			_, err := s.serviceCatalogRepository.FindOne(criteria)
 
 			if err != nil {
-				if saveErr := s.serviceCatalogRepository.Save(request.ServiceCatalog[i]); saveErr != nil {
+				if saveErr := s.serviceCatalogRepository.Save(currentServiceCatalog); saveErr != nil {
 					return exception.Wrap("s.serviceCatalogRepository.Save", "update-business-service.go", saveErr)
 				}
 
 				continue
 			}
 
-			if updateErr := s.serviceCatalogRepository.Update(request.ServiceCatalog[i]); updateErr != nil {
+			if updateErr := s.serviceCatalogRepository.Update(currentServiceCatalog); updateErr != nil {
 				return exception.Wrap("s.serviceCatalogRepository.Update", "update-business-service.go", updateErr)
 			}
 		}
