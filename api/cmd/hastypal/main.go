@@ -159,8 +159,9 @@ func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql
 
 func constructUpdateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
 	businessRepository := repository.NewPgBusinessRepository(database)
+	serviceCatalogRepository := repository.NewPgServiceCatalogRepository(database)
 
-	updateBusinessService := business.NewUpdateBusinessService(businessRepository)
+	updateBusinessService := business.NewUpdateBusinessService(businessRepository, serviceCatalogRepository)
 
 	controller := business.NewUpdateBusinessHandler(updateBusinessService)
 

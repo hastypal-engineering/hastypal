@@ -1,20 +1,20 @@
 package business
 
 import (
-	"fmt"
-
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 )
 
 type UpdateBusinessService struct {
-	repository types.Repository[types.Business]
+	repository               types.Repository[types.Business]
+	serviceCatalogRepository types.Repository[types.ServiceCatalog]
 }
 
-func NewUpdateBusinessService(repository types.Repository[types.Business]) *UpdateBusinessService {
+func NewUpdateBusinessService(repository types.Repository[types.Business], serviceCatalogRepository types.Repository[types.ServiceCatalog]) *UpdateBusinessService {
 	return &UpdateBusinessService{
-		repository: repository,
+		repository:               repository,
+		serviceCatalogRepository: serviceCatalogRepository,
 	}
 }
 
@@ -28,8 +28,32 @@ func (s *UpdateBusinessService) Execute(request types.Business) error {
 	}
 
 	if len(request.ServiceCatalog) != 0 {
-		fmt.Println("SAVE SERVICE CATALOG...")
+		for i := 0; i < len(request.ServiceCatalog); i++ {
+			filter := types.Filter{
+				Name:    "id",
+				Operand: constants.Equal,
+				Value:   request.ServiceCatalog[i].Id,
+			}
+
+			criteria := types.Criteria{Filters: []types.Filter{filter}}
+
+			_, err := s.serviceCatalogRepository.FindOne(criteria)
+
+			if err != nil {
+				if saveErr := s.serviceCatalogRepository.Save(request.ServiceCatalog[i]); saveErr != nil {
+					return exception.Wrap("s.serviceCatalogRepository.Save", "update-business-service.go", saveErr)
+				}
+
+				continue
+			}
+
+			if updateErr := s.serviceCatalogRepository.Update(request.ServiceCatalog[i]); updateErr != nil {
+				return exception.Wrap("s.serviceCatalogRepository.Update", "update-business-service.go", updateErr)
+			}
+		}
 	}
+
+	// TODO: Check if business has any service catalog associated and if the request is missing some of the services delete them
 
 	return nil
 }

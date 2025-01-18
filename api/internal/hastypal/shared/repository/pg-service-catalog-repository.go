@@ -16,7 +16,7 @@ type PgServiceCatalogRepository struct {
 }
 
 func NewPgServiceCatalogRepository(connection *sql.DB) *PgServiceCatalogRepository {
-	transformer, _ := helper.NewCriteriaToSqlService((&types.ServiceCatalog{}))
+	transformer, _ := helper.NewCriteriaToSqlService(&types.ServiceCatalog{})
 
 	return &PgServiceCatalogRepository{
 		connection:  connection,
@@ -24,8 +24,8 @@ func NewPgServiceCatalogRepository(connection *sql.DB) *PgServiceCatalogReposito
 	}
 }
 
-func (r *PgServiceCatalogRepository) Find(criteria types.Criteria) error {
-	return exception.
+func (r *PgServiceCatalogRepository) Find(criteria types.Criteria) ([]types.ServiceCatalog, error) {
+	return nil, exception.
 		New("Method not implemented").
 		Trace("Find", "pg-service-catalog-repository.go")
 }
