@@ -25,9 +25,60 @@ func NewPgServiceCatalogRepository(connection *sql.DB) *PgServiceCatalogReposito
 }
 
 func (r *PgServiceCatalogRepository) Find(criteria types.Criteria) ([]types.ServiceCatalog, error) {
-	return nil, exception.
-		New("Method not implemented").
-		Trace("Find", "pg-service-catalog-repository.go")
+	query, err := r.transformer.Transform(criteria)
+
+	if err != nil {
+		return nil, exception.
+			New(err.Error()).
+			Trace("r.transformer.Transform", "pg-service-catalog-repository.go")
+	}
+
+	rows, queryErr := r.connection.Query(query)
+
+	if queryErr != nil {
+		return nil, exception.New(queryErr.Error()).
+			Trace("r.connection.Query", "pg-service-catalog-repository.go").
+			WithValues([]string{query})
+	}
+
+	defer rows.Close()
+
+	var (
+		id          string
+		name        string
+		price       int
+		currency    string
+		duration    string
+		business_id string
+	)
+
+	var results []types.ServiceCatalog
+
+	for rows.Next() {
+		if scanErr := rows.Scan(
+			&id,
+			&name,
+			&price,
+			&currency,
+			&duration,
+			&business_id,
+		); scanErr != nil {
+			return nil, exception.New(scanErr.Error()).
+				Trace("rows.Scan", "pg-service-catalog-repository.go").
+				WithValues([]string{query})
+		}
+
+		results = append(results, types.ServiceCatalog{
+			Id:         id,
+			Name:       name,
+			Price:      price,
+			Currency:   currency,
+			Duration:   duration,
+			BusinessId: business_id,
+		})
+	}
+
+	return results, nil
 }
 
 func (r *PgServiceCatalogRepository) FindOne(criteria types.Criteria) (types.ServiceCatalog, error) {
