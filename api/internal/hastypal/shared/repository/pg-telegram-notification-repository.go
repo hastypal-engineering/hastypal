@@ -240,3 +240,9 @@ func (r *PgTelegramNotificationRepository) Update(entity types.TelegramNotificat
 
 	return nil
 }
+
+func (r *PgTelegramNotificationRepository) Delete(criteria types.Criteria) error {
+	return exception.
+		New("Method not implemented").
+		Trace("Delete", "pg-service-catalog-repository.go")
+}

@@ -3,10 +3,11 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"strings"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"strings"
 )
 
 type PgBookingRepository struct {
@@ -166,4 +167,10 @@ func (r *PgBookingRepository) Update(_ types.Booking) error {
 	return exception.
 		New("Method not implemented").
 		Trace("Update", "pg-booking-repository.go")
+}
+
+func (r *PgBookingRepository) Delete(criteria types.Criteria) error {
+	return exception.
+		New("Method not implemented").
+		Trace("Delete", "pg-service-catalog-repository.go")
 }

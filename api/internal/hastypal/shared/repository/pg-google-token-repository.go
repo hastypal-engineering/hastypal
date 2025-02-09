@@ -169,3 +169,9 @@ func (r *PgGoogleTokenRepository) Update(_ types.GoogleToken) error {
 		New("Method not implemented").
 		Trace("Update", "pg-google-token-repository.go")
 }
+
+func (r *PgGoogleTokenRepository) Delete(criteria types.Criteria) error {
+	return exception.
+		New("Method not implemented").
+		Trace("Delete", "pg-service-catalog-repository.go")
+}

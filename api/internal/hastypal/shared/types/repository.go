@@ -5,4 +5,5 @@ type Repository[T any] interface {
 	FindOne(criteria Criteria) (T, error)
 	Save(entity T) error
 	Update(entity T) error
+	Delete(criteria Criteria) error
 }

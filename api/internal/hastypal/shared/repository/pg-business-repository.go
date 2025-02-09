@@ -317,3 +317,9 @@ func (r *PgBusinessRepository) Update(entity types.Business) error {
 
 	return nil
 }
+
+func (r *PgBusinessRepository) Delete(criteria types.Criteria) error {
+	return exception.
+		New("Method not implemented").
+		Trace("Delete", "pg-service-catalog-repository.go")
+}

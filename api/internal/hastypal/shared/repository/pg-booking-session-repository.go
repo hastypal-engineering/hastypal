@@ -3,11 +3,12 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"strconv"
+	"strings"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"strconv"
-	"strings"
 )
 
 type PgBookingSessionRepository struct {
@@ -217,4 +218,10 @@ func (r *PgBookingSessionRepository) Update(entity types.BookingSession) error {
 	}
 
 	return nil
+}
+
+func (r *PgBookingSessionRepository) Delete(criteria types.Criteria) error {
+	return exception.
+		New("Method not implemented").
+		Trace("Delete", "pg-service-catalog-repository.go")
 }
