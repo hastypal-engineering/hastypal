@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/adriein/hastypal/internal"
 	"github.com/adriein/hastypal/internal/hastypal/notification"
 	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 
@@ -14,37 +15,14 @@ import (
 	"github.com/adriein/hastypal/internal/hastypal/google"
 	"github.com/adriein/hastypal/internal/hastypal/server"
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/repository"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/telegram"
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	dotenvErr := godotenv.Load()
-
-	if dotenvErr != nil && os.Getenv(constants.Env) != constants.Production {
-		log.Fatal("Error loading .env file")
-	}
-
-	checker := helper.NewEnvVarChecker(
-		constants.DatabaseUser,
-		constants.DatabasePassword,
-		constants.DatabaseName,
-		constants.ServerPort,
-		constants.WhatsappBusinessApiToken,
-		constants.TelegramApiToken,
-		constants.TelegramApiBotUrl,
-		constants.GoogleClientId,
-		constants.GoogleClientSecret,
-		constants.JwtKey,
-	)
-
-	if envCheckerErr := checker.Check(); envCheckerErr != nil {
-		log.Fatal(envCheckerErr.Error())
-	}
+	app := internal.NewApp()
 
 	api, newServerErr := server.New(os.Getenv(constants.ServerPort))
 

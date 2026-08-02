@@ -1,90 +1,66 @@
 package server
 
 import (
-	"errors"
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
-	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	"github.com/adriein/hastypal/internal/hastypal/shared/middleware"
-	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"log"
-	"log/slog"
-	"net/http"
+	"os"
+
+	"github.com/adriein/hastypal/internal"
+	"github.com/adriein/hastypal/pkg/constants"
+	"github.com/adriein/hastypal/pkg/middleware"
+	"github.com/adriein/hastypal/pkg/vendor"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/rotisserie/eris"
 )
 
-type HastypalApiServer struct {
-	address string
-	router  *http.ServeMux
+type Server struct {
+	gin       *gin.Engine
+	validator *validator.Validate
 }
 
-func New(address string) (*HastypalApiServer, error) {
-	router := http.NewServeMux()
+func New(app *internal.App) *Server {
+	logger := app.Modules.Logger
+	engine := gin.New()
 
-	return &HastypalApiServer{
-		address: address,
-		router:  router,
-	}, nil
-}
+	ginHtmlRenderer := engine.HTMLRender
 
-func (s *HastypalApiServer) Start() {
-	v1 := http.NewServeMux()
-	v1.Handle("/api/v1/", http.StripPrefix("/api/v1", s.router))
+	engine.HTMLRender = &vendor.HTMLTemplRenderer{FallbackHtmlRenderer: ginHtmlRenderer}
 
-	MuxMiddleWareChain := middleware.NewMiddlewareChain(
-		middleware.NewRequestTracingMiddleware,
-	)
-
-	server := http.Server{
-		Addr:    s.address,
-		Handler: MuxMiddleWareChain.ApplyOn(v1),
+	if os.Getenv(constants.Env) == constants.Pro {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
-	slog.Info("Starting the HastypalApiServer at " + s.address)
+	engine.SetTrustedProxies(nil)
 
-	err := server.ListenAndServe()
+	engine.Use(middleware.Error(), gin.Logger(), gin.Recovery(), middleware.Tracer(), middleware.TimeZone())
 
-	if err != nil {
-		hastypalErr := exception.New(err.Error()).Trace("server.ListenAndServe", "server.go")
-
-		log.Fatal(hastypalErr.Error())
+	server := &Server{
+		gin:       engine,
+		validator: validator.New(),
 	}
+
+	server.routeSetup()
+
+	port := os.Getenv(constants.ServerPort)
+
+	if ginErr := engine.Run(port); ginErr != nil {
+		err := eris.Wrap(ginErr, "Error starting HTTP server")
+
+		logger.Error(eris.ToString(err, true))
+		os.Exit(1)
+	}
+
+	logger.Info("Starting the TibiaChar at " + port)
+
+	return server
 }
 
-func (s *HastypalApiServer) Route(url string, handler http.Handler) {
-	s.router.Handle(url, handler)
-}
+func (s *Server) routeSetup() {
+	//HEALTH CHECK
+	s.gin.GET("/health", health.NewController().Get())
 
-func (s *HastypalApiServer) NewHandler(handler types.HastypalHttpHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var appError exception.HastypalErrorInterface
+	cwd, _ := os.Getwd()
 
-		if err := handler(w, r); errors.As(err, &appError) {
-			if appError.IsDomain() {
-				response := types.ServerResponse{
-					Ok:    false,
-					Error: appError.PresentError(),
-				}
-
-				if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusOK, response); encodeErr != nil {
-					log.Fatal(encodeErr.Error())
-				}
-
-				slog.Error(fmt.Sprintf("%s TraceId=%s", appError.Error(), r.Header.Get("traceId")))
-
-				return
-			}
-
-			response := types.ServerResponse{
-				Ok:    false,
-				Error: constants.ServerGenericError,
-			}
-
-			if encodeErr := helper.Encode[types.ServerResponse](w, http.StatusInternalServerError, response); encodeErr != nil {
-				log.Fatal(encodeErr.Error())
-			}
-
-			slog.Error(fmt.Sprintf("%s TraceId=%s", appError.Error(), r.Header.Get("traceId")))
-		}
-	}
+	//STATIC
+	s.gin.Static("/ui/static", fmt.Sprintf("%s/ui/static", cwd))
 }

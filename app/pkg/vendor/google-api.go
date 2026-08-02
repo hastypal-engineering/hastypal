@@ -1,7 +1,10 @@
-package service
+package vendor
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
@@ -9,8 +12,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
-	"os"
-	"time"
 )
 
 type GoogleApi struct{}

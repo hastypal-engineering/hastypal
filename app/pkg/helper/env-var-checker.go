@@ -2,8 +2,9 @@ package helper
 
 import (
 	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"os"
+
+	"github.com/rotisserie/eris"
 )
 
 type EnvVarChecker struct {
@@ -21,9 +22,7 @@ func (evc *EnvVarChecker) Check() error {
 		_, exists := os.LookupEnv(key)
 
 		if !exists {
-			return exception.
-				New(fmt.Sprintf("Env var %s not set", key)).
-				Trace("os.LookupEnv", "env-var-checker.go")
+			return eris.New(fmt.Sprintf("Env var %s not set", key))
 		}
 	}
 
