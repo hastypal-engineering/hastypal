@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/internal"
+	"github.com/adriein/hastypal/internal/web"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/adriein/hastypal/pkg/vendor"
@@ -57,10 +58,23 @@ func New(app *internal.App) *Server {
 
 func (s *Server) routeSetup() {
 	//HEALTH CHECK
-	s.gin.GET("/health", health.NewController().Get())
+	s.gin.GET("/health", web.NewHealthController().Get())
 
 	cwd, _ := os.Getwd()
 
 	//STATIC
 	s.gin.Static("/ui/static", fmt.Sprintf("%s/ui/static", cwd))
+
+	//TODO: setup the routes again
+
+	/*
+		api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
+
+		api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
+		api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
+		api.Route("POST /business", constructCreateBusinessHandler(api, database))
+		api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
+
+		api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
+	*/
 }

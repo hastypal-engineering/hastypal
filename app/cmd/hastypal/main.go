@@ -1,159 +1,38 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
-	"log"
-	"net/http"
 	"os"
+	"time"
 
 	"github.com/adriein/hastypal/internal"
-	"github.com/adriein/hastypal/internal/hastypal/notification"
-	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
-
-	"github.com/adriein/hastypal/internal/hastypal/business"
-	"github.com/adriein/hastypal/internal/hastypal/google"
-	"github.com/adriein/hastypal/internal/hastypal/server"
-	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	"github.com/adriein/hastypal/internal/hastypal/shared/repository"
-	"github.com/adriein/hastypal/internal/hastypal/shared/service"
-	"github.com/adriein/hastypal/internal/hastypal/telegram"
-	_ "github.com/lib/pq"
+	"github.com/adriein/hastypal/internal/server"
 )
 
 func main() {
 	app := internal.NewApp()
 
-	api, newServerErr := server.New(os.Getenv(constants.ServerPort))
+	defer func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
 
-	if newServerErr != nil {
-		log.Fatal(newServerErr.Error())
+		if err := app.Shutdown(ctx); err != nil {
+			fmt.Printf("Failed to perform graceful shutdown %v", err)
+			os.Exit(1)
+		}
+	}()
+
+	if len(os.Args) < 2 {
+		server.New(app)
+
+		return
 	}
 
-	databaseDsn := fmt.Sprintf(
-		"postgresql://%s:%s@localhost:5432/%s?sslmode=disable",
-		os.Getenv(constants.DatabaseUser),
-		os.Getenv(constants.DatabasePassword),
-		os.Getenv(constants.DatabaseName),
-	)
-
-	database, dbConnErr := sql.Open("postgres", databaseDsn)
-
-	if dbConnErr != nil {
-		log.Fatal(dbConnErr.Error())
+	switch os.Args[1] {
+	default:
+		fmt.Printf("Unknown command: %s\n", os.Args[1])
+		os.Exit(1)
 	}
 
-	// To define middlewares:
-	// cronMiddlewares := middleware.NewMiddlewareChain(
-	// 	middleware.NewAuthMiddleWare,
-	// )
-
-	api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
-
-	api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
-	api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
-	api.Route("POST /business", constructCreateBusinessHandler(api, database))
-	api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
-
-	// To apply auth middleware in an endpoint:
-	// api.Route("VERB /endpoint", cronMiddlewares.ApplyOn(handlerConstructor))
-
-	api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
-
-	api.Start()
-
-	defer database.Close()
-}
-
-func constructTelegramWebhookHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	googleApi := service.NewGoogleApi()
-	businessRepository := repository.NewPgBusinessRepository(database)
-	sessionRepository := repository.NewPgBookingSessionRepository(database)
-	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
-	bookingRepository := repository.NewPgBookingRepository(database)
-	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
-
-	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
-	translations := translation.New()
-
-	startCommandService := telegram.NewStartCommandTelegramService(bot, sessionRepository, businessRepository)
-	serviceCatalogCommandService := telegram.NewPickServiceCommandTelegramService(bot, sessionRepository, businessRepository)
-	datesCommandService := telegram.NewPickDateCommandTelegramService(bot, sessionRepository, bookingRepository, businessRepository, translations)
-	hoursCommandService := telegram.NewPickHourCommandTelegramService(bot, sessionRepository, bookingRepository, businessRepository, translations)
-	confirmationCommandService := telegram.NewConfirmationCommandTelegramService(bot, sessionRepository, businessRepository, translations)
-	finishCommandService := telegram.NewFinishCommandTelegramService(
-		bot,
-		googleApi,
-		sessionRepository,
-		notificationRepository,
-		bookingRepository,
-		googleTokenRepository,
-		businessRepository,
-	)
-
-	webhookService := telegram.NewNotificationWebhookTelegramService(
-		startCommandService,
-		serviceCatalogCommandService,
-		datesCommandService,
-		hoursCommandService,
-		confirmationCommandService,
-		finishCommandService,
-	)
-
-	controller := telegram.NewNotificationWebhookTelegramHandler(webhookService)
-
-	return api.NewHandler(controller.Handler)
-}
-
-func constructGoogleAuthHandler(api *server.HastypalApiServer) http.HandlerFunc {
-	googleApi := service.NewGoogleApi()
-
-	authGoogleService := google.NewAuthGoogleService(googleApi)
-
-	controller := google.NewGoogleAuthHandler(authGoogleService)
-
-	return api.NewHandler(controller.Handler)
-}
-
-func constructGoogleAuthCallbackHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	googleApi := service.NewGoogleApi()
-	googleTokenRepository := repository.NewPgGoogleTokenRepository(database)
-
-	callbackService := google.NewAuthCallbackGoogleService(googleTokenRepository, googleApi)
-
-	controller := google.NewGoogleAuthCallbackHandler(callbackService)
-
-	return api.NewHandler(controller.Handler)
-}
-
-func constructCreateBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	businessRepository := repository.NewPgBusinessRepository(database)
-
-	createBusinessService := business.NewCreateBusinessService(businessRepository)
-
-	controller := business.NewCreateBusinessHandler(createBusinessService)
-
-	return api.NewHandler(controller.Handler)
-}
-
-func constructLoginBusinessHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	businessRepository := repository.NewPgBusinessRepository(database)
-
-	loginBusinessService := business.NewLoginBusinessService(businessRepository)
-
-	controller := business.NewLoginBusinessHandler(loginBusinessService)
-
-	return api.NewHandler(controller.Handler)
-}
-
-func constructSendNotificationHandler(api *server.HastypalApiServer, database *sql.DB) http.HandlerFunc {
-	bot := service.NewTelegramBot(os.Getenv(constants.TelegramApiBotUrl), os.Getenv(constants.TelegramApiToken))
-	notificationRepository := repository.NewPgTelegramNotificationRepository(database)
-	translations := translation.New()
-
-	sendNotificationService := notification.NewSendNotificationService(notificationRepository, bot, translations)
-
-	controller := notification.NewSendNotificationHandler(sendNotificationService)
-
-	return api.NewHandler(controller.Handler)
 }
