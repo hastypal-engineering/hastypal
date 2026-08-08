@@ -15,7 +15,8 @@ type TelegramService interface {
 	HandleMessage(update TelegramUpdate) error
 }
 
-type Service struct{}
+type Service struct {
+}
 
 func NewService() *Service {
 	return &Service{}

@@ -1,4 +1,4 @@
-package types
+package business
 
 type Business struct {
 	Id             string              `json:"id"`
