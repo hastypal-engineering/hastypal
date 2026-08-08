@@ -1,4 +1,4 @@
-package vendor
+package telegram
 
 import (
 	"bytes"
@@ -6,10 +6,44 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
-	"github.com/adriein/hastypal/internal/hastypal/shared/types"
+	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/rotisserie/eris"
 )
+
+func (stm *TelegramMessage) SessionExpired() TelegramMessage {
+	var markdownText strings.Builder
+
+	expiredSession := "![🙂‍↕️](tg://emoji?id=5368324170671202286) Lo sentimos, la sesión ha caducado\\!\n\n"
+
+	processInstructionsIcon := "![‍ℹ️️](tg://emoji?id=5368324170671202286)"
+	processInstructions := " *Pulsa Volver a empezar y te redirigiremos al canal de donde vienes*"
+
+	markdownText.WriteString(expiredSession)
+	markdownText.WriteString(processInstructionsIcon)
+	markdownText.WriteString(processInstructions)
+
+	startAgainButton := KeyboardButton{
+		Text: "Volver a empezar",
+		Url:  "t.me/+0djgKpMfYY5lY2I8",
+	}
+
+	chunked := [][]KeyboardButton{{startAgainButton}}
+
+	return TelegramMessage{
+		ChatId:         stm.ChatId,
+		Text:           markdownText.String(),
+		ParseMode:      constants.TelegramMarkdown,
+		ProtectContent: true,
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: chunked},
+	}
+}
+
+type AnswerCallbackQuery struct {
+	CallbackQueryId string `json:"callback_query_id"`
+	Text            string `json:"text"`
+}
 
 type TelegramBot struct {
 	url   string
@@ -23,7 +57,7 @@ func NewTelegramBot(url string, token string) *TelegramBot {
 	}
 }
 
-func (tb *TelegramBot) SendMsg(dto types.BookingTelegramMessage) error {
+func (tb *TelegramBot) SendMsg(dto BookingTelegramMessage) error {
 	telegramMessage := dto.Message
 
 	textWithHeader := fmt.Sprintf(
@@ -33,7 +67,7 @@ func (tb *TelegramBot) SendMsg(dto types.BookingTelegramMessage) error {
 		telegramMessage.Text,
 	)
 
-	updatedTelegramMessage := types.TelegramMessage{
+	updatedTelegramMessage := TelegramMessage{
 		ChatId:         telegramMessage.ChatId,
 		Text:           textWithHeader,
 		ParseMode:      telegramMessage.ParseMode,
@@ -79,7 +113,7 @@ func (tb *TelegramBot) SendMsg(dto types.BookingTelegramMessage) error {
 			return eris.Wrap(err, "Error reading http body buffer")
 		}
 
-		var data types.TelegramHttpResponse
+		var data TelegramHttpResponse
 
 		if err := json.Unmarshal(body, &data); err != nil {
 			return eris.Wrap(err, "Error unmarshaling http response")
@@ -91,7 +125,7 @@ func (tb *TelegramBot) SendMsg(dto types.BookingTelegramMessage) error {
 	return nil
 }
 
-func (tb *TelegramBot) AnswerCallbackQuery(msg types.AnswerCallbackQuery) error {
+func (tb *TelegramBot) AnswerCallbackQuery(msg AnswerCallbackQuery) error {
 	byteEncodedBody, err := json.Marshal(msg)
 
 	if err != nil {
@@ -130,7 +164,7 @@ func (tb *TelegramBot) AnswerCallbackQuery(msg types.AnswerCallbackQuery) error 
 			return eris.Wrap(err, "Error reading http body buffer")
 		}
 
-		var data types.TelegramHttpResponse
+		var data TelegramHttpResponse
 
 		if err := json.Unmarshal(body, &data); err != nil {
 			return eris.Wrap(err, "Error unmarshaling http response")

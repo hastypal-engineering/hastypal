@@ -2,15 +2,16 @@ package telegram
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
 	"github.com/adriein/hastypal/internal/hastypal/shared/service"
 	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
 	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"net/url"
-	"strings"
-	"time"
 )
 
 type ConfirmationCommandTelegramService struct {

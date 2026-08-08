@@ -9,6 +9,7 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/database"
+	"github.com/adriein/hastypal/internal/telegram"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/adriein/hastypal/pkg/logger"
@@ -20,6 +21,7 @@ type ShutdownFunc func(context.Context) error
 type Modules struct {
 	Database *sql.DB
 	Logger   *slog.Logger
+	Telegram telegram.TelegramService
 }
 
 type App struct {
@@ -67,10 +69,12 @@ func NewApp() *App {
 }
 
 func initModules(db *sql.DB, logger *slog.Logger) *Modules {
+	telegram := telegram.NewService()
 
 	return &Modules{
 		Database: db,
 		Logger:   logger,
+		Telegram: telegram,
 	}
 }
 

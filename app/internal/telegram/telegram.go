@@ -1,17 +1,4 @@
-package types
-
-import (
-	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	"strings"
-)
-
-//Domain Services
-
-type ResolveTelegramUpdate func(update TelegramUpdate) error
-
-type TelegramCommandHandler interface {
-	Execute(update TelegramUpdate) error
-}
+package telegram
 
 //Domain objects
 
@@ -35,7 +22,7 @@ type AdminTelegramBotSetup struct {
 	Webhook  TelegramWebhook      `json:"webhook"`
 }
 
-// Telegram API doc objects
+// Telegram API DTO's
 
 type TelegramHttpResponse struct {
 	Ok          bool   `json:"ok"`
@@ -115,37 +102,4 @@ type TelegramMessage struct {
 	ParseMode      string      `json:"parse_mode"`
 	ProtectContent bool        `json:"protect_content"`
 	ReplyMarkup    ReplyMarkup `json:"reply_markup"`
-}
-
-func (stm *TelegramMessage) SessionExpired() TelegramMessage {
-	var markdownText strings.Builder
-
-	expiredSession := "![🙂‍↕️](tg://emoji?id=5368324170671202286) Lo sentimos, la sesión ha caducado\\!\n\n"
-
-	processInstructionsIcon := "![‍ℹ️️](tg://emoji?id=5368324170671202286)"
-	processInstructions := " *Pulsa Volver a empezar y te redirigiremos al canal de donde vienes*"
-
-	markdownText.WriteString(expiredSession)
-	markdownText.WriteString(processInstructionsIcon)
-	markdownText.WriteString(processInstructions)
-
-	startAgainButton := KeyboardButton{
-		Text: "Volver a empezar",
-		Url:  "t.me/+0djgKpMfYY5lY2I8",
-	}
-
-	chunked := [][]KeyboardButton{{startAgainButton}}
-
-	return TelegramMessage{
-		ChatId:         stm.ChatId,
-		Text:           markdownText.String(),
-		ParseMode:      constants.TelegramMarkdown,
-		ProtectContent: true,
-		ReplyMarkup:    ReplyMarkup{InlineKeyboard: chunked},
-	}
-}
-
-type AnswerCallbackQuery struct {
-	CallbackQueryId string `json:"callback_query_id"`
-	Text            string `json:"text"`
 }

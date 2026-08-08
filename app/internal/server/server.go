@@ -40,7 +40,7 @@ func New(app *internal.App) *Server {
 		validator: validator.New(),
 	}
 
-	server.routeSetup()
+	server.routeSetup(app)
 
 	port := os.Getenv(constants.ServerPort)
 
@@ -56,9 +56,13 @@ func New(app *internal.App) *Server {
 	return server
 }
 
-func (s *Server) routeSetup() {
+func (s *Server) routeSetup(app *internal.App) {
 	//HEALTH CHECK
 	s.gin.GET("/health", web.NewHealthController().Get())
+
+	//TELEGRAM WEBHOOK
+
+	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
 
 	cwd, _ := os.Getwd()
 
@@ -68,8 +72,6 @@ func (s *Server) routeSetup() {
 	//TODO: setup the routes again
 
 	/*
-		api.Route("POST /telegram-webhook", constructTelegramWebhookHandler(api, database))
-
 		api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 		api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
 		api.Route("POST /business", constructCreateBusinessHandler(api, database))
@@ -77,4 +79,11 @@ func (s *Server) routeSetup() {
 
 		api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
 	*/
+}
+
+func (s *Server) webhookController(app *internal.App) *web.TelegramController {
+	logger := app.Modules.Logger
+	service := app.Modules.Telegram
+
+	return web.NewTelegramController(logger, service)
 }
