@@ -1,10 +1,14 @@
 package telegram
 
 import (
+	"context"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 
+	"github.com/adriein/hastypal/internal/booking"
+	"github.com/adriein/hastypal/internal/business"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper/array"
 	"github.com/adriein/hastypal/pkg/helper/reflection"
@@ -12,60 +16,60 @@ import (
 )
 
 type TelegramService interface {
-	HandleMessage(update TelegramUpdate) error
+	HandleMessage(ctx context.Context, update TelegramUpdate) error
 }
 
 type Service struct {
+	business business.BusinessService
+	booking  booking.BookingService
+	bot      *TelegramBot
 }
 
-func NewService() *Service {
-	return &Service{}
+func NewService(business business.BusinessService) *Service {
+	return &Service{
+		business: business,
+	}
 }
 
-// TELEGRAM UPDATE HANDLING
+/*
+================================================================================
+TELEGRAM UPDATE HANLDER
+================================================================================
+*/
 
-func (s *Service) HandleMessage(update TelegramUpdate) error {
+func (s *Service) HandleMessage(ctx context.Context, update TelegramUpdate) error {
 	if reflection.HasField(update, constants.TelegramMessageField) {
-		if err := s.resolveBotCommand(update); err != nil {
+		if err := s.resolveBotCommand(ctx, update); err != nil {
 			eris.Wrap(err, "Error resolving bot command")
 		}
 
 		return nil
 	}
 
-	if err := s.resolveCallbackQueryCommand(update); err != nil {
+	if err := s.resolveCallbackQueryCommand(ctx, update); err != nil {
 		eris.Wrap(err, "Error resolving callback query command")
 	}
 
 	return nil
 }
 
-func (s *Service) resolveBotCommand(update TelegramUpdate) error {
+func (s *Service) resolveBotCommand(ctx context.Context, update TelegramUpdate) error {
 	if !reflection.HasField(update, constants.TelegramMessageField) {
 		return nil
 	}
 
 	txtArr := strings.Split(update.Message.Text, " ")
+	command := txtArr[0]
 
-	switch txtArr[0] {
+	switch command {
 	case constants.StartCommand:
-		return nil
-	case constants.ServiceCommand:
-		return nil
-	case constants.DatesCommand:
-		return nil
-	case constants.HoursCommand:
-		return nil
-	case constants.ConfirmationCommand:
-		return nil
-	case constants.FinishCommand:
-		return nil
+		return s.startConversation(ctx, update)
 	}
 
 	return nil
 }
 
-func (s *Service) resolveCallbackQueryCommand(update TelegramUpdate) error {
+func (s *Service) resolveCallbackQueryCommand(ctx context.Context, update TelegramUpdate) error {
 	if !reflection.HasField(update, constants.TelegramCallbackQueryField) {
 		return nil
 	}
@@ -77,8 +81,6 @@ func (s *Service) resolveCallbackQueryCommand(update TelegramUpdate) error {
 	}
 
 	switch url.Path {
-	case constants.StartCommand:
-		return nil
 	case constants.ServiceCommand:
 		return nil
 	case constants.DatesCommand:
@@ -94,23 +96,33 @@ func (s *Service) resolveCallbackQueryCommand(update TelegramUpdate) error {
 	return nil
 }
 
-// START TELEGRAM CONVERSATION
+/*
+================================================================================
+TELEGRAM START CONVERSATION COMMAND
+================================================================================
+*/
 
-func (s *Service) startConversation(update TelegramUpdate) error {
+func (s *Service) startConversation(ctx context.Context, update TelegramUpdate) error {
 	var markdownText strings.Builder
 
-	businessId := strings.ReplaceAll(update.Message.Text, "/start ", "")
+	businessIdRaw := strings.ReplaceAll(update.Message.Text, "/start ", "")
 
-	business, err := s.getBusiness(businessId)
+	businessID, err := strconv.Atoi(businessIdRaw)
+
+	if err != nil {
+		return eris.Wrap(err, "Error converting business ID to int")
+	}
+
+	business, err := s.business.GetBusinessByID(ctx, businessID)
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
 	}
 
-	session, err := s.createSession(business.Id, update.Message.Chat.Id)
+	sessionID, err := s.booking.InitSession(ctx, businessID, update.Message.Chat.Id)
 
 	if err != nil {
-		return eris.Wrap(err, "Error creating session")
+		return eris.Wrap(err, "Error creating a session for this conversation")
 	}
 
 	welcome := fmt.Sprintf(
@@ -136,7 +148,7 @@ func (s *Service) startConversation(update TelegramUpdate) error {
 
 		buttons[i] = KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", sessionID, "test-short"),
 		}
 	}
 
@@ -152,7 +164,7 @@ func (s *Service) startConversation(update TelegramUpdate) error {
 
 	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
-		BookingSessionId: session.Id,
+		BookingSessionId: sessionID,
 		Message:          message,
 	}
 

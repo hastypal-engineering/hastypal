@@ -7,7 +7,9 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-type BusinessService interface{}
+type BusinessService interface {
+	GetBusinessByID(ctx context.Context, ID int) (*Business, error)
+}
 
 type Service struct {
 	logger *slog.Logger

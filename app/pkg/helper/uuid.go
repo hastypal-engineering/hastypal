@@ -2,20 +2,15 @@ package helper
 
 import (
 	"crypto/rand"
+
 	"github.com/google/uuid"
 )
 
-type UuidHelper struct{}
-
-func NewUuidHelper() *UuidHelper {
-	return &UuidHelper{}
-}
-
-func (helper *UuidHelper) Generate() uuid.UUID {
+func Uuid() uuid.UUID {
 	return uuid.New()
 }
 
-func (helper *UuidHelper) GenerateShort() string {
+func ShortUuid() string {
 	const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	const length = 8
 
