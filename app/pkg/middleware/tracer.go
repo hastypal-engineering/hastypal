@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"github.com/adriein/tibia-char/pkg/helper"
 	"github.com/gin-gonic/gin"
 )
 

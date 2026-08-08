@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/adriein/tibia-char/pkg/constants"
 	"github.com/gin-gonic/gin"
 	"github.com/rotisserie/eris"
 )
