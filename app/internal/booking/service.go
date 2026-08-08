@@ -11,6 +11,7 @@ import (
 
 type BookingService interface {
 	InitSession(ctx context.Context, businessID int, chatID int) (string, error)
+	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
 }
 
 type Service struct {
@@ -45,4 +46,8 @@ func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (
 	}
 
 	return sessionId, nil
+}
+
+func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Session, error) {
+	return nil, nil
 }

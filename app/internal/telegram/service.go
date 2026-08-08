@@ -9,6 +9,9 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
+	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
+	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper/array"
 	"github.com/adriein/hastypal/pkg/helper/reflection"
@@ -170,6 +173,114 @@ func (s *Service) startConversation(ctx context.Context, update TelegramUpdate) 
 
 	if err := s.bot.SendMsg(bookingMessage); err != nil {
 		return eris.Wrap(err, "Error sending message to telegram")
+	}
+
+	return nil
+}
+
+/*
+================================================================================
+TELEGRAM SELECT SERVICE COMMAND
+================================================================================
+*/
+
+func (s *Service) selectService(ctx context.Context, update TelegramUpdate) error {
+	ack := AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id}
+
+	if err := s.bot.AnswerCallbackQuery(ack); err != nil {
+		return eris.Wrap(err, "Error acking telegram conversation")
+	}
+
+	var markdownText strings.Builder
+
+	parsedUrl, err := url.Parse(update.CallbackQuery.Data)
+
+	if err != nil {
+		return eris.Wrap(err, "Error parsing url")
+	}
+
+	queryParams := parsedUrl.Query()
+
+	sessionID := queryParams.Get("sessionId")
+
+	session, err := s.booking.GetCurrentSession(ctx, sessionID)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching current booking session")
+	}
+
+	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching business")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		message := TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if err := s.bot.SendMsg(bookingExpiredSessionMessage); err != nil {
+			return eris.Wrap(err, "Error sending message to telegram")
+		}
+
+		return nil
+	}
+
+	if updateSessionErr := s.updateSession(session); updateSessionErr != nil {
+		return exception.Wrap("s.updateSession", "pick-service-command-telegram-service.go", updateSessionErr)
+	}
+
+	services := []string{
+		"Corte de pelo y barba express 18€",
+		"Corte de pelo y barba premium 22€",
+	}
+
+	emoji := "![🔸](tg://emoji?id=5368324170671202286)"
+
+	markdownText.WriteString("*Te muestro a continuación los servicios que ofrecemos:*\n\n")
+
+	buttons := make([]types.KeyboardButton, len(services))
+
+	for i, serv := range services {
+		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, serv))
+
+		buttons[i] = types.KeyboardButton{
+			Text:         fmt.Sprintf("%s 📅", services[i]),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
+		}
+	}
+
+	array := helper.NewArrayHelper[types.KeyboardButton]()
+
+	inlineKeyboard := array.Chunk(buttons, 1)
+
+	message := types.TelegramMessage{
+		ChatId:         update.CallbackQuery.From.Id,
+		Text:           markdownText.String(),
+		ParseMode:      constants.TelegramMarkdown,
+		ProtectContent: true,
+		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
+	}
+
+	bookingMessage := types.BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
+		return exception.Wrap(
+			"s.bot.SendMsg",
+			"pick-service-command-telegram-service.go",
+			botSendMsgErr,
+		)
 	}
 
 	return nil
