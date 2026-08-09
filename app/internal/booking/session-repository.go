@@ -3,6 +3,7 @@ package booking
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/rotisserie/eris"
 )
@@ -11,6 +12,7 @@ type SessionRepository interface {
 	Save(ctx context.Context, session *Session) error
 	Update(ctx context.Context, session *Session) error
 	GetByID(ctx context.Context, sessionID string) (*Session, error)
+	GetByDate(ctx context.Context, date time.Time) ([]*Session, error)
 }
 
 type PgSessionRepository struct {
@@ -55,4 +57,8 @@ func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*S
 
 func (r *PgSessionRepository) Update(ctx context.Context, session *Session) error {
 	return nil
+}
+
+func (r *PgSessionRepository) GetByDate(ctx context.Context, date time.Time) ([]*Session, error) {
+	return nil, nil
 }

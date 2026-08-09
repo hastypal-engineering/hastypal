@@ -6,9 +6,11 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper/array"
 	"github.com/adriein/hastypal/pkg/helper/reflection"
@@ -255,6 +257,161 @@ func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error
 	}
 
 	inlineKeyboard := array.Chunk(buttons, 1)
+
+	message := TelegramMessage{
+		ChatId:         update.CallbackQuery.From.Id,
+		Text:           markdownText.String(),
+		ParseMode:      constants.TelegramMarkdown,
+		ProtectContent: true,
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: inlineKeyboard},
+	}
+
+	bookingMessage := BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if err := s.bot.SendMsg(bookingMessage); err != nil {
+		return eris.Wrap(err, "Error sending telegram msg")
+	}
+
+	return nil
+}
+
+/*
+================================================================================
+TELEGRAM SHOW DATES COMMAND
+================================================================================
+*/
+
+func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
+	ack := AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id}
+
+	if err := s.bot.AnswerCallbackQuery(ack); err != nil {
+		return eris.Wrap(err, "Error acking telegram conversation")
+	}
+
+	var markdownText strings.Builder
+
+	parsedUrl, err := url.Parse(update.CallbackQuery.Data)
+
+	if err != nil {
+		return eris.Wrap(err, "Error parsing url")
+	}
+
+	queryParams := parsedUrl.Query()
+
+	sessionID := queryParams.Get("session")
+	serviceId := queryParams.Get("service")
+	page := queryParams.Get("page")
+
+	currentPage, err := strconv.Atoi(page)
+
+	if err != nil {
+		return eris.Wrap(err, "Error converting string to int")
+	}
+
+	session, err := s.booking.GetCurrentSession(ctx, sessionID)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching current booking session")
+	}
+
+	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching business")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		message := TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if err := s.bot.SendMsg(bookingExpiredSessionMessage); err != nil {
+			return eris.Wrap(err, "Error sending message to telegram")
+		}
+
+		return nil
+	}
+
+	if err := s.booking.RefreshSession(ctx, session); err != nil {
+		return eris.Wrap(err, "Error refreshing the current session")
+	}
+
+	commandInformation := fmt.Sprintf(
+		"%s tiene disponibles para:\n\n![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
+		"Hastypal Business Test",
+		"Corte de pelo y barba express 18€",
+	)
+
+	processInstructions := "*Selecciona un día para ver las horas disponibles:*\n\n"
+
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) A continuación puedes ver las fechas que ")
+	markdownText.WriteString(commandInformation)
+	markdownText.WriteString(processInstructions)
+
+	location, err := time.LoadLocation("Europe/Madrid")
+
+	if err != nil {
+		return eris.Wrap(err, "Error loading time location")
+	}
+
+	time.Local = location
+
+	startDate := time.Now()
+	startDateWithHour := time.Date(
+		startDate.Year(),
+		startDate.Month(),
+		startDate.Day(),
+		07,
+		0,
+		0,
+		0,
+		location,
+	)
+
+	startDateWithHour = startDateWithHour.AddDate(0, 0, constants.DaysPerPage*currentPage)
+
+	buttons := make([]KeyboardButton, 15)
+
+	for i := 0; i < 15; i++ {
+		newDate := startDateWithHour.AddDate(0, 0, i)
+
+		sessions, err := s.booking.GetSessionsOnDate(ctx, newDate)
+
+		if err != nil {
+			return eris.Wrap(err, "Error getting all sessions for a specific date")
+		}
+
+		schedule := booking.NewDaySchedule(newDate)
+		schedule.ApplyActiveSessions(sessions)
+
+		if !schedule.HasAnyAvailableSlot() {
+			continue
+		}
+
+		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
+
+		day := dateParts[0]
+		month := s.translation.GetSpanishMonthShortForm(newDate.Month())
+
+		buttons[i] = KeyboardButton{
+			Text:         fmt.Sprintf("%s %s", day, month),
+			CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, newDate.Format(time.DateOnly)),
+		}
+	}
+
+	inlineKeyboard := array.Chunk(buttons, 3)
+
+	inlineKeyboard = s.addNavigationButtonsToInlineKeyboard(session.Id, serviceId, currentPage, array, inlineKeyboard)
 
 	message := TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
