@@ -44,3 +44,7 @@ func (s *Session) EnsureIsValid() error {
 
 	return nil
 }
+
+func (s *Session) Refresh() {
+	s.UpdatedAt = time.Now().UTC().Format(time.DateTime)
+}

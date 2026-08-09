@@ -9,9 +9,6 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
-	"github.com/adriein/hastypal/internal/hastypal/shared/helper"
-	"github.com/adriein/hastypal/internal/hastypal/shared/types"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper/array"
 	"github.com/adriein/hastypal/pkg/helper/reflection"
@@ -85,7 +82,7 @@ func (s *Service) resolveCallbackQueryCommand(ctx context.Context, update Telegr
 
 	switch url.Path {
 	case constants.ServiceCommand:
-		return nil
+		return s.showServices(ctx, update)
 	case constants.DatesCommand:
 		return nil
 	case constants.HoursCommand:
@@ -180,11 +177,11 @@ func (s *Service) startConversation(ctx context.Context, update TelegramUpdate) 
 
 /*
 ================================================================================
-TELEGRAM SELECT SERVICE COMMAND
+TELEGRAM SHOW SERVICES COMMAND
 ================================================================================
 */
 
-func (s *Service) selectService(ctx context.Context, update TelegramUpdate) error {
+func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error {
 	ack := AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id}
 
 	if err := s.bot.AnswerCallbackQuery(ack); err != nil {
@@ -233,8 +230,8 @@ func (s *Service) selectService(ctx context.Context, update TelegramUpdate) erro
 		return nil
 	}
 
-	if updateSessionErr := s.updateSession(session); updateSessionErr != nil {
-		return exception.Wrap("s.updateSession", "pick-service-command-telegram-service.go", updateSessionErr)
+	if err := s.booking.RefreshSession(ctx, session); err != nil {
+		return eris.Wrap(err, "Error refreshing the current session")
 	}
 
 	services := []string{
@@ -246,41 +243,35 @@ func (s *Service) selectService(ctx context.Context, update TelegramUpdate) erro
 
 	markdownText.WriteString("*Te muestro a continuación los servicios que ofrecemos:*\n\n")
 
-	buttons := make([]types.KeyboardButton, len(services))
+	buttons := make([]KeyboardButton, len(services))
 
 	for i, serv := range services {
 		markdownText.WriteString(fmt.Sprintf("%s %s\n\n", emoji, serv))
 
-		buttons[i] = types.KeyboardButton{
+		buttons[i] = KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
 			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
 		}
 	}
 
-	array := helper.NewArrayHelper[types.KeyboardButton]()
-
 	inlineKeyboard := array.Chunk(buttons, 1)
 
-	message := types.TelegramMessage{
+	message := TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
 		Text:           markdownText.String(),
 		ParseMode:      constants.TelegramMarkdown,
 		ProtectContent: true,
-		ReplyMarkup:    types.ReplyMarkup{InlineKeyboard: inlineKeyboard},
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: inlineKeyboard},
 	}
 
-	bookingMessage := types.BookingTelegramMessage{
+	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
 		BookingSessionId: session.Id,
 		Message:          message,
 	}
 
-	if botSendMsgErr := s.bot.SendMsg(bookingMessage); botSendMsgErr != nil {
-		return exception.Wrap(
-			"s.bot.SendMsg",
-			"pick-service-command-telegram-service.go",
-			botSendMsgErr,
-		)
+	if err := s.bot.SendMsg(bookingMessage); err != nil {
+		return eris.Wrap(err, "Error sending telegram msg")
 	}
 
 	return nil

@@ -8,7 +8,9 @@ import (
 )
 
 type SessionRepository interface {
-	Save(ctx context.Context, session Session) error
+	Save(ctx context.Context, session *Session) error
+	Update(ctx context.Context, session *Session) error
+	GetByID(ctx context.Context, sessionID string) (*Session, error)
 }
 
 type PgSessionRepository struct {
@@ -44,5 +46,13 @@ func (r *PgSessionRepository) Save(ctx context.Context, session Session) error {
 		return eris.Wrap(err, "Error saving session")
 	}
 
+	return nil
+}
+
+func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*Session, error) {
+	return nil, nil
+}
+
+func (r *PgSessionRepository) Update(ctx context.Context, session *Session) error {
 	return nil
 }

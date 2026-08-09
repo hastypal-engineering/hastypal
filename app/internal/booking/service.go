@@ -12,6 +12,7 @@ import (
 type BookingService interface {
 	InitSession(ctx context.Context, businessID int, chatID int) (string, error)
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
+	RefreshSession(ctx context.Context, session *Session) error
 }
 
 type Service struct {
@@ -29,7 +30,7 @@ func NewService(logger *slog.Logger, sessionRepo SessionRepository) *Service {
 func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (string, error) {
 	sessionId := helper.ShortUuid()
 
-	session := Session{
+	session := &Session{
 		Id:         sessionId,
 		BusinessId: businessID,
 		ChatId:     chatID,
@@ -49,5 +50,21 @@ func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (
 }
 
 func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Session, error) {
-	return nil, nil
+	session, err := s.sessionRepo.GetByID(ctx, sessionID)
+
+	if err != nil {
+		return nil, eris.Wrap(err, "Error fetching session by ID")
+	}
+
+	return session, nil
+}
+
+func (s *Service) RefreshSession(ctx context.Context, session *Session) error {
+	session.Refresh()
+
+	if err := s.sessionRepo.Update(ctx, session); err != nil {
+		return eris.Wrap(err, "Error patching the current session")
+	}
+
+	return nil
 }
