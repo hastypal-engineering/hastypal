@@ -27,3 +27,6 @@ api/migrate
 .idea
 
 .vscode
+
+web/.env
+web/node_modules
