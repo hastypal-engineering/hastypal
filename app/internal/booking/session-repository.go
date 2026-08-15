@@ -13,6 +13,7 @@ type SessionRepository interface {
 	Update(ctx context.Context, session *Session) error
 	GetByID(ctx context.Context, sessionID string) (*Session, error)
 	GetByDate(ctx context.Context, date time.Time) ([]*Session, error)
+	GetByHour(ctx context.Context, date time.Time) (*Session, error)
 }
 
 type PgSessionRepository struct {
@@ -60,5 +61,9 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 }
 
 func (r *PgSessionRepository) GetByDate(ctx context.Context, date time.Time) ([]*Session, error) {
+	return nil, nil
+}
+
+func (r *PgSessionRepository) GetByHour(ctx context.Context, date time.Time) (*Session, error) {
 	return nil, nil
 }

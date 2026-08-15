@@ -95,7 +95,7 @@ func (s *Service) resolveCallbackQueryCommand(ctx context.Context, update Telegr
 	case constants.ServiceCommand:
 		return s.showServices(ctx, update)
 	case constants.DatesCommand:
-		return nil
+		return s.showDates(ctx, update)
 	case constants.HoursCommand:
 		return nil
 	case constants.ConfirmationCommand:
@@ -507,4 +507,159 @@ func (s *Service) addNavigationButtons(
 	navigationKeyboard := array.Chunk(navigationButtons, 1)
 
 	return append(inlineKeyboard, navigationKeyboard...)
+}
+
+/*
+================================================================================
+TELEGRAM SHOW HOURS COMMAND
+================================================================================
+*/
+
+func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
+	ack := AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id}
+
+	if err := s.bot.AnswerCallbackQuery(ack); err != nil {
+		return eris.Wrap(err, "Error acking telegram conversation")
+	}
+
+	var markdownText strings.Builder
+
+	location, err := time.LoadLocation("Europe/Madrid")
+
+	if err != nil {
+		return eris.Wrap(err, "Error loading time location")
+	}
+
+	time.Local = location
+
+	parsedUrl, err := url.Parse(update.CallbackQuery.Data)
+
+	if err != nil {
+		return eris.Wrap(err, "Error parsing URL")
+	}
+
+	queryParams := parsedUrl.Query()
+
+	stringSelectedDate := fmt.Sprintf("%s %s", queryParams.Get("date"), "07:00:00")
+	sessionID := queryParams.Get("session")
+
+	selectedDate, err := time.Parse(time.DateTime, stringSelectedDate)
+
+	if err != nil {
+		return eris.Wrap(err, "Error parsing time")
+	}
+
+	session, err := s.booking.GetCurrentSession(ctx, sessionID)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching current booking session")
+	}
+
+	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching business")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		message := TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if err := s.bot.SendMsg(bookingExpiredSessionMessage); err != nil {
+			return eris.Wrap(err, "Error sending message to telegram")
+		}
+
+		return nil
+	}
+
+	if err := s.booking.RefreshSession(ctx, session); err != nil {
+		return eris.Wrap(err, "Error refreshing the current session")
+	}
+
+	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
+
+	day := dateParts[0]
+	month := s.lang.GetSpanishMonthShortForm(selectedDate.Month())
+
+	welcome := fmt.Sprintf(
+		"![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para:\n\n",
+	)
+
+	selectedService := fmt.Sprintf(
+		"![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
+		"Corte de pelo y barba express 18€",
+	)
+
+	date := fmt.Sprintf(
+		"![📅](tg://emoji?id=5368324170671202286) %s\n\n",
+		fmt.Sprintf("%s %s", day, month),
+	)
+
+	processInstructions := "*Selecciona una hora y te escribiré un resumen para que puedas confirmar la reserva*\n\n"
+
+	markdownText.WriteString(welcome)
+	markdownText.WriteString(selectedService)
+	markdownText.WriteString(date)
+	markdownText.WriteString(processInstructions)
+
+	buttons := make([]KeyboardButton, 12)
+
+	for i := 8; i <= len(buttons)+7; i++ {
+		hour := fmt.Sprintf("%02d:00", i)
+
+		session, err := s.booking.GetSessionOnHour(ctx, selectedDate)
+
+		if err != nil {
+			return eris.Wrap(err, "Error getting all sessions for a specific date")
+		}
+
+		if session != nil {
+			continue
+		}
+
+		buttons[i-8] = KeyboardButton{
+			Text: fmt.Sprintf("%s", hour),
+			CallbackData: fmt.Sprintf(
+				"/confirmation?session=%s&hour=%s",
+				sessionID,
+				hour,
+			),
+		}
+	}
+
+	backButton := KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
+	}
+
+	buttons = append(buttons, backButton)
+
+	inlineKeyboard := array.Chunk(buttons, 3)
+
+	message := TelegramMessage{
+		ChatId:         update.CallbackQuery.From.Id,
+		Text:           markdownText.String(),
+		ParseMode:      constants.TelegramMarkdown,
+		ProtectContent: true,
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: inlineKeyboard},
+	}
+
+	bookingMessage := BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if err := s.bot.SendMsg(bookingMessage); err != nil {
+		return eris.Wrap(err, "Error sending telegram msg")
+	}
+
+	return nil
 }

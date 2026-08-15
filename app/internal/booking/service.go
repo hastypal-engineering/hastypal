@@ -14,6 +14,7 @@ type BookingService interface {
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
 	RefreshSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
+	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
 }
 
 type Service struct {
@@ -38,8 +39,8 @@ func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (
 		ServiceId:  "",
 		Date:       "",
 		Hour:       "",
-		DateAdd:  time.Now().UTC().Format(time.DateTime),
-		DateUpd:  time.Now().UTC().Format(time.DateTime),
+		DateAdd:    time.Now().UTC().Format(time.DateTime),
+		DateUpd:    time.Now().UTC().Format(time.DateTime),
 		Ttl:        time.Minute.Milliseconds() * 5,
 	}
 
@@ -72,6 +73,16 @@ func (s *Service) RefreshSession(ctx context.Context, session *Session) error {
 
 func (s *Service) GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error) {
 	sessions, err := s.sessionRepo.GetByDate(ctx, date)
+
+	if err != nil {
+		return nil, eris.Wrap(err, "Error fetching sessions on specific date")
+	}
+
+	return sessions, nil
+}
+
+func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error) {
+	sessions, err := s.sessionRepo.GetByHour(ctx, date)
 
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching sessions on specific date")
