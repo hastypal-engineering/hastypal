@@ -51,14 +51,14 @@ TELEGRAM UPDATE HANLDER
 func (s *Service) HandleMessage(ctx context.Context, update TelegramUpdate) error {
 	if reflection.HasField(update, constants.TelegramMessageField) {
 		if err := s.resolveBotCommand(ctx, update); err != nil {
-			eris.Wrap(err, "Error resolving bot command")
+			return eris.Wrap(err, "Error resolving bot command")
 		}
 
 		return nil
 	}
 
 	if err := s.resolveCallbackQueryCommand(ctx, update); err != nil {
-		eris.Wrap(err, "Error resolving callback query command")
+		return eris.Wrap(err, "Error resolving callback query command")
 	}
 
 	return nil
@@ -373,9 +373,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 		return eris.Wrap(err, "Error loading time location")
 	}
 
-	time.Local = location
-
-	startDate := time.Now()
+	startDate := time.Now().In(location)
 	startDateWithHour := time.Date(
 		startDate.Year(),
 		startDate.Month(),
@@ -449,7 +447,7 @@ func (s *Service) addNavigationButtons(
 	currentPage int,
 	inlineKeyboard [][]KeyboardButton,
 ) [][]KeyboardButton {
-	navigationButtons := make([]KeyboardButton, 3)
+	navigationButtons := make([]KeyboardButton, 0, 3)
 
 	if currentPage == constants.MinAllowedDatePage {
 		moreDaysButton := KeyboardButton{
@@ -459,7 +457,7 @@ func (s *Service) addNavigationButtons(
 
 		backButton := KeyboardButton{
 			Text:         "Atrás",
-			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionID),
+			CallbackData: fmt.Sprintf("/service?session=%s", sessionID),
 		}
 
 		navigationButtons = append(navigationButtons, moreDaysButton, backButton)
@@ -477,7 +475,7 @@ func (s *Service) addNavigationButtons(
 
 		backButton := KeyboardButton{
 			Text:         "Atrás",
-			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionID),
+			CallbackData: fmt.Sprintf("/service?session=%s", sessionID),
 		}
 
 		navigationButtons = append(navigationButtons, lessDaysButton, backButton)
@@ -499,7 +497,7 @@ func (s *Service) addNavigationButtons(
 
 	backButton := KeyboardButton{
 		Text:         "Atrás",
-		CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionID),
+		CallbackData: fmt.Sprintf("/service?session=%s", sessionID),
 	}
 
 	navigationButtons = append(navigationButtons, lessDaysButton, moreDaysButton, backButton)
@@ -523,14 +521,6 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 	}
 
 	var markdownText strings.Builder
-
-	location, err := time.LoadLocation("Europe/Madrid")
-
-	if err != nil {
-		return eris.Wrap(err, "Error loading time location")
-	}
-
-	time.Local = location
 
 	parsedUrl, err := url.Parse(update.CallbackQuery.Data)
 
