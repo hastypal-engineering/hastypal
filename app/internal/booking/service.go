@@ -15,7 +15,7 @@ type BookingService interface {
 	RefreshSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
-	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) error
+	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error)
 }
 
 type Service struct {
@@ -94,8 +94,9 @@ func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Sessio
 	return sessions, nil
 }
 
-func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) error {
+func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error) {
 	booking := &Booking{
+		ID:         helper.Uuid().String(),
 		SessionID:  sessionID,
 		BusinessID: businessID,
 		ServiceID:  serviceID,
@@ -103,8 +104,8 @@ func (s *Service) RegisterBooking(ctx context.Context, sessionID string, busines
 	}
 
 	if err := s.bookingRepo.Save(ctx, booking); err != nil {
-		return eris.Wrap(err, "Error saving the booking")
+		return "", eris.Wrap(err, "Error saving the booking")
 	}
 
-	return nil
+	return booking.ID, nil
 }

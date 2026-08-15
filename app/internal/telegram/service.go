@@ -10,6 +10,8 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/internal/google"
+	"github.com/adriein/hastypal/internal/reminder"
 	"github.com/adriein/hastypal/internal/translation"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper/array"
@@ -25,6 +27,8 @@ type Service struct {
 	business business.BusinessService
 	booking  booking.BookingService
 	lang     translation.TranslationService
+	reminder reminder.ReminderService
+	google   google.GoogleService
 	bot      *TelegramBot
 }
 
@@ -32,12 +36,16 @@ func NewService(
 	business business.BusinessService,
 	booking booking.BookingService,
 	lang translation.TranslationService,
+	reminder reminder.ReminderService,
+	google google.GoogleService,
 	bot *TelegramBot,
 ) *Service {
 	return &Service{
 		business: business,
 		booking:  booking,
 		lang:     lang,
+		reminder: reminder,
+		google:   google,
 		bot:      bot,
 	}
 }
@@ -853,11 +861,19 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 		eris.Wrap(err, "Error merging date and hour")
 	}
 
-	s.booking.RegisterBooking(ctx, sessionID, session.BusinessId, session.ServiceId, mergedTime)
+	bookingID, err := s.booking.RegisterBooking(ctx, sessionID, session.BusinessId, session.ServiceId, mergedTime)
 
-	//register the reminder for the client
+	if err != nil {
+		return eris.Wrap(err, "Error creating and saving the booking")
+	}
 
-	//register the calendar event for the business
+	if err := s.reminder.NewReminder(ctx, bookingID, mergedTime); err != nil {
+		return eris.Wrap(err, "Error storing a new reminder")
+	}
+
+	if err := s.google.CalendarEvent(ctx, session.BusinessId, mergedTime); err != nil {
+		return eris.Wrap(err, "Error creating the event in the google calendar")
+	}
 
 	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
 	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) ")

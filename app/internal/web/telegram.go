@@ -36,7 +36,7 @@ func (c *TelegramController) Post() gin.HandlerFunc {
 			return
 		}
 
-		if err := c.service.HandleMessage(update); err != nil {
+		if err := c.service.HandleMessage(ctx, update); err != nil {
 			c.logger.Error("Error handling telegram update", "trace_id", traceID, "error", eris.ToString(err, true))
 
 			ctx.JSON(http.StatusInternalServerError, gin.H{})

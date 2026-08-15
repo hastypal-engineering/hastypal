@@ -4,6 +4,8 @@ import (
 	"context"
 	"log/slog"
 	"time"
+
+	"github.com/rotisserie/eris"
 )
 
 type ReminderService interface {
@@ -28,7 +30,9 @@ func (s *Service) NewReminder(ctx context.Context, bookingID string, scheduledAt
 		ScheduledAt: scheduledAt,
 	}
 
-	s.repo.Save(ctx, reminder)
+	if err := s.repo.Save(ctx, reminder); err != nil {
+		return eris.Wrap(err, "Error saving the reminder")
+	}
 
 	return nil
 }
