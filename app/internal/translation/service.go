@@ -17,10 +17,15 @@ var SpanishMonths = map[time.Month]string{
 	time.December:  "Diciembre",
 }
 
-type Translation struct{}
+type TranslationService interface {
+	GetSpanishMonth(month time.Month) string
+	GetSpanishMonthShortForm(month time.Month) string
+}
 
-func New() *Translation {
-	return &Translation{}
+type Service struct{}
+
+func NewService() *Service {
+	return &Service{}
 }
 
 // GetSpanishMonth retrieves the Spanish name for a given month.
@@ -46,7 +51,7 @@ func New() *Translation {
 //	name := GetSpanishMonth(time.January)   // Returns "Enero"
 //	name := GetSpanishMonth(time.December)  // Returns "Diciembre"
 //	name := GetSpanishMonth(0)              // Returns ""
-func (t *Translation) GetSpanishMonth(month time.Month) string {
+func (s *Service) GetSpanishMonth(month time.Month) string {
 	return SpanishMonths[month]
 }
 
@@ -73,6 +78,6 @@ func (t *Translation) GetSpanishMonth(month time.Month) string {
 //	name := GetSpanishMonth(time.January)   // Returns "Ene"
 //	name := GetSpanishMonth(time.December)  // Returns "Dic"
 //	name := GetSpanishMonth(0)              // Returns ""
-func (t *Translation) GetSpanishMonthShortForm(month time.Month) string {
+func (s *Service) GetSpanishMonthShortForm(month time.Month) string {
 	return SpanishMonths[month][:3]
 }

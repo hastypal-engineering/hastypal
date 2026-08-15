@@ -10,7 +10,7 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
+	"github.com/adriein/hastypal/internal/translation"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper/array"
 	"github.com/adriein/hastypal/pkg/helper/reflection"
@@ -24,12 +24,21 @@ type TelegramService interface {
 type Service struct {
 	business business.BusinessService
 	booking  booking.BookingService
+	lang     translation.TranslationService
 	bot      *TelegramBot
 }
 
-func NewService(business business.BusinessService) *Service {
+func NewService(
+	business business.BusinessService,
+	booking booking.BookingService,
+	lang translation.TranslationService,
+	bot *TelegramBot,
+) *Service {
 	return &Service{
 		business: business,
+		booking:  booking,
+		lang:     lang,
+		bot:      bot,
 	}
 }
 
@@ -401,17 +410,17 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 		dateParts := strings.Split(newDate.Format(time.RFC822), " ")
 
 		day := dateParts[0]
-		month := s.translation.GetSpanishMonthShortForm(newDate.Month())
+		month := s.lang.GetSpanishMonthShortForm(newDate.Month())
 
 		buttons[i] = KeyboardButton{
 			Text:         fmt.Sprintf("%s %s", day, month),
-			CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionId, newDate.Format(time.DateOnly)),
+			CallbackData: fmt.Sprintf("/hours?session=%s&date=%s", sessionID, newDate.Format(time.DateOnly)),
 		}
 	}
 
 	inlineKeyboard := array.Chunk(buttons, 3)
 
-	inlineKeyboard = s.addNavigationButtonsToInlineKeyboard(session.Id, serviceId, currentPage, array, inlineKeyboard)
+	inlineKeyboard = s.addNavigationButtons(session.Id, serviceId, currentPage, inlineKeyboard)
 
 	message := TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
@@ -432,4 +441,70 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 	}
 
 	return nil
+}
+
+func (s *Service) addNavigationButtons(
+	sessionID string,
+	serviceID string,
+	currentPage int,
+	inlineKeyboard [][]KeyboardButton,
+) [][]KeyboardButton {
+	navigationButtons := make([]KeyboardButton, 3)
+
+	if currentPage == constants.MinAllowedDatePage {
+		moreDaysButton := KeyboardButton{
+			Text:         "Más fechas",
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionID, serviceID, currentPage+1),
+		}
+
+		backButton := KeyboardButton{
+			Text:         "Atrás",
+			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionID),
+		}
+
+		navigationButtons = append(navigationButtons, moreDaysButton, backButton)
+
+		navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+		return append(inlineKeyboard, navigationKeyboard...)
+	}
+
+	if currentPage == constants.MaxAllowedDatePage {
+		lessDaysButton := KeyboardButton{
+			Text:         "Menos fechas",
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionID, serviceID, currentPage-1),
+		}
+
+		backButton := KeyboardButton{
+			Text:         "Atrás",
+			CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionID),
+		}
+
+		navigationButtons = append(navigationButtons, lessDaysButton, backButton)
+
+		navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+		return append(inlineKeyboard, navigationKeyboard...)
+	}
+
+	lessDaysButton := KeyboardButton{
+		Text:         "Menos fechas",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionID, serviceID, currentPage-1),
+	}
+
+	moreDaysButton := KeyboardButton{
+		Text:         "Más fechas",
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=%d", sessionID, serviceID, currentPage+1),
+	}
+
+	backButton := KeyboardButton{
+		Text:         "Atrás",
+		CallbackData: fmt.Sprintf("/service?sessionId=%s", sessionID),
+	}
+
+	navigationButtons = append(navigationButtons, lessDaysButton, moreDaysButton, backButton)
+
+	navigationKeyboard := array.Chunk(navigationButtons, 1)
+
+	return append(inlineKeyboard, navigationKeyboard...)
 }
