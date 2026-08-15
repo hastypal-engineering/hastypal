@@ -9,35 +9,30 @@ import (
 var BookingSessionExpired = eris.New("Booking session expired")
 
 type Booking struct {
-	Id         string `json:"id"`
-	SessionId  string `json:"sessionId"`
-	BusinessId string `json:"businessId"`
-	ServiceId  string `json:"serviceId"`
-	When       string `json:"when"`
-	CreatedAt  string `json:"createdAt"`
+	ID         string
+	SessionID  string
+	BusinessID int
+	ServiceID  string
+	Date       time.Time
+	DateAdd    time.Time
+	DateUpd    time.Time
 }
 
 type Session struct {
-	Id         string `json:"id"`
-	BusinessId int    `json:"businessId"`
-	ChatId     int    `json:"chatId"`
-	ServiceId  string `json:"serviceId"`
-	Date       string `json:"date"`
-	Hour       string `json:"hour"`
-	Ttl        int64  `json:"ttl"`
-	SlotIndex  int    `json:"slotIndex"`
-	DateAdd    string `json:"createdAt"`
-	DateUpd    string `json:"updatedAt"`
+	Id         string
+	BusinessId int
+	ChatId     int
+	ServiceId  string
+	Date       string
+	Hour       string
+	Ttl        int64
+	SlotIndex  int
+	DateAdd    time.Time
+	DateUpd    time.Time
 }
 
 func (s *Session) EnsureIsValid() error {
-	dateUpd, err := time.Parse(time.DateTime, s.DateUpd)
-
-	if err != nil {
-		return eris.Wrap(err, "Error parsing datetime")
-	}
-
-	maxAllowedDate := dateUpd.Add(time.Duration(300000) * time.Millisecond)
+	maxAllowedDate := s.DateUpd.Add(time.Duration(300000) * time.Millisecond)
 
 	if maxAllowedDate.Before(time.Now().UTC()) {
 		return BookingSessionExpired
@@ -47,7 +42,7 @@ func (s *Session) EnsureIsValid() error {
 }
 
 func (s *Session) Refresh() {
-	s.DateUpd = time.Now().UTC().Format(time.DateTime)
+	s.DateUpd = time.Now().UTC()
 }
 
 type Slot struct {

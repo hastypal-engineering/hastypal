@@ -784,3 +784,105 @@ func (s *Service) showConfirmation(ctx context.Context, update TelegramUpdate) e
 
 	return nil
 }
+
+/*
+================================================================================
+TELEGRAM SHOW BOOKING PREVIEW COMMAND
+================================================================================
+*/
+
+func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate) error {
+	ack := AnswerCallbackQuery{CallbackQueryId: update.CallbackQuery.Id}
+
+	if err := s.bot.AnswerCallbackQuery(ack); err != nil {
+		return eris.Wrap(err, "Error acking telegram conversation")
+	}
+
+	var markdownText strings.Builder
+
+	parsedUrl, err := url.Parse(update.CallbackQuery.Data)
+
+	if err != nil {
+		return eris.Wrap(err, "Error parsing URL")
+	}
+
+	queryParams := parsedUrl.Query()
+	sessionID := queryParams.Get("session")
+
+	session, err := s.booking.GetCurrentSession(ctx, sessionID)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching current booking session")
+	}
+
+	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+
+	if err != nil {
+		return eris.Wrap(err, "Error fetching business")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		message := TelegramMessage{ChatId: update.CallbackQuery.From.Id}
+
+		expiredSessionMessage := message.SessionExpired()
+
+		bookingExpiredSessionMessage := BookingTelegramMessage{
+			BusinessName:     business.Name,
+			BookingSessionId: session.Id,
+			Message:          expiredSessionMessage,
+		}
+
+		if err := s.bot.SendMsg(bookingExpiredSessionMessage); err != nil {
+			return eris.Wrap(err, "Error sending message to telegram")
+		}
+
+		return nil
+	}
+
+	combinedStr := fmt.Sprintf("%s %s", session.Date, session.Hour)
+
+	loc, err := time.LoadLocation("Europe/Madrid")
+
+	if err != nil {
+		return eris.Wrap(err, "Error loading location")
+	}
+
+	mergedTime, err := time.ParseInLocation(time.DateTime, combinedStr, loc)
+
+	if err != nil {
+		eris.Wrap(err, "Error merging date and hour")
+	}
+
+	s.booking.RegisterBooking(ctx, sessionID, session.BusinessId, session.ServiceId, mergedTime)
+
+	//register the reminder for the client
+
+	//register the calendar event for the business
+
+	markdownText.WriteString("![🎉](tg://emoji?id=5368324170671202286) *¡Reserva confirmada\\!*\n\n")
+	markdownText.WriteString("![📅](tg://emoji?id=5368324170671202286) ")
+	markdownText.WriteString("Te avisaré un día antes para recordarte la cita\n\n")
+	markdownText.WriteString("![💙](tg://emoji?id=5368324170671202286) Muchas gracias por la confianza depositada")
+
+	buttons := make([][]KeyboardButton, 0)
+
+	message := TelegramMessage{
+		ChatId:         update.CallbackQuery.From.Id,
+		Text:           markdownText.String(),
+		ParseMode:      constants.TelegramMarkdown,
+		ProtectContent: true,
+		ReplyMarkup:    ReplyMarkup{InlineKeyboard: buttons},
+	}
+
+	bookingMessage := BookingTelegramMessage{
+		BusinessName:     business.Name,
+		BookingSessionId: session.Id,
+		Message:          message,
+	}
+
+	if err := s.bot.SendMsg(bookingMessage); err != nil {
+		return eris.Wrap(err, "Error sending telegram msg")
+	}
+
+	return nil
+}

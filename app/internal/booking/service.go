@@ -15,17 +15,20 @@ type BookingService interface {
 	RefreshSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
+	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) error
 }
 
 type Service struct {
 	logger      *slog.Logger
 	sessionRepo SessionRepository
+	bookingRepo BookingRepository
 }
 
-func NewService(logger *slog.Logger, sessionRepo SessionRepository) *Service {
+func NewService(logger *slog.Logger, sessionRepo SessionRepository, bookingRepo BookingRepository) *Service {
 	return &Service{
 		logger:      logger,
 		sessionRepo: sessionRepo,
+		bookingRepo: bookingRepo,
 	}
 }
 
@@ -39,8 +42,8 @@ func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (
 		ServiceId:  "",
 		Date:       "",
 		Hour:       "",
-		DateAdd:    time.Now().UTC().Format(time.DateTime),
-		DateUpd:    time.Now().UTC().Format(time.DateTime),
+		DateAdd:    time.Now().UTC(),
+		DateUpd:    time.Now().UTC(),
 		Ttl:        time.Minute.Milliseconds() * 5,
 	}
 
@@ -89,4 +92,19 @@ func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Sessio
 	}
 
 	return sessions, nil
+}
+
+func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) error {
+	booking := &Booking{
+		SessionID:  sessionID,
+		BusinessID: businessID,
+		ServiceID:  serviceID,
+		Date:       date,
+	}
+
+	if err := s.bookingRepo.Save(ctx, booking); err != nil {
+		return eris.Wrap(err, "Error saving the booking")
+	}
+
+	return nil
 }

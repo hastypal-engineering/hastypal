@@ -1,4 +1,4 @@
-package notification
+package reminder
 
 import (
 	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
