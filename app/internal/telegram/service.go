@@ -29,7 +29,7 @@ type Service struct {
 	lang     translation.TranslationService
 	reminder reminder.ReminderService
 	google   google.GoogleService
-	bot      *TelegramBot
+	bot      TelegramBot
 }
 
 func NewService(
@@ -38,7 +38,7 @@ func NewService(
 	lang translation.TranslationService,
 	reminder reminder.ReminderService,
 	google google.GoogleService,
-	bot *TelegramBot,
+	bot TelegramBot,
 ) *Service {
 	return &Service{
 		business: business,
@@ -109,7 +109,7 @@ func (s *Service) resolveCallbackQueryCommand(ctx context.Context, update Telegr
 	case constants.ConfirmationCommand:
 		return s.showConfirmation(ctx, update)
 	case constants.FinishCommand:
-		return nil
+		return s.showBookingPreview(ctx, update)
 	}
 
 	return nil

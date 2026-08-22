@@ -33,7 +33,7 @@ func New(app *internal.App) *Server {
 
 	engine.SetTrustedProxies(nil)
 
-	engine.Use(middleware.Error(), gin.Logger(), gin.Recovery(), middleware.Tracer(), middleware.TimeZone())
+	engine.Use(gin.Logger(), gin.Recovery(), middleware.Tracer(), middleware.TimeZone())
 
 	server := &Server{
 		gin:       engine,

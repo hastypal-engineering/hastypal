@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/gin-gonic/gin"
 )
 
@@ -8,7 +9,7 @@ const TraceIDKey = "TraceID"
 
 func Tracer() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		traceID := helper.TraceID()
+		traceID := helper.Uuid().String()
 
 		ctx.Set(TraceIDKey, traceID)
 

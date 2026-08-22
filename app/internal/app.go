@@ -69,12 +69,10 @@ func NewApp() *App {
 }
 
 func initModules(db *sql.DB, logger *slog.Logger) *Modules {
-	telegram := telegram.NewService()
-
 	return &Modules{
 		Database: db,
 		Logger:   logger,
-		Telegram: telegram,
+		Telegram: nil,
 	}
 }
 

@@ -1,17 +1,7 @@
 package reminder
 
-import (
-	"fmt"
-	"github.com/adriein/hastypal/internal/hastypal/shared/constants"
-	"github.com/adriein/hastypal/internal/hastypal/shared/exception"
-	"github.com/adriein/hastypal/internal/hastypal/shared/service"
-	"github.com/adriein/hastypal/internal/hastypal/shared/translation"
-	"github.com/adriein/hastypal/internal/hastypal/shared/types"
-	"strings"
-	"time"
-)
 
-type SendNotificationService struct {
+/*type SendNotificationService struct {
 	repository  types.Repository[types.TelegramNotification]
 	bot         *service.TelegramBot
 	translation *translation.Translation
@@ -123,4 +113,4 @@ func (s *SendNotificationService) getNotifications() ([]types.TelegramNotificati
 	}
 
 	return notifications, nil
-}
+}*/
