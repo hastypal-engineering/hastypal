@@ -586,9 +586,7 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 	day := dateParts[0]
 	month := s.lang.GetSpanishMonthShortForm(selectedDate.Month())
 
-	welcome := fmt.Sprintf(
-		"![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para:\n\n",
-	)
+	welcome := "![⌚️](tg://emoji?id=5368324170671202286) Las horas disponibles para:\n\n"
 
 	selectedService := fmt.Sprintf(
 		"![🔸](tg://emoji?id=5368324170671202286) %s\n\n",
