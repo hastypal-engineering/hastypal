@@ -1,6 +1,10 @@
 package telegram
 
-//Domain objects
+/*
+================================================================================
+TELEGRAM DOMAIN OBJECTS
+================================================================================
+*/
 
 type BookingTelegramMessage struct {
 	BusinessName     string          `json:"businessName"`
@@ -22,7 +26,11 @@ type AdminTelegramBotSetup struct {
 	Webhook  TelegramWebhook      `json:"webhook"`
 }
 
-// Telegram API DTO's
+/*
+================================================================================
+TELEGRAM API DTO's
+================================================================================
+*/
 
 type TelegramHttpResponse struct {
 	Ok          bool   `json:"ok"`
