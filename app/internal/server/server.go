@@ -61,8 +61,10 @@ func (s *Server) routeSetup(app *internal.App) {
 	s.gin.GET("/health", web.NewHealthController().Get())
 
 	//TELEGRAM WEBHOOK
+	s.gin.POST("/telegram-webhook", s.telegramController(app).Post())
 
-	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
+	//WHATSAPP WEBHOOK
+	s.gin.POST("/whatsapp-webhook", s.whatsappController(app).Post())
 
 	cwd, _ := os.Getwd()
 
@@ -81,9 +83,16 @@ func (s *Server) routeSetup(app *internal.App) {
 	*/
 }
 
-func (s *Server) webhookController(app *internal.App) *web.TelegramController {
+func (s *Server) telegramController(app *internal.App) *web.TelegramController {
 	logger := app.Modules.Logger
 	service := app.Modules.Telegram
 
 	return web.NewTelegramController(logger, service)
+}
+
+func (s *Server) whatsappController(app *internal.App) *web.WhatsappController {
+	logger := app.Modules.Logger
+	service := app.Modules.Whatsapp
+
+	return web.NewWhatsappController(logger, service)
 }
