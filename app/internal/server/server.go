@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/internal"
-	"github.com/adriein/hastypal/internal/web"
+	"github.com/adriein/hastypal/internal/controller"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/adriein/hastypal/pkg/vendor"
@@ -58,7 +58,7 @@ func New(app *internal.App) *Server {
 
 func (s *Server) routeSetup(app *internal.App) {
 	//HEALTH CHECK
-	s.gin.GET("/health", web.NewHealthController().Get())
+	s.gin.GET("/health", controller.NewHealthController().Get())
 
 	//TELEGRAM WEBHOOK
 
@@ -81,9 +81,9 @@ func (s *Server) routeSetup(app *internal.App) {
 	*/
 }
 
-func (s *Server) webhookController(app *internal.App) *web.TelegramController {
+func (s *Server) webhookController(app *internal.App) *controller.TelegramController {
 	logger := app.Modules.Logger
 	service := app.Modules.Telegram
 
-	return web.NewTelegramController(logger, service)
+	return controller.NewTelegramController(logger, service)
 }

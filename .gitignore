@@ -25,5 +25,3 @@ go.work.sum
 api/.env
 api/migrate
 .idea
-
-.vscode
