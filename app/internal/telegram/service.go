@@ -29,7 +29,7 @@ type Service struct {
 	lang     translation.TranslationService
 	reminder reminder.ReminderService
 	google   google.GoogleService
-	bot      TelegramBot
+	bot      TelegramAPI
 }
 
 func NewService(
@@ -38,7 +38,7 @@ func NewService(
 	lang translation.TranslationService,
 	reminder reminder.ReminderService,
 	google google.GoogleService,
-	bot TelegramBot,
+	bot TelegramAPI,
 ) *Service {
 	return &Service{
 		business: business,

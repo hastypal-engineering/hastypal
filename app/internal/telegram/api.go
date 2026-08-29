@@ -45,24 +45,24 @@ type AnswerCallbackQuery struct {
 	Text            string `json:"text"`
 }
 
-type TelegramBot interface {
+type TelegramAPI interface {
 	SendMsg(dto BookingTelegramMessage) error
 	AnswerCallbackQuery(msg AnswerCallbackQuery) error
 }
 
-type Bot struct {
+type Api struct {
 	url   string
 	token string
 }
 
-func NewTelegramBot(url string, token string) *Bot {
-	return &Bot{
+func NewTelegramBot(url string, token string) *Api {
+	return &Api{
 		url:   url,
 		token: token,
 	}
 }
 
-func (tb *Bot) SendMsg(dto BookingTelegramMessage) error {
+func (tb *Api) SendMsg(dto BookingTelegramMessage) error {
 	telegramMessage := dto.Message
 
 	textWithHeader := fmt.Sprintf(
@@ -130,7 +130,7 @@ func (tb *Bot) SendMsg(dto BookingTelegramMessage) error {
 	return nil
 }
 
-func (tb *Bot) AnswerCallbackQuery(msg AnswerCallbackQuery) error {
+func (tb *Api) AnswerCallbackQuery(msg AnswerCallbackQuery) error {
 	byteEncodedBody, err := json.Marshal(msg)
 
 	if err != nil {
