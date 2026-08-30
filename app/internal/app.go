@@ -10,6 +10,7 @@ import (
 
 	"github.com/adriein/hastypal/database"
 	"github.com/adriein/hastypal/internal/telegram"
+	"github.com/adriein/hastypal/internal/web"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/adriein/hastypal/pkg/logger"
@@ -22,6 +23,7 @@ type Modules struct {
 	Database *sql.DB
 	Logger   *slog.Logger
 	Telegram telegram.TelegramService
+	Web      web.WebService
 }
 
 type App struct {

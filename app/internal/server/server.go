@@ -64,12 +64,12 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
 
+	s.gin.GET("/booking/step-1", s.webController(app).GetStep1())
+
 	cwd, _ := os.Getwd()
 
 	//STATIC
 	s.gin.Static("/ui/static", fmt.Sprintf("%s/ui/static", cwd))
-
-	//TODO: setup the routes again
 
 	/*
 		api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
@@ -86,4 +86,11 @@ func (s *Server) webhookController(app *internal.App) *controller.TelegramContro
 	service := app.Modules.Telegram
 
 	return controller.NewTelegramController(logger, service)
+}
+
+func (s *Server) webController(app *internal.App) *controller.WebController {
+	logger := app.Modules.Logger
+	service := app.Modules.Web
+
+	return controller.NewWebController(logger, service)
 }
