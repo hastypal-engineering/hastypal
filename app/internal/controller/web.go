@@ -28,8 +28,6 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step1())
 
 		ctx.Render(http.StatusOK, renderer)
-
-		ctx.JSON(http.StatusOK, gin.H{})
 	}
 }
 

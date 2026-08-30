@@ -1,0 +1,21 @@
+@layer components {
+    .badge {
+        display: inline-block;
+        padding: var(--space-1) var(--space-2);
+        font-size: var(--font-size-xs);
+        font-weight: var(--font-weight-medium);
+        border-radius: var(--radius-full);
+        background-color: var(--color-bg-base);
+        color: var(--color-text-muted);
+    }
+
+    .badge-primary {
+        background-color: var(--color-primary-light);
+        color: var(--color-primary);
+    }
+
+    .badge-success {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+}
