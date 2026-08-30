@@ -42,13 +42,10 @@ func NewApp() *App {
 		constants.DatabaseUrl,
 		constants.ServerPort,
 		constants.Env,
-		constants.Version,
-		constants.WhatsappBusinessApiToken,
 		constants.TelegramApiToken,
 		constants.TelegramApiBotUrl,
 		constants.GoogleClientId,
 		constants.GoogleClientSecret,
-		constants.JwtKey,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {
