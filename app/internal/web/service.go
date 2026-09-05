@@ -26,6 +26,7 @@ type Service struct {
 }
 
 func NewService(
+	logger slog.Logger,
 	business business.BusinessService,
 	booking booking.BookingService,
 	lang translation.TranslationService,
@@ -33,6 +34,7 @@ func NewService(
 	google google.GoogleService,
 ) *Service {
 	return &Service{
+		logger:   logger,
 		business: business,
 		booking:  booking,
 		lang:     lang,

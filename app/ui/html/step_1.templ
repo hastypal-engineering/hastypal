@@ -1,7 +1,9 @@
 package html
 
+import "github.com/adriein/hastypal/internal/web"
 
-templ Step1() {
+
+templ Step1(services []*web.ServiceDTO) {
     <html>
 		<head>
 			<meta charset="UTF-8"/>
