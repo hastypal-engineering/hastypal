@@ -52,20 +52,20 @@ CREATE TABLE IF NOT EXISTS ha_business_holidays (
 )
 
 CREATE TABLE IF NOT EXISTS booking_session (
-    id VARCHAR(36) PRIMARY KEY, -- Unique identifier (UUID)
-    business_id VARCHAR(36) NOT NULL,
-    chat_id VARCHAR(36) NOT NULL,
-    service_id VARCHAR(36) NOT NULL,
-    date VARCHAR(60) NOT NULL,
-    hour VARCHAR(5) NOT NULL,
-    created_at VARCHAR(60) NOT NULL,
-    updated_at VARCHAR(60) NOT NULL,
-    ttl INTEGER NOT NULL,
-    FOREIGN KEY (business_id) REFERENCES business(id)
+    habs_id VARCHAR(36) PRIMARY KEY,
+    habs_business_id VARCHAR(36) NOT NULL,
+    habs_chat_id VARCHAR(36) NOT NULL,
+    habs_service_id VARCHAR(36) NOT NULL,
+    habs_date VARCHAR(60) NOT NULL,
+    habs_hour VARCHAR(5) NOT NULL,
+    habs_ttl INTEGER NOT NULL,
+    habs_date_add VARCHAR(60) NOT NULL,
+    habs_date_upd VARCHAR(60) NOT NULL,
+    CONSTRAINT fk_booking_session_business FOREIGN KEY(habs_business_id) REFERENCES ha_business(hab_id)
 );
 
 CREATE TABLE IF NOT EXISTS booking (
-    id VARCHAR(36) PRIMARY KEY, -- Unique identifier (UUID)
+    id VARCHAR(36) PRIMARY KEY,
     session_id VARCHAR(8) NOT NULL,
     business_id VARCHAR(36) NOT NULL,
     service_id VARCHAR(36) NOT NULL,
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS booking (
 );
 
 CREATE TABLE IF NOT EXISTS telegram_notification (
-    id VARCHAR(36) PRIMARY KEY, -- Unique identifier (UUID)
+    id VARCHAR(36) PRIMARY KEY,
     session_id VARCHAR(8) NOT NULL,
     booking_id VARCHAR(36) NOT NULL,
     business_id VARCHAR(36) NOT NULL,
