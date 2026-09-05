@@ -10,7 +10,7 @@ import (
 )
 
 type BookingService interface {
-	InitSession(ctx context.Context, businessID int, chatID int) (string, error)
+	InitSession(ctx context.Context, businessID int) (string, error)
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
 	RefreshSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
@@ -32,13 +32,12 @@ func NewService(logger *slog.Logger, sessionRepo SessionRepository, bookingRepo 
 	}
 }
 
-func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (string, error) {
-	sessionId := helper.ShortUuid()
+func (s *Service) InitSession(ctx context.Context, businessID int) (string, error) {
+	sessionID := helper.ShortUuid()
 
 	session := &Session{
-		Id:         sessionId,
+		Id:         sessionID,
 		BusinessId: businessID,
-		ChatId:     chatID,
 		ServiceId:  "",
 		Date:       "",
 		Hour:       "",
@@ -51,7 +50,7 @@ func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (
 		return "", eris.Wrap(err, "Error storing the current session")
 	}
 
-	return sessionId, nil
+	return sessionID, nil
 }
 
 func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Session, error) {

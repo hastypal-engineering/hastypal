@@ -138,7 +138,7 @@ func (s *Service) startConversation(ctx context.Context, update TelegramUpdate) 
 		return eris.Wrap(err, "Error fetching business")
 	}
 
-	sessionID, err := s.booking.InitSession(ctx, businessID, update.Message.Chat.Id)
+	sessionID, err := s.booking.InitSession(ctx, businessID)
 
 	if err != nil {
 		return eris.Wrap(err, "Error creating a session for this conversation")

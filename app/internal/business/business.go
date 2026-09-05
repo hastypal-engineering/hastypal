@@ -1,16 +1,29 @@
 // Package business
 package business
 
+import "time"
+
 type Business struct {
-	ID           int    `json:"id"`
-	Name         string `json:"name"`
-	ContactPhone string `json:"contactPhone"`
-	Email        string `json:"email"`
-	Address      string `json:"address"`
-	Country      string `json:"country"`
-	Password     string `json:"password"`
-	Lang         string `json:"lang"`
-	DateAdd      string `json:"dateAdd"`
-	DateUpd      string `json:"dateUpd"`
+	ID             int
+	Name           string
+	ContactPhone   string
+	Email          string
+	Address        string
+	Country        string
+	Password       string
+	Lang           string
+	ServiceCatalog []*ServiceCatalog
+	DateAdd        time.Time
+	DateUpd        time.Time
 }
 
+type ServiceCatalog struct {
+	ID          int
+	Name        string
+	Description string
+	Price       float32
+	Currency    string
+	Duration    string
+	DateAdd     time.Time
+	DateUpd     time.Time
+}
