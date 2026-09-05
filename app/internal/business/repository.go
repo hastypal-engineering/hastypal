@@ -76,7 +76,7 @@ func (r *PgBusinessRepository) GetByID(ctx context.Context, ID int) (*Business, 
 	)
 
 	err := r.connection.QueryRowContext(ctxTimeout, query, ID).Scan(
-		&business.Id,
+		&business.ID,
 	)
 
 	if err != nil {

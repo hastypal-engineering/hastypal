@@ -54,7 +54,6 @@ CREATE TABLE IF NOT EXISTS ha_business_holidays (
 CREATE TABLE IF NOT EXISTS booking_session (
     habs_id VARCHAR(36) PRIMARY KEY,
     habs_business_id VARCHAR(36) NOT NULL,
-    habs_chat_id VARCHAR(36) NOT NULL,
     habs_service_id VARCHAR(36) NOT NULL,
     habs_date VARCHAR(60) NOT NULL,
     habs_hour VARCHAR(5) NOT NULL,
