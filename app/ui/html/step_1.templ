@@ -2,22 +2,32 @@ package html
 
 import "github.com/adriein/hastypal/internal/web"
 
-
 templ Step1(services []*web.ServiceDTO) {
-    <html>
+	<html>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
 			<title>Hastypal</title>
-
-			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico">
-			<link rel="stylesheet" href="/ui/static/css/main.css">
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
 			<script src="/ui/static/js/mobile-menu.js" defer></script>
 		</head>
 		<body>
 			<main>
-				<h1>Hello from Hastypal</h1>
+				<nav>Sticky Navbar</nav>
+				<div class="card card--step">
+					<div class="card__header">
+						<p>Step 1</p>
+						<h2>Choose a Service</h2>
+						<p>Select the service you'd like to book.</p>
+					</div>
+					<ul class="card__body">
+						for _, service := range services {
+							<li>{ service.Name }</li>
+						}
+					</ul>
+				</div>
+				<footer>Sticky Footer</footer>
 			</main>
 		</body>
 	</html>
