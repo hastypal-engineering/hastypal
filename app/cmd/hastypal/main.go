@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/adriein/hastypal/internal"
+	"github.com/adriein/hastypal/internal/seed"
 	"github.com/adriein/hastypal/internal/server"
 )
 
@@ -30,6 +32,10 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "seed":
+		if err := seed.Run(app.Modules.Database, app.Modules.Logger); err != nil {
+			log.Fatal(err.Error())
+		}
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 		os.Exit(1)

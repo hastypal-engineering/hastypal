@@ -21,3 +21,8 @@ migrate:
 rollback:
 	@echo "Executing migrations"
 	@cd ./app; ./migrate -database ${DATABASE_URL} -path database/migrations down
+
+.PHONY: seed
+seed:
+	@echo "Seeding database"
+	@cd ./app; go run ./cmd/hastypal seed
