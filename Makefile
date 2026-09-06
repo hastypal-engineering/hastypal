@@ -1,4 +1,4 @@
-include ./api/.env
+include ./app/.env
 
 CURRENT_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 SHELL = /bin/sh
@@ -10,14 +10,14 @@ help:        ## Print available targets.
 .PHONY: create-migration
 create-migration:
 	@echo "Creating migrations"
-	@cd ./api; ./migrate create -ext sql -dir database/migrations -seq $(name)
+	@cd ./app; ./migrate create -ext sql -dir database/migrations -seq $(name)
 
 .PHONY: migrate
 migrate:
 	@echo "Executing migrations"
-	@cd ./api; ./migrate -database ${DATABASE_URL} -path database/migrations up
+	@cd ./app; ./migrate -database ${DATABASE_URL} -path database/migrations up
 
 .PHONY: rollback
 rollback:
 	@echo "Executing migrations"
-	@cd ./api; ./migrate -database ${DATABASE_URL} -path database/migrations down
+	@cd ./app; ./migrate -database ${DATABASE_URL} -path database/migrations down
