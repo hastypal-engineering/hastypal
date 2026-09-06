@@ -13,6 +13,7 @@ var BusinessNotFound = eris.New("Business not found")
 
 type BusinessRepository interface {
 	Create(ctx context.Context, business *Business) error
+	CreateService(ctx context.Context, service *ServiceCatalog) error
 	GetByID(ctx context.Context, ID int) (*Business, error)
 }
 
@@ -60,6 +61,43 @@ func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) e
 
 	if err != nil {
 		return eris.Wrap(err, "Failed to create business")
+	}
+
+	return nil
+}
+
+func (r *PgBusinessRepository) CreateService(ctx context.Context, service *ServiceCatalog) error {
+	query := `
+		INSERT INTO ha_service_catalog (
+			hasc_name,
+			hasc_description,
+			hasc_price,
+			hasc_currency,
+			hasc_duration,
+			hasc_business_id,
+			hasc_date_add,
+			hasc_date_upd
+		)
+		VALUES ($1, $2, $3, $4, $5, NULL, $6, $6)
+		RETURNING hasc_id;
+	`
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	now := time.Now()
+
+	err := r.connection.QueryRowContext(ctxTimeout, query,
+		service.Name,
+		service.Description,
+		int(service.Price),
+		service.Currency,
+		service.Duration,
+		now,
+	).Scan(&service.ID)
+
+	if err != nil {
+		return eris.Wrap(err, "Failed to create service")
 	}
 
 	return nil
