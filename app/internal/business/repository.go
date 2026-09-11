@@ -12,8 +12,8 @@ import (
 var BusinessNotFound = eris.New("Business not found")
 
 type BusinessRepository interface {
-	Create(ctx context.Context, business *Business) error
-	CreateService(ctx context.Context, service *ServiceCatalog) error
+	Create(ctx context.Context, business *Business) (int, error)
+	CreateService(ctx context.Context, service *ServiceCatalog) (int, error)
 	GetByID(ctx context.Context, ID int) (*Business, error)
 }
 
@@ -27,7 +27,7 @@ func NewPgBusinessRepository(connection *sql.DB) *PgBusinessRepository {
 	}
 }
 
-func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) error {
+func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) (int, error) {
 	query := `
 		INSERT INTO ha_business (
 			hab_name,
@@ -60,15 +60,15 @@ func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) e
 	).Scan(&business.ID)
 
 	if err != nil {
-		return eris.Wrap(err, "Failed to create business")
+		return 0, eris.Wrap(err, "Failed to create business")
 	}
 
-	return nil
+	return business.ID, nil
 }
 
-func (r *PgBusinessRepository) CreateService(ctx context.Context, service *ServiceCatalog) error {
+func (r *PgBusinessRepository) CreateService(ctx context.Context, service *ServiceCatalog) (int, error) {
 	query := `
-		INSERT INTO ha_service_catalog (
+	INSERT INTO ha_service_catalog (
 			hasc_name,
 			hasc_description,
 			hasc_price,
@@ -78,7 +78,7 @@ func (r *PgBusinessRepository) CreateService(ctx context.Context, service *Servi
 			hasc_date_add,
 			hasc_date_upd
 		)
-		VALUES ($1, $2, $3, $4, $5, NULL, $6, $6)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 		RETURNING hasc_id;
 	`
 
@@ -90,17 +90,19 @@ func (r *PgBusinessRepository) CreateService(ctx context.Context, service *Servi
 	err := r.connection.QueryRowContext(ctxTimeout, query,
 		service.Name,
 		service.Description,
-		int(service.Price),
+		service.Price,
 		service.Currency,
 		service.Duration,
+		service.BusinessID,
+		now,
 		now,
 	).Scan(&service.ID)
 
 	if err != nil {
-		return eris.Wrap(err, "Failed to create service")
+		return 0, eris.Wrap(err, "Failed to create service")
 	}
 
-	return nil
+	return service.ID, nil
 }
 
 func (r *PgBusinessRepository) GetByID(ctx context.Context, ID int) (*Business, error) {

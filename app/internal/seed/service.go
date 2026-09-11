@@ -31,14 +31,17 @@ func (s *Service) Run(ctx context.Context) error {
 	for _, fakeBusiness := range BusinessSeed {
 		s.logger.Debug(fmt.Sprintf("Creating fake business %s", fakeBusiness.Name))
 
-		if err := s.business.CreateBusiness(ctx, fakeBusiness); err != nil {
-			return eris.Wrapf(err, "Error creating fake business %s with ID: %d", fakeBusiness.Name, fakeBusiness.ID)
+		businessID, err := s.business.CreateBusiness(ctx, fakeBusiness)
+		if err != nil {
+			return eris.Wrapf(err, "Error creating fake business %s", fakeBusiness.Name)
 		}
 
 		for _, fakeService := range fakeBusiness.ServiceCatalog {
 			s.logger.Debug(fmt.Sprintf("Creating fake service %s", fakeService.Name))
 
-			if err := s.business.CreateServiceCatalog(ctx, fakeService); err != nil {
+			fakeService.BusinessID = businessID
+
+			if _, err := s.business.CreateServiceCatalog(ctx, fakeService); err != nil {
 				return eris.Wrapf(err, "Error creating fake service %s", fakeService.Name)
 			}
 		}

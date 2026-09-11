@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS ha_service_catalog (
     hasc_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     hasc_name VARCHAR(255) NOT NULL,
     hasc_description VARCHAR(255) NOT NULL,
-    hasc_price INTEGER NOT NULL,
+    hasc_price NUMERIC(12, 2) NOT NULL,
     hasc_currency VARCHAR(10) NOT NULL,
     hasc_duration VARCHAR(10),
     hasc_business_id BIGINT,

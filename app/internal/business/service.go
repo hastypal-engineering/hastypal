@@ -9,8 +9,8 @@ import (
 
 type BusinessService interface {
 	GetBusinessByID(ctx context.Context, ID int) (*Business, error)
-	CreateBusiness(ctx context.Context, business *Business) error
-	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) error
+	CreateBusiness(ctx context.Context, business *Business) (int, error)
+	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error)
 }
 
 type Service struct {
@@ -34,18 +34,20 @@ func (s *Service) GetBusinessByID(ctx context.Context, ID int) (*Business, error
 	return business, nil
 }
 
-func (s *Service) CreateBusiness(ctx context.Context, business *Business) error {
-	if err := s.repo.Create(ctx, business); err != nil {
-		return eris.Wrapf(err, "Error creating business %s", business.Name)
+func (s *Service) CreateBusiness(ctx context.Context, business *Business) (int, error) {
+	ID, err := s.repo.Create(ctx, business)
+	if err != nil {
+		return 0, eris.Wrapf(err, "Error creating business %s", business.Name)
 	}
 
-	return nil
+	return ID, nil
 }
 
-func (s *Service) CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) error {
-	if err := s.repo.CreateService(ctx, service); err != nil {
-		return eris.Wrapf(err, "Error creating service %s, for business with ID %d", service.Name, service.BusinessID)
+func (s *Service) CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error) {
+	ID, err := s.repo.CreateService(ctx, service)
+	if err != nil {
+		return 0, eris.Wrapf(err, "Error creating service %s, for business with ID %d", service.Name, service.BusinessID)
 	}
 
-	return nil
+	return ID, nil
 }

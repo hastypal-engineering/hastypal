@@ -21,7 +21,7 @@ type ServiceCatalog struct {
 	ID          int
 	Name        string
 	Description string
-	Price       float32
+	Price       float64
 	Currency    string
 	Duration    string
 	BusinessID  int
