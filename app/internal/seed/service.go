@@ -17,6 +17,13 @@ type Service struct {
 	business business.BusinessService
 }
 
+func NewService(logger *slog.Logger, business business.BusinessService) *Service {
+	return &Service{
+		logger:   logger,
+		business: business,
+	}
+}
+
 func (s *Service) Run(ctx context.Context) error {
 	s.logger.Debug("Starting seed")
 	for _, fakeBusiness := range BusinessSeed {

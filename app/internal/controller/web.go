@@ -31,7 +31,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		var req web.GetServicesReq
 
 		if err := ctx.ShouldBindJSON(&req); err != nil {
-			c.logger.Error("Error binding request to telegram update struct", "trace_id", traceID, "error", eris.ToString(err, true))
+			c.logger.Error("Error binding GetServicesReq", "trace_id", traceID, "error", eris.ToString(err, true))
 
 			return
 		}
@@ -39,7 +39,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		dtos, err := c.service.ShowServices(ctx, req)
 
 		if err != nil {
-			c.logger.Error("Error binding request to telegram update struct", "trace_id", traceID, "error", eris.ToString(err, true))
+			c.logger.Error("Error fetching services", "trace_id", traceID, "error", eris.ToString(err, true))
 		}
 
 		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step1(dtos))

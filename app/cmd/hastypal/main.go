@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/adriein/hastypal/internal"
-	"github.com/adriein/hastypal/internal/seed"
 	"github.com/adriein/hastypal/internal/server"
 )
 
@@ -33,12 +32,16 @@ func main() {
 
 	switch os.Args[1] {
 	case "seed":
-		if err := seed.Run(app.Modules.Database, app.Modules.Logger); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		seedService := app.Modules.Seed
+
+		if err := seedService.Run(ctx); err != nil {
 			log.Fatal(err.Error())
 		}
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 		os.Exit(1)
 	}
-
 }

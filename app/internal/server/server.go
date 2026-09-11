@@ -1,3 +1,4 @@
+// Package server
 package server
 
 import (
@@ -23,15 +24,18 @@ func New(app *internal.App) *Server {
 	logger := app.Modules.Logger
 	engine := gin.New()
 
-	ginHtmlRenderer := engine.HTMLRender
+	ginHTMLRenderer := engine.HTMLRender
 
-	engine.HTMLRender = &vendor.HTMLTemplRenderer{FallbackHtmlRenderer: ginHtmlRenderer}
+	engine.HTMLRender = &vendor.HTMLTemplRenderer{FallbackHtmlRenderer: ginHTMLRenderer}
 
 	if os.Getenv(constants.Env) == constants.Pro {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	engine.SetTrustedProxies(nil)
+	if err := engine.SetTrustedProxies(nil); err != nil {
+		logger.Error(eris.ToString(err, true))
+		os.Exit(1)
+	}
 
 	engine.Use(gin.Logger(), gin.Recovery(), middleware.Tracer(), middleware.TimeZone())
 
@@ -57,10 +61,10 @@ func New(app *internal.App) *Server {
 }
 
 func (s *Server) routeSetup(app *internal.App) {
-	//HEALTH CHECK
+	// HEALTH CHECK
 	s.gin.GET("/health", controller.NewHealthController().Get())
 
-	//TELEGRAM WEBHOOK
+	// TELEGRAM WEBHOOK
 
 	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
 
@@ -68,16 +72,12 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	cwd, _ := os.Getwd()
 
-	//STATIC
+	// STATIC
 	s.gin.Static("/ui/static", fmt.Sprintf("%s/ui/static", cwd))
 
 	/*
 		api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 		api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
-		api.Route("POST /business", constructCreateBusinessHandler(api, database))
-		api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
-
-		api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
 	*/
 }
 

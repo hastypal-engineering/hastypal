@@ -1,3 +1,4 @@
+// Package internal
 package internal
 
 import (
@@ -9,6 +10,8 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/database"
+	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/internal/seed"
 	"github.com/adriein/hastypal/internal/telegram"
 	"github.com/adriein/hastypal/internal/web"
 	"github.com/adriein/hastypal/pkg/constants"
@@ -24,6 +27,7 @@ type Modules struct {
 	Logger   *slog.Logger
 	Telegram telegram.TelegramService
 	Web      web.WebService
+	Seed     seed.SeedService
 }
 
 type App struct {
@@ -68,10 +72,17 @@ func NewApp() *App {
 }
 
 func initModules(db *sql.DB, logger *slog.Logger) *Modules {
+	businessRepo := business.NewPgBusinessRepository(db)
+	businessService := business.NewService(logger, businessRepo)
+
+	seedService := seed.NewService(logger, businessService)
+
 	return &Modules{
 		Database: db,
 		Logger:   logger,
 		Telegram: nil,
+		Seed:     seedService,
+		Web:      nil,
 	}
 }
 
