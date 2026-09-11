@@ -24,6 +24,7 @@ type ServiceCatalog struct {
 	Price       float32
 	Currency    string
 	Duration    string
+	BusinessID  int
 	DateAdd     time.Time
 	DateUpd     time.Time
 }

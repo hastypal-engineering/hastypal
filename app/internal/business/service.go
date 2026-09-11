@@ -10,6 +10,7 @@ import (
 type BusinessService interface {
 	GetBusinessByID(ctx context.Context, ID int) (*Business, error)
 	CreateBusiness(ctx context.Context, business *Business) error
+	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) error
 }
 
 type Service struct {
@@ -36,6 +37,14 @@ func (s *Service) GetBusinessByID(ctx context.Context, ID int) (*Business, error
 func (s *Service) CreateBusiness(ctx context.Context, business *Business) error {
 	if err := s.repo.Create(ctx, business); err != nil {
 		return eris.Wrapf(err, "Error creating business %s", business.Name)
+	}
+
+	return nil
+}
+
+func (s *Service) CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) error {
+	if err := s.repo.CreateService(ctx, service); err != nil {
+		return eris.Wrapf(err, "Error creating service %s, for business with ID %d", service.Name, service.BusinessID)
 	}
 
 	return nil
