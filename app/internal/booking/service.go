@@ -33,7 +33,7 @@ func NewService(logger *slog.Logger, sessionRepo SessionRepository, bookingRepo 
 }
 
 func (s *Service) InitSession(ctx context.Context, businessID int) (string, error) {
-	sessionID := helper.ShortUuid()
+	sessionID := helper.ShortUUID(8)
 
 	session := &Session{
 		Id:         sessionID,
@@ -95,7 +95,7 @@ func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Sessio
 
 func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error) {
 	booking := &Booking{
-		ID:         helper.Uuid().String(),
+		ID:         helper.UUID().String(),
 		SessionID:  sessionID,
 		BusinessID: businessID,
 		ServiceID:  serviceID,

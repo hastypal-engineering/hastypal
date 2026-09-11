@@ -6,6 +6,7 @@ TABLES
 
 CREATE TABLE IF NOT EXISTS ha_business (
     hab_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    hab_public_id VARCHAR(255) NOT NULL,
     hab_name VARCHAR(255) NOT NULL,
     hab_contact_phone VARCHAR(36) NOT NULL,
     hab_email VARCHAR(60) NOT NULL,

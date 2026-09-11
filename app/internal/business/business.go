@@ -5,6 +5,7 @@ import "time"
 
 type Business struct {
 	ID             int
+	PublicID       string
 	Name           string
 	ContactPhone   string
 	Email          string

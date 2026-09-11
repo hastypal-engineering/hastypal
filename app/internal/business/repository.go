@@ -30,6 +30,7 @@ func NewPgBusinessRepository(connection *sql.DB) *PgBusinessRepository {
 func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) (int, error) {
 	query := `
 		INSERT INTO ha_business (
+			hab_public_id,
 			hab_name,
 			hab_contact_phone,
 			hab_email,
@@ -39,7 +40,7 @@ func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) (
 			hab_date_add,
 			hab_date_upd
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING hab_id;
 	`
 
@@ -49,6 +50,7 @@ func (r *PgBusinessRepository) Create(ctx context.Context, business *Business) (
 	now := time.Now()
 
 	err := r.connection.QueryRowContext(ctxTimeout, query,
+		business.PublicID,
 		business.Name,
 		business.ContactPhone,
 		business.Email,
@@ -108,55 +110,38 @@ func (r *PgBusinessRepository) CreateService(ctx context.Context, service *Servi
 func (r *PgBusinessRepository) GetByID(ctx context.Context, ID int) (*Business, error) {
 	query := `
 		SELECT
-			a.ta_id,
-			a.ta_auction_id,
-			a.ta_tibia_auction_link,
-			a.ta_img,
-			a.ta_char_name,
-			a.ta_char_level,
-			v.*,
-			g.*,
-			w.*,
-			ts.*,
-			a.ta_world_transfer,
-			a.ta_boss_points,
-			a.ta_charm_expansion,
-			a.ta_charm_points,
-			a.ta_task_expansion,
-			a.ta_current_bid,
-			a.ta_current_bid_fiat,
-			a.ta_current_bid_currency,
-			a.ta_auction_stage,
-			a.ta_auction_start,
-			a.ta_auction_end,
-			tar.tar_status,
-			tar.tar_date_add,
-			tar.tar_date_upd
+			hab_id,
+			hab_public_id,
+			hab_name,
+			hab_contact_phone,
+			hab_email,
+			hab_address,
+			hab_country,
+			hab_lang,
+			hab_date_add,
+			hab_date_upd
 		FROM
-			tc_auction a
-		INNER JOIN
-			tc_vocation v ON a.ta_char_vocation = v.tv_id
-		INNER JOIN
-			tc_gender g ON a.ta_char_gender = g.tg_id
-		INNER JOIN
-			tc_world w ON a.ta_char_world = w.tw_id
-		INNER JOIN
-			tc_auction_recording tar ON a.ta_id = tar.tar_recordable_id
-		INNER JOIN
-			tc_skills ts ON a.ta_auction_id = ts.ts_auction_id
+			ha_business
 		WHERE
-			a.ta_auction_id = $1;
+			hab_id = $1;
 	`
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	var (
-		business Business
-	)
+	var business Business
 
 	err := r.connection.QueryRowContext(ctxTimeout, query, ID).Scan(
 		&business.ID,
+		&business.PublicID,
+		&business.Name,
+		&business.ContactPhone,
+		&business.Email,
+		&business.Address,
+		&business.Country,
+		&business.Lang,
+		&business.DateAdd,
+		&business.DateUpd,
 	)
 
 	if err != nil {
