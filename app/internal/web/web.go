@@ -9,7 +9,7 @@ type ServiceDTO struct {
 	ID          int
 	SessionID   string
 	Name        string
-	Price       float32
+	Price       float64
 	Currency    string
 	Duration    string
 	Description string
