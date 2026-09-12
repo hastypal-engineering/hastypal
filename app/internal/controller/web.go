@@ -30,14 +30,14 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 
 		var req web.GetServicesReq
 
-		if err := ctx.ShouldBindJSON(&req); err != nil {
-			c.logger.Error("Error binding GetServicesReq", "trace_id", traceID, "error", eris.ToString(err, true))
+		if err := ctx.ShouldBindQuery(&req); err != nil {
+			c.logger.Error("Error binding GetServicesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
 			return
 		}
 
-		dtos, err := c.service.ShowServices(ctx, req)
 
+		dtos, err := c.service.ShowServices(ctx, req)
 		if err != nil {
 			c.logger.Error("Error fetching services", "trace_id", traceID, "error", eris.ToString(err, true))
 		}

@@ -6,9 +6,6 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
-	"github.com/adriein/hastypal/internal/google"
-	"github.com/adriein/hastypal/internal/reminder"
-	"github.com/adriein/hastypal/internal/translation"
 	"github.com/rotisserie/eris"
 )
 
@@ -20,26 +17,17 @@ type Service struct {
 	logger   slog.Logger
 	business business.BusinessService
 	booking  booking.BookingService
-	lang     translation.TranslationService
-	reminder reminder.ReminderService
-	google   google.GoogleService
 }
 
 func NewService(
 	logger slog.Logger,
 	business business.BusinessService,
 	booking booking.BookingService,
-	lang translation.TranslationService,
-	reminder reminder.ReminderService,
-	google google.GoogleService,
 ) *Service {
 	return &Service{
 		logger:   logger,
 		business: business,
 		booking:  booking,
-		lang:     lang,
-		reminder: reminder,
-		google:   google,
 	}
 }
 

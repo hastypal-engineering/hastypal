@@ -2,7 +2,7 @@
 package web
 
 type GetServicesReq struct {
-	BusinessID int
+	BusinessID int `json:"id"`
 }
 
 type ServiceDTO struct {

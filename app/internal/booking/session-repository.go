@@ -26,7 +26,7 @@ func NewPgSessionRepository(connection *sql.DB) *PgSessionRepository {
 	}
 }
 
-func (r *PgSessionRepository) Save(ctx context.Context, session Session) error {
+func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error {
 	query := `
 		INSERT INTO tc_currency_rates (
 			tcr_usd,

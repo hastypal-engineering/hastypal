@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/database"
+	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
 	"github.com/adriein/hastypal/internal/seed"
 	"github.com/adriein/hastypal/internal/telegram"
@@ -73,16 +74,20 @@ func NewApp() *App {
 
 func initModules(db *sql.DB, logger *slog.Logger) *Modules {
 	businessRepo := business.NewPgBusinessRepository(db)
-	businessService := business.NewService(logger, businessRepo)
+	sessionRepo := booking.NewPgSessionRepository(db)
+	bookingRepo := booking.NewPgBookingRepository(db)
 
+	bookingService := booking.NewService(logger, sessionRepo, bookingRepo)
+	businessService := business.NewService(logger, businessRepo)
 	seedService := seed.NewService(logger, businessService)
+	webService := web.NewService(*logger, businessService, bookingService)
 
 	return &Modules{
 		Database: db,
 		Logger:   logger,
 		Telegram: nil,
 		Seed:     seedService,
-		Web:      nil,
+		Web:      webService,
 	}
 }
 
