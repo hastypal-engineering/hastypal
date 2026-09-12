@@ -1,0 +1,23 @@
+@layer components {
+  .step {
+    padding: var(--space-6) var(--space-4);
+
+    .step__indicator {
+      color: var(--color-primary);
+    }
+
+    .step__title {
+      color: var(--color-text-main);
+    }
+
+    .step__instruction {
+      color: var(--color-text-muted);
+    }
+
+    .step__service_container {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+  }
+}

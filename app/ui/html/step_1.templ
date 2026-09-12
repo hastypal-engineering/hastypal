@@ -14,18 +14,18 @@ templ Step1(services []*web.ServiceDTO) {
 		<body>
 			<main>
 				<nav>Sticky Navbar</nav>
-				<div>
-					<p>Step 1</p>
-					<h2>Choose a Service</h2>
-					<p>Select the service you'd like to book.</p>
+				<div class="step">
+					<p class="step__indicator">Step 1</p>
+					<h2 class="step__title">Choose a Service</h2>
+					<p class="step__instruction">Select the service you'd like to book.</p>
+					<ul class="list-unstyled step__service_container">
+						for _, service := range services {
+							<li class="card card--service">
+								{ service.Name }
+							</li>
+						}
+					</ul>
 				</div>
-				<ul>
-					for _, service := range services {
-						<li class="card card--service">
-							{ service.Name }
-						</li>
-					}
-				</ul>
 				<footer>Sticky Footer</footer>
 			</main>
 		</body>
