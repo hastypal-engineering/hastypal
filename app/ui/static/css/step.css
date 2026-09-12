@@ -29,11 +29,11 @@
     min-height: 68px;
     padding: 0 var(--space-4);
     text-align: left;
-    background-color: #fdfaf5;
-    border: 1.5px solid #d6cfc4;
+    background-color: var(--color-bg-surface);
+    border: 1.5px solid var(--color-border);
     border-radius: var(--radius-lg);
     cursor: pointer;
-    transition: all 150ms ease-in-out;
+    transition: all var(--transition-fast);
 
     &:active {
       transform: scale(0.99);
@@ -46,7 +46,7 @@
       width: 1.25rem;
       height: 1.25rem;
       flex-shrink: 0;
-      border: 1.5px solid #d6cfc4;
+      border: 1.5px solid var(--color-border);
       border-radius: var(--radius-full);
 
       svg {
@@ -66,14 +66,14 @@
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-medium);
       line-height: 1.25;
-      color: #1c1917;
+      color: var(--color-text-main);
     }
 
     .step__service_option__meta {
       display: block;
       margin-top: 0.125rem;
       font-size: var(--font-size-xs);
-      color: #78716c;
+      color: var(--color-text-muted);
     }
 
     .step__service_option__price {
@@ -81,12 +81,12 @@
       font-size: var(--font-size-sm);
       font-weight: var(--font-weight-bold);
       color: var(--color-primary);
-      transition: color 300ms ease;
+      transition: color var(--transition-normal);
     }
 
     &.is-selected {
-      background-color: #1c1917;
-      border-color: #1c1917;
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
 
       .step__service_option__indicator {
         border: none;
@@ -99,7 +99,7 @@
       }
 
       .step__service_option__name {
-        color: #f5f0e8;
+        color: var(--color-bg-base);
       }
 
       .step__service_option__meta {
