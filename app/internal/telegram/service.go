@@ -132,7 +132,7 @@ func (s *Service) startConversation(ctx context.Context, update TelegramUpdate) 
 		return eris.Wrap(err, "Error converting business ID to int")
 	}
 
-	business, err := s.business.GetBusinessByID(ctx, businessID)
+	business, err := s.business.GetBusinessByPublicID(ctx, "")
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
@@ -225,7 +225,7 @@ func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error
 		return eris.Wrap(err, "Error fetching current booking session")
 	}
 
-	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+	business, err := s.business.GetBusinessByPublicID(ctx, "")
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
@@ -238,7 +238,7 @@ func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error
 
 		bookingExpiredSessionMessage := BookingTelegramMessage{
 			BusinessName:     business.Name,
-			BookingSessionId: session.Id,
+			BookingSessionId: session.ID,
 			Message:          expiredSessionMessage,
 		}
 
@@ -269,7 +269,7 @@ func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error
 
 		buttons[i] = KeyboardButton{
 			Text:         fmt.Sprintf("%s 📅", services[i]),
-			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.Id, "test-short"),
+			CallbackData: fmt.Sprintf("/dates?session=%s&service=%s&page=0", session.ID, "test-short"),
 		}
 	}
 
@@ -285,7 +285,7 @@ func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error
 
 	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
-		BookingSessionId: session.Id,
+		BookingSessionId: session.ID,
 		Message:          message,
 	}
 
@@ -335,7 +335,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 		return eris.Wrap(err, "Error fetching current booking session")
 	}
 
-	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+	business, err := s.business.GetBusinessByPublicID(ctx, "")
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
@@ -348,7 +348,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 
 		bookingExpiredSessionMessage := BookingTelegramMessage{
 			BusinessName:     business.Name,
-			BookingSessionId: session.Id,
+			BookingSessionId: session.ID,
 			Message:          expiredSessionMessage,
 		}
 
@@ -426,7 +426,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 
 	inlineKeyboard := array.Chunk(buttons, 3)
 
-	inlineKeyboard = s.addNavigationButtons(session.Id, serviceId, currentPage, inlineKeyboard)
+	inlineKeyboard = s.addNavigationButtons(session.ID, serviceId, currentPage, inlineKeyboard)
 
 	message := TelegramMessage{
 		ChatId:         update.CallbackQuery.From.Id,
@@ -438,7 +438,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 
 	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
-		BookingSessionId: session.Id,
+		BookingSessionId: session.ID,
 		Message:          message,
 	}
 
@@ -553,7 +553,7 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 		return eris.Wrap(err, "Error fetching current booking session")
 	}
 
-	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+	business, err := s.business.GetBusinessByPublicID(ctx, "")
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
@@ -566,7 +566,7 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 
 		bookingExpiredSessionMessage := BookingTelegramMessage{
 			BusinessName:     business.Name,
-			BookingSessionId: session.Id,
+			BookingSessionId: session.ID,
 			Message:          expiredSessionMessage,
 		}
 
@@ -632,7 +632,7 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 
 	backButton := KeyboardButton{
 		Text:         "Atrás",
-		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.Id, "test-short"),
+		CallbackData: fmt.Sprintf("/dates?session=%s&service=%s", session.ID, "test-short"),
 	}
 
 	buttons = append(buttons, backButton)
@@ -649,7 +649,7 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 
 	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
-		BookingSessionId: session.Id,
+		BookingSessionId: session.ID,
 		Message:          message,
 	}
 
@@ -691,7 +691,7 @@ func (s *Service) showConfirmation(ctx context.Context, update TelegramUpdate) e
 		return eris.Wrap(err, "Error fetching current booking session")
 	}
 
-	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+	business, err := s.business.GetBusinessByPublicID(ctx, "")
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
@@ -704,7 +704,7 @@ func (s *Service) showConfirmation(ctx context.Context, update TelegramUpdate) e
 
 		bookingExpiredSessionMessage := BookingTelegramMessage{
 			BusinessName:     business.Name,
-			BookingSessionId: session.Id,
+			BookingSessionId: session.ID,
 			Message:          expiredSessionMessage,
 		}
 
@@ -780,7 +780,7 @@ func (s *Service) showConfirmation(ctx context.Context, update TelegramUpdate) e
 
 	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
-		BookingSessionId: session.Id,
+		BookingSessionId: session.ID,
 		Message:          message,
 	}
 
@@ -821,7 +821,7 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 		return eris.Wrap(err, "Error fetching current booking session")
 	}
 
-	business, err := s.business.GetBusinessByID(ctx, session.BusinessId)
+	business, err := s.business.GetBusinessByPublicID(ctx, "")
 
 	if err != nil {
 		return eris.Wrap(err, "Error fetching business")
@@ -834,7 +834,7 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 
 		bookingExpiredSessionMessage := BookingTelegramMessage{
 			BusinessName:     business.Name,
-			BookingSessionId: session.Id,
+			BookingSessionId: session.ID,
 			Message:          expiredSessionMessage,
 		}
 
@@ -859,7 +859,7 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 		eris.Wrap(err, "Error merging date and hour")
 	}
 
-	bookingID, err := s.booking.RegisterBooking(ctx, sessionID, session.BusinessId, session.ServiceId, mergedTime)
+	bookingID, err := s.booking.RegisterBooking(ctx, sessionID, session.BusinessID, session.ServiceID, mergedTime)
 
 	if err != nil {
 		return eris.Wrap(err, "Error creating and saving the booking")
@@ -869,7 +869,7 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 		return eris.Wrap(err, "Error storing a new reminder")
 	}
 
-	if err := s.google.CalendarEvent(ctx, session.BusinessId, mergedTime); err != nil {
+	if err := s.google.CalendarEvent(ctx, session.BusinessID, mergedTime); err != nil {
 		return eris.Wrap(err, "Error creating the event in the google calendar")
 	}
 
@@ -890,7 +890,7 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 
 	bookingMessage := BookingTelegramMessage{
 		BusinessName:     business.Name,
-		BookingSessionId: session.Id,
+		BookingSessionId: session.ID,
 		Message:          message,
 	}
 

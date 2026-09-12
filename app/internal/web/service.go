@@ -38,9 +38,9 @@ WEB SHOW SERVICES
 */
 
 func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) ([]*ServiceDTO, error) {
-	business, err := s.business.GetBusinessByID(ctx, req.BusinessID)
+	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
-		return nil, eris.Wrapf(err, "Error fetching business with ID %d", req.BusinessID)
+		return nil, eris.Wrap(err, "Error showing services trying to fetch business by public ID")
 	}
 
 	sessionID, err := s.booking.InitSession(ctx, business.ID)

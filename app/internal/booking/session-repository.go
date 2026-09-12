@@ -28,21 +28,30 @@ func NewPgSessionRepository(connection *sql.DB) *PgSessionRepository {
 
 func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error {
 	query := `
-		INSERT INTO tc_currency_rates (
-			tcr_usd,
-			tcr_eur,
-			tcr_aud,
-			tcr_gbp,
-			tcr_pln,
-			tcr_brl,
-			tcr_date_upd
+		INSERT INTO ha_booking_session (
+			habs_id,
+			habs_business_id,
+			habs_service_id,
+			habs_date,
+			habs_hour,
+			habs_ttl,
+			habs_date_add,
+			habs_date_upd
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7);
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
 	`
 
 	_, err := r.connection.ExecContext(
 		ctx,
 		query,
+		session.ID,
+		session.BusinessID,
+		session.ServiceID,
+		session.Date,
+		session.Hour,
+		session.TTL,
+		session.DateAdd,
+		session.DateUpd,
 	)
 
 	if err != nil {

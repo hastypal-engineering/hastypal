@@ -10,23 +10,22 @@ templ Step1(services []*web.ServiceDTO) {
 			<title>Hastypal</title>
 			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
 			<link rel="stylesheet" href="/ui/static/css/main.css"/>
-			<script src="/ui/static/js/mobile-menu.js" defer></script>
 		</head>
 		<body>
 			<main>
 				<nav>Sticky Navbar</nav>
-				<div class="card card--step">
-					<div class="card__header">
-						<p>Step 1</p>
-						<h2>Choose a Service</h2>
-						<p>Select the service you'd like to book.</p>
-					</div>
-					<ul class="card__body">
-						for _, service := range services {
-							<li>{ service.Name }</li>
-						}
-					</ul>
+				<div>
+					<p>Step 1</p>
+					<h2>Choose a Service</h2>
+					<p>Select the service you'd like to book.</p>
 				</div>
+				<ul>
+					for _, service := range services {
+						<li class="card card--service">
+							{ service.Name }
+						</li>
+					}
+				</ul>
 				<footer>Sticky Footer</footer>
 			</main>
 		</body>

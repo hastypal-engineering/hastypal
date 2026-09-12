@@ -1,0 +1,8 @@
+@layer base {
+  main {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    background-color: var(--color-bg-base);
+  }
+}

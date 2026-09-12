@@ -15,7 +15,7 @@ type BookingService interface {
 	RefreshSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
-	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error)
+	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error)
 }
 
 type Service struct {
@@ -36,14 +36,14 @@ func (s *Service) InitSession(ctx context.Context, businessID int) (string, erro
 	sessionID := helper.ShortUUID(8)
 
 	session := &Session{
-		Id:         sessionID,
-		BusinessId: businessID,
-		ServiceId:  "",
+		ID:         sessionID,
+		BusinessID: businessID,
+		ServiceID:  0,
 		Date:       "",
 		Hour:       "",
 		DateAdd:    time.Now().UTC(),
 		DateUpd:    time.Now().UTC(),
-		Ttl:        time.Minute.Milliseconds() * 5,
+		TTL:        time.Minute.Milliseconds() * 5,
 	}
 
 	if err := s.sessionRepo.Save(ctx, session); err != nil {
@@ -93,12 +93,12 @@ func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Sessio
 	return sessions, nil
 }
 
-func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error) {
+func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error) {
 	booking := &Booking{
 		ID:         helper.UUID().String(),
 		SessionID:  sessionID,
 		BusinessID: businessID,
-		ServiceID:  serviceID,
+		ServiceID:  "",
 		Date:       date,
 	}
 

@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS ha_business (
     hab_email VARCHAR(60) NOT NULL,
     hab_address VARCHAR(255) NOT NULL,
     hab_country VARCHAR(3) NOT NULL,
-    hab_lang VARCHAR(3),
+    hab_lang VARCHAR(3) NOT NULL,
     hab_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     hab_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL
 );
@@ -23,11 +23,23 @@ CREATE TABLE IF NOT EXISTS ha_service_catalog (
     hasc_description VARCHAR(255) NOT NULL,
     hasc_price NUMERIC(12, 2) NOT NULL,
     hasc_currency VARCHAR(10) NOT NULL,
-    hasc_duration VARCHAR(10),
-    hasc_business_id BIGINT,
+    hasc_duration VARCHAR(10) NOT NULL,
+    hasc_business_id BIGINT NOT NULL,
     hasc_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     hasc_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT fk_service_catalog_business FOREIGN KEY(hasc_business_id) REFERENCES ha_business(hab_id)
+);
+
+CREATE TABLE IF NOT EXISTS ha_booking_session (
+    habs_id VARCHAR(36) PRIMARY KEY,
+    habs_business_id BIGINT NOT NULL,
+    habs_service_id BIGINT NOT NULL,
+    habs_date VARCHAR(60) NOT NULL,
+    habs_hour VARCHAR(5) NOT NULL,
+    habs_ttl INTEGER NOT NULL,
+    habs_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    habs_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    CONSTRAINT fk_booking_session_business FOREIGN KEY(habs_business_id) REFERENCES ha_business(hab_id)
 );
 
 -- CREATE TABLE IF NOT EXISTS ha_employees (
@@ -53,17 +65,6 @@ CREATE TABLE IF NOT EXISTS ha_service_catalog (
 --     CONSTRAINT fk_service_catalog_business FOREIGN KEY(habh_business_id) REFERENCES ha_business(hab_id)
 -- )
 
--- CREATE TABLE IF NOT EXISTS booking_session (
---     habs_id VARCHAR(36) PRIMARY KEY,
---     habs_business_id VARCHAR(36) NOT NULL,
---     habs_service_id VARCHAR(36) NOT NULL,
---     habs_date VARCHAR(60) NOT NULL,
---     habs_hour VARCHAR(5) NOT NULL,
---     habs_ttl INTEGER NOT NULL,
---     habs_date_add VARCHAR(60) NOT NULL,
---     habs_date_upd VARCHAR(60) NOT NULL,
---     CONSTRAINT fk_booking_session_business FOREIGN KEY(habs_business_id) REFERENCES ha_business(hab_id)
--- );
 --
 -- CREATE TABLE IF NOT EXISTS booking (
 --     id VARCHAR(36) PRIMARY KEY,

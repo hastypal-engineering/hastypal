@@ -31,19 +31,19 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Hastypal</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"><script src=\"/ui/static/js/mobile-menu.js\" defer></script></head><body><main><nav>Sticky Navbar</nav><div class=\"card card--step\"><div class=\"card__header\"><p>Step 1</p><h2>Choose a Service</h2><p>Select the service you'd like to book.</p></div><ul class=\"card__body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Hastypal</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body><main><nav>Sticky Navbar</nav><div><p>Step 1</p><h2>Choose a Service</h2><p>Select the service you'd like to book.</p></div><ul>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, service := range services {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<li>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<li class=\"card card--service\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(service.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 26, Col: 25}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 25, Col: 21}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -54,7 +54,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</ul></div><footer>Sticky Footer</footer></main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</ul><footer>Sticky Footer</footer></main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

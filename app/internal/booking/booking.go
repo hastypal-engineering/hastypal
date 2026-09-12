@@ -1,3 +1,4 @@
+// Package booking
 package booking
 
 import (
@@ -19,13 +20,12 @@ type Booking struct {
 }
 
 type Session struct {
-	Id         string
-	BusinessId int
-	ChatId     int
-	ServiceId  string
+	ID         string
+	BusinessID int
+	ServiceID  int
 	Date       string
 	Hour       string
-	Ttl        int64
+	TTL        int64
 	SlotIndex  int
 	DateAdd    time.Time
 	DateUpd    time.Time
