@@ -20,9 +20,18 @@ templ Step1(services []*web.ServiceDTO) {
 					<p class="step__instruction">Select the service you'd like to book.</p>
 					<ul class="list-unstyled step__service_container">
 						for _, service := range services {
-							<li class="card card--service">
-								{ service.Name }
-							</li>
+							<button type="button" class="step__service_option">
+								<span class="step__service_option__indicator">
+								<svg width="8" height="7" viewBox="0 0 8 7" fill="none">
+									<path d="M1 3.5L3 5.5L7 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+								</svg>
+							</span>
+								<span class="step__service_option__body">
+									<span class="step__service_option__name">{ service.Name }</span>
+									<span class="step__service_option__meta">{ service.Duration } · { service.Description }</span>
+								</span>
+								<span class="step__service_option__price">{ service.Price } { service.Currency }</span>
+							</button>
 						}
 					</ul>
 				</div>
