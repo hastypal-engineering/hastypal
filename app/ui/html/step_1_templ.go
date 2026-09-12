@@ -31,7 +31,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Hastypal</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body><main><nav>Sticky Navbar</nav><div class=\"step\"><p class=\"step__indicator\">Step 1</p><h2 class=\"step__title\">Choose a Service</h2><p class=\"step__instruction\">Select the service you'd like to book.</p><ul class=\"list-unstyled step__service_container\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Hastypal</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body><main><nav>Sticky Navbar</nav><div class=\"step\"><div class=\"step__header\"><p class=\"step__indicator\">Step 1</p><h2 class=\"step__title\">Choose a Service</h2><p class=\"step__instruction\">Select the service you'd like to book.</p></div><ul class=\"list-unstyled step__service_container\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -43,7 +43,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(service.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 30, Col: 64}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 32, Col: 64}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -56,7 +56,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(service.Duration)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 31, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 33, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -69,7 +69,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(service.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 31, Col: 95}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 33, Col: 95}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -82,7 +82,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(service.Price)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 33, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 35, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -95,7 +95,7 @@ func Step1(services []*web.ServiceDTO) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(service.Currency)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 33, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 35, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {

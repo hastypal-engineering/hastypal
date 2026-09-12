@@ -15,9 +15,11 @@ templ Step1(services []*web.ServiceDTO) {
 			<main>
 				<nav>Sticky Navbar</nav>
 				<div class="step">
-					<p class="step__indicator">Step 1</p>
-					<h2 class="step__title">Choose a Service</h2>
-					<p class="step__instruction">Select the service you'd like to book.</p>
+					<div class="step__header">
+						<p class="step__indicator">Step 1</p>
+						<h2 class="step__title">Choose a Service</h2>
+						<p class="step__instruction">Select the service you'd like to book.</p>
+					</div>
 					<ul class="list-unstyled step__service_container">
 						for _, service := range services {
 							<button type="button" class="step__service_option">
