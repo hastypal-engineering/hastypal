@@ -2,7 +2,7 @@
 package web
 
 type GetServicesReq struct {
-	BusinessPublicID string `form:"id"`
+	BusinessPublicID string `uri:"publicID" binding:"required"`
 }
 
 type ServiceDTO struct {

@@ -68,7 +68,7 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
 
-	s.gin.GET("/booking/step-1", s.webController(app).GetStep1())
+	s.gin.GET("/booking/:publicID/step-1", s.webController(app).GetStep1())
 
 	cwd, _ := os.Getwd()
 

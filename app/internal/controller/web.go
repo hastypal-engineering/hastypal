@@ -29,8 +29,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		traceID := ctx.Value(middleware.TraceIDKey)
 
 		var req web.GetServicesReq
-
-		if err := ctx.ShouldBindQuery(&req); err != nil {
+		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error binding GetServicesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
 			return
