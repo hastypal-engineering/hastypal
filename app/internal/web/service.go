@@ -10,7 +10,7 @@ import (
 )
 
 type WebService interface {
-	ShowServices(ctx context.Context, req GetServicesReq) ([]*ServiceDTO, error)
+	ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error)
 }
 
 type Service struct {
@@ -37,7 +37,7 @@ WEB SHOW SERVICES
 ==============================================================================
 */
 
-func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) ([]*ServiceDTO, error) {
+func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error) {
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
 		return nil, eris.Wrap(err, "Error showing services trying to fetch business by public ID")
@@ -48,12 +48,11 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) ([]*Serv
 		return nil, eris.Wrapf(err, "Error creating session, to book on bussiness %d", business.ID)
 	}
 
-	var dtos []*ServiceDTO
+	var services []*ServiceDTO
 
 	for _, service := range business.ServiceCatalog {
 		dto := &ServiceDTO{
 			ID:          service.ID,
-			SessionID:   sessionID,
 			Name:        service.Name,
 			Price:       service.Price,
 			Currency:    service.Currency,
@@ -61,8 +60,21 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) ([]*Serv
 			Description: service.Description,
 		}
 
-		dtos = append(dtos, dto)
+		services = append(services, dto)
 	}
 
-	return dtos, nil
+	dto := &BookingDTO{
+		SessionID: sessionID,
+		Step: 1,
+		Services: services,
+		Business: &BusinessDTO{
+			Name: business.Name,
+			Email: business.Email,
+			Address: business.Address,
+			Phone: business.ContactPhone,
+			Description: "the better business",
+		},
+	}
+
+	return dto, nil
 }

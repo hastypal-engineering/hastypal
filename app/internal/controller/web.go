@@ -37,12 +37,12 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		}
 
 
-		dtos, err := c.service.ShowServices(ctx, req)
+		dto, err := c.service.ShowServices(ctx, req)
 		if err != nil {
 			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
 		}
 
-		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step1(dtos))
+		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step1(dto))
 
 		ctx.Render(http.StatusOK, renderer)
 	}
