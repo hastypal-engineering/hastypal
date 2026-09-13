@@ -5,4 +5,10 @@
     width: 100%;
     background-color: var(--color-bg-base);
   }
+
+  @media (max-width: 768px) {
+    main {
+      padding-bottom: 5.5rem;
+    }
+  }
 }

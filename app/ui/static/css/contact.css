@@ -1,9 +1,6 @@
 @layer components {
   .contact {
     --contact-border: var(--color-border);
-    --contact-sidebar-bg: var(--color-bg-base);
-    --contact-accent: var(--color-primary);
-    --contact-accent-fg: #ffffff;
     --contact-fg: var(--color-text-main);
     --contact-label: #a8a29e;
     --contact-row-border: var(--color-secondary);
@@ -12,6 +9,7 @@
 
     margin-top: var(--space-6);
     overflow: hidden;
+    background: var(--color-bg-surface);
     border: 1px solid var(--contact-border);
     border-radius: var(--radius-lg);
 
@@ -20,37 +18,39 @@
     }
   }
 
-  .contact__brand {
+  .contact__toggle {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    justify-content: space-between;
+    gap: var(--space-3);
     padding: var(--space-3) var(--space-4);
-    background: var(--contact-sidebar-bg);
-    transition: background var(--transition-normal);
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::marker {
+      content: "";
+    }
   }
 
-  .contact__logo {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    flex-shrink: 0;
-    border-radius: var(--radius-sm);
-    background: var(--contact-accent);
-    color: var(--contact-accent-fg);
-    font-size: var(--font-size-xs);
-  }
-
-  .contact__name {
+  .contact__toggle-label {
     font-family: var(--font-family-base);
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     color: var(--contact-fg);
   }
 
-  .contact__rows {
-    background: var(--color-bg-surface);
+  .contact__toggle-icon {
+    flex-shrink: 0;
+    color: var(--contact-icon-fg);
+    transition: transform var(--transition-normal);
+  }
+
+  .contact[open] .contact__toggle-icon {
+    transform: rotate(180deg);
   }
 
   .contact__row {

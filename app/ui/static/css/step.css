@@ -45,6 +45,13 @@
     }
   }
 
+  .step__fields {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
   .step__service_option {
     display: flex;
     align-items: center;
@@ -120,9 +127,18 @@
       transition: color var(--transition-normal);
     }
 
-    &:has(.step__service_option__input:checked),
     &:has(.step__service_option__input:focus-visible) {
-      outline: none;
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      background-color: var(--color-primary-light);
+      border-color: var(--color-primary-light);
+
+      .step__service_option__price {
+        color: var(--color-primary);
+      }
+    }
+
+    &:has(.step__service_option__input:checked) {
       background-color: var(--color-primary);
       border-color: var(--color-primary);
 
@@ -142,6 +158,10 @@
 
       .step__service_option__meta {
         color: rgba(255, 255, 255, 0.5);
+      }
+
+      .step__service_option__price {
+        color: var(--color-bg-base);
       }
     }
   }

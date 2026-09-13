@@ -31,7 +31,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Hastypal</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body><main><header class=\"header\"><div class=\"header__content\"><div class=\"header__brand\"><div class=\"header__logo\" aria-hidden=\"true\">H</div><div class=\"header__brand-text\"><p class=\"header__name\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"><title>Hastypal</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body><main><header class=\"header\"><div class=\"header__content\"><div class=\"header__brand\"><div class=\"header__logo\" aria-hidden=\"true\">H</div><div class=\"header__brand-text\"><p class=\"header__name\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -70,7 +70,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><h2 class=\"step__title\">Choose a Service</h2><p class=\"step__instruction\">Select the service you'd like to book.</p></div><ul class=\"step__service_container list-unstyled\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><h2 class=\"step__title\">Choose a Service</h2><p class=\"step__instruction\">Select the service you'd like to book.</p></div><fieldset class=\"step__fields\"><legend class=\"sr-only\">Choose a service</legend><ul class=\"step__service_container list-unstyled\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -82,7 +82,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.ResolveAttributeValue(service.ID)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 42, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 44, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var5)
 			if templ_7745c5c3_Err != nil {
@@ -95,7 +95,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(service.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 49, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 51, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -108,7 +108,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(service.Duration)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 50, Col: 69}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 52, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -121,7 +121,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(service.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 50, Col: 96}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 52, Col: 97}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -134,7 +134,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(service.Price)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 52, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 54, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -147,7 +147,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(service.Currency)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 52, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 54, Col: 88}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -158,14 +158,14 @@ func Step1(dto *web.BookingDTO) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</ul></div><div class=\"contact\"><div class=\"contact__brand\"><div class=\"contact__logo\" aria-hidden=\"true\">H</div><p class=\"contact__name\">Hastypal</p></div><div class=\"contact__rows\"><a class=\"contact__row\" href=\"mailto:booking@hastypal.com\"><div class=\"contact__row-icon\"><svg width=\"13\" height=\"11\" viewBox=\"0 0 13 11\" fill=\"none\"><rect x=\"0.5\" y=\"0.5\" width=\"12\" height=\"10\" rx=\"1.5\" stroke=\"currentColor\" stroke-width=\"1\"></rect> <path d=\"M1 1.5L6.5 6L12 1.5\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap=\"round\"></path></svg></div><div class=\"contact__row-body\"><p class=\"contact__row-label\">Email</p><p class=\"contact__row-value\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</ul></fieldset><details class=\"contact\"><summary class=\"contact__toggle\"><span class=\"contact__toggle-label\">Need help?</span> <svg class=\"contact__toggle-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 6L8 10L12 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></summary><div class=\"contact__rows\"><a class=\"contact__row\" href=\"mailto:booking@hastypal.com\"><div class=\"contact__row-icon\"><svg width=\"13\" height=\"11\" viewBox=\"0 0 13 11\" fill=\"none\"><rect x=\"0.5\" y=\"0.5\" width=\"12\" height=\"10\" rx=\"1.5\" stroke=\"currentColor\" stroke-width=\"1\"></rect> <path d=\"M1 1.5L6.5 6L12 1.5\" stroke=\"currentColor\" stroke-width=\"1\" stroke-linecap=\"round\"></path></svg></div><div class=\"contact__row-body\"><p class=\"contact__row-label\">Email</p><p class=\"contact__row-value\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 73, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 77, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -178,7 +178,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 76, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 80, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(` ` + templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -191,7 +191,7 @@ func Step1(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 84, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 88, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -204,13 +204,13 @@ func Step1(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Address)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 96, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_1.templ`, Line: 100, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p></div></div></div></div><footer class=\"footer\"><div class=\"footer__content\"><button type=\"button\" class=\"footer__back\" aria-label=\"Back\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><path d=\"M10 3L5 8L10 13\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <button type=\"button\" class=\"footer__continue\">Continue</button></div></footer></main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "</p></div></div></div></details></div><footer class=\"footer\"><div class=\"footer__content\"><button type=\"button\" class=\"footer__back\" aria-label=\"Back\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><path d=\"M10 3L5 8L10 13\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button> <button type=\"button\" class=\"footer__continue\">Continue</button></div></footer></main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
