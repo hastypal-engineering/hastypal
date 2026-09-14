@@ -2,6 +2,8 @@
 
 :root {
   /* Color Palette */
+  --color-canvas: #F5F0E8;
+  --color-ink: #1C1917;
   --color-primary: #1C1917;
   --color-primary-hover: #44403C;
   --color-primary-light: #EDE8DF;
@@ -20,6 +22,8 @@
   --color-border: #D6CFC4;
 
   /* Typography */
+  --font-sans: 'Work Sans', system-ui, sans-serif;
+  --color-link: #1C1917;
   --font-family-base: 'Work Sans', system-ui, sans-serif;
   --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-family-display: 'Fraunces', Georgia, serif;

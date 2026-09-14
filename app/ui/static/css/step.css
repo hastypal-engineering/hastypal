@@ -4,10 +4,6 @@
 
     .step__header {
       margin-bottom: var(--space-6);
-
-      @media (min-width: 768px) {
-        margin-bottom: var(--space-8);
-      }
     }
 
     .step__indicator {
@@ -26,10 +22,6 @@
       font-family: var(--font-family-display);
       font-weight: var(--font-weight-normal);
       color: var(--color-text-main);
-
-      @media (min-width: 768px) {
-        font-size: var(--font-size-3xl);
-      }
     }
 
     .step__instruction {
@@ -144,11 +136,11 @@
 
       .step__service_option__indicator {
         border: none;
-        background-color: var(--color-primary);
+        background-color: #ffffff;
 
         svg {
           display: block;
-          color: #ffffff;
+          color: var(--color-primary);
         }
       }
 
