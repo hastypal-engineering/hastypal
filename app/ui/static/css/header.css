@@ -7,6 +7,9 @@
     --header-muted: var(--color-text-muted);
     --header-dot-idle: var(--color-border);
 
+    position: sticky;
+    top: 0;
+    z-index: 10;
     flex-shrink: 0;
     background: var(--header-bg);
     transition: background var(--transition-normal);
