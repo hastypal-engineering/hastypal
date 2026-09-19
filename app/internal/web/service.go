@@ -65,13 +65,14 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 
 	dto := &BookingDTO{
 		SessionID: sessionID,
-		Step: 1,
-		Services: services,
+		Step:      1,
+		Services:  services,
 		Business: &BusinessDTO{
-			Name: business.Name,
-			Email: business.Email,
-			Address: business.Address,
-			Phone: business.ContactPhone,
+			PublicID:    business.PublicID,
+			Name:        business.Name,
+			Email:       business.Email,
+			Address:     business.Address,
+			Phone:       business.ContactPhone,
 			Description: "the better business",
 		},
 	}

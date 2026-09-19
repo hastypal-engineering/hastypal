@@ -27,6 +27,7 @@ templ Step1(dto *web.BookingDTO) {
 							<span class="header__dot is-active"></span>
 							<span class="header__dot"></span>
 							<span class="header__dot"></span>
+							<span class="header__dot"></span>
 						</div>
 					</div>
 				</header>
@@ -38,25 +39,27 @@ templ Step1(dto *web.BookingDTO) {
 					</div>
 					<fieldset class="step__fields">
 						<legend class="sr-only">Choose a service</legend>
-						<ul class="step__service_container list-unstyled">
-							for _, service := range dto.Services {
-								<li>
-									<label class="step__service_option">
-										<input type="radio" name="service" value={ service.ID } class="step__service_option__input"/>
-										<span class="step__service_option__indicator">
-											<svg width="8" height="7" viewBox="0 0 8 7" fill="none">
-												<path d="M1 3.5L3 5.5L7 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-											</svg>
-										</span>
-										<span class="step__service_option__body">
-											<span class="step__service_option__name">{ service.Name }</span>
-											<span class="step__service_option__meta">{ service.Duration } · { service.Description }</span>
-										</span>
-										<span class="step__service_option__price">{ service.Price } { service.Currency }</span>
-									</label>
-								</li>
-							}
-						</ul>
+						<form id="bookingForm" action={ fmt.Sprintf("/booking/%s/step-1", dto.Business.PublicID) } method="POST">
+							<ul class="step__service_container list-unstyled">
+								for _, service := range dto.Services {
+									<li>
+										<label class="step__service_option">
+											<input type="radio" name="service" value={ service.ID } class="step__service_option__input"/>
+											<span class="step__service_option__indicator">
+												<svg width="8" height="7" viewBox="0 0 8 7" fill="none">
+													<path d="M1 3.5L3 5.5L7 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+												</svg>
+											</span>
+											<span class="step__service_option__body">
+												<span class="step__service_option__name">{ service.Name }</span>
+												<span class="step__service_option__meta">{ service.Duration } · { service.Description }</span>
+											</span>
+											<span class="step__service_option__price">{ service.Price } { service.Currency }</span>
+										</label>
+									</li>
+								}
+							</ul>
+						</form>
 					</fieldset>
 					<details class="contact">
 						<summary class="contact__toggle">
@@ -111,7 +114,7 @@ templ Step1(dto *web.BookingDTO) {
 								<path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
 							</svg>
 						</button>
-						<button type="button" class="footer__continue">Continue</button>
+						<button form="bookingForm" type="submit" class="footer__continue">Continue</button>
 					</div>
 				</footer>
 			</main>

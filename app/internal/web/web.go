@@ -15,6 +15,7 @@ type ServiceDTO struct {
 }
 
 type BusinessDTO struct {
+	PublicID    string
 	Email       string
 	Phone       string
 	Address     string
