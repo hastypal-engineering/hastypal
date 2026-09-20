@@ -29,17 +29,11 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		traceID := ctx.Value(middleware.TraceIDKey)
 
-		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-		ctx.Render(http.StatusOK, renderer)
-
-		return
-
 		var req web.GetServicesReq
 		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error binding GetServicesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			renderer = vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
 
 			ctx.Render(http.StatusOK, renderer)
 
@@ -50,14 +44,14 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		if err != nil {
 			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
 
-			renderer = vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
 
 			ctx.Render(http.StatusOK, renderer)
 
 			return
 		}
 
-		renderer = vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step1(dto))
+		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step1(dto))
 
 		ctx.Render(http.StatusOK, renderer)
 	}
