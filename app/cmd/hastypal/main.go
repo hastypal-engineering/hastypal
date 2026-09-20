@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -30,9 +31,17 @@ func main() {
 	}
 
 	switch os.Args[1] {
+	case "seed":
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		seedService := app.Modules.Seed
+
+		if err := seedService.Run(ctx); err != nil {
+			log.Fatal(err.Error())
+		}
 	default:
 		fmt.Printf("Unknown command: %s\n", os.Args[1])
 		os.Exit(1)
 	}
-
 }

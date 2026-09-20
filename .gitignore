@@ -22,8 +22,8 @@ go.work
 go.work.sum
 
 # env file
-api/.env
-api/migrate
-.idea
-
-.vscode
+app/.env
+migrate
+.impeccable
+AGENTS.md
+__debug*

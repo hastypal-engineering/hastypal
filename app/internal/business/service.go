@@ -8,7 +8,9 @@ import (
 )
 
 type BusinessService interface {
-	GetBusinessByID(ctx context.Context, ID int) (*Business, error)
+	GetBusinessByPublicID(ctx context.Context, ID string) (*Business, error)
+	CreateBusiness(ctx context.Context, business *Business) (int, error)
+	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error)
 }
 
 type Service struct {
@@ -23,12 +25,29 @@ func NewService(logger *slog.Logger, repo BusinessRepository) *Service {
 	}
 }
 
-func (s *Service) GetBusinessByID(ctx context.Context, ID int) (*Business, error) {
-	business, err := s.repo.GetByID(ctx, ID)
-
+func (s *Service) GetBusinessByPublicID(ctx context.Context, ID string) (*Business, error) {
+	business, err := s.repo.GetByPublicID(ctx, ID)
 	if err != nil {
-		return nil, eris.Wrap(err, "Error fetching business by ID")
+		return nil, eris.Wrapf(err, "Error fetching business by public ID %s", ID)
 	}
 
 	return business, nil
+}
+
+func (s *Service) CreateBusiness(ctx context.Context, business *Business) (int, error) {
+	ID, err := s.repo.Create(ctx, business)
+	if err != nil {
+		return 0, eris.Wrapf(err, "Error creating business %s", business.Name)
+	}
+
+	return ID, nil
+}
+
+func (s *Service) CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error) {
+	ID, err := s.repo.CreateService(ctx, service)
+	if err != nil {
+		return 0, eris.Wrapf(err, "Error creating service %s, for business with ID %d", service.Name, service.BusinessID)
+	}
+
+	return ID, nil
 }

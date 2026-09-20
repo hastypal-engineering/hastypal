@@ -1,30 +1,31 @@
+// Package business
 package business
 
+import "time"
+
 type Business struct {
-	Id             string              `json:"id"`
-	Name           string              `json:"name"`
-	ContactPhone   string              `json:"contactPhone"`
-	Email          string              `json:"email"`
-	Password       string              `json:"password"`
-	ServiceCatalog []ServiceCatalog    `json:"serviceCatalog"`
-	OpeningHours   map[string][]string `json:"openingHours"`
-	Holidays       map[string][]string `json:"holidays"`
-	ChannelName    string              `json:"channelName"`
-	Location       string              `json:"location"`
-	CreatedAt      string              `json:"createdAt"`
-	UpdatedAt      string              `json:"updatedAt"`
+	ID             int
+	PublicID       string
+	Name           string
+	ContactPhone   string
+	Email          string
+	Address        string
+	Country        string
+	Password       string
+	Lang           string
+	ServiceCatalog []*ServiceCatalog
+	DateAdd        time.Time
+	DateUpd        time.Time
 }
 
 type ServiceCatalog struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	Price      int    `json:"price"`
-	Currency   string `json:"currency"`
-	Duration   string `json:"duration"`
-	BusinessId string `json:"businessId"`
-}
-
-type BusinessConfig struct {
-	Step    int8   `json:"step"`
-	Content string `json:"content"`
+	ID          int
+	Name        string
+	Description string
+	Price       float64
+	Currency    string
+	Duration    string
+	BusinessID  int
+	DateAdd     time.Time
+	DateUpd     time.Time
 }

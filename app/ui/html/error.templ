@@ -1,0 +1,29 @@
+package html
+
+import "github.com/adriein/hastypal/internal/web"
+
+templ Error(dto *web.ErrorDTO) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<title>500 - Something Went Wrong</title>
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+		</head>
+		<body class="error">
+			<div class="card--error">
+				<div class="error__logo-wrapper">
+					<img src="/ui/static/images/hastypal_crab.png" alt="Hastypal Crab Logo"/>
+				</div>
+				<div class="error__code">Error 500</div>
+				<h1>Looks like we pinched a wire!</h1>
+				<p>Something went wrong on our end. Don't worry, our team has been notified and we're working to snap things back into place.</p>
+				<div class="error__actions">
+					<a href="/" class="btn--error btn--error-primary">Take Me Home</a>
+					<button onclick="window.location.reload()" class="btn--error btn--error-secondary">Try Again</button>
+				</div>
+			</div>
+		</body>
+	</html>
+}

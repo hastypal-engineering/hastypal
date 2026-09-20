@@ -1,0 +1,100 @@
+@layer components {
+  .header {
+    --header-bg: var(--color-bg-surface);
+    --header-accent: var(--color-primary);
+    --header-accent-fg: #ffffff;
+    --header-fg: var(--color-text-main);
+    --header-muted: var(--color-text-muted);
+    --header-dot-idle: var(--color-border);
+
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    background: var(--header-bg);
+    transition: background var(--transition-normal);
+
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  .header__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .header__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+  }
+
+  .header__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-md);
+    background: var(--header-accent);
+    color: var(--header-accent-fg);
+    font-size: 0.875rem;
+    transition: background var(--transition-normal);
+  }
+
+  .header__brand-text {
+    min-width: 0;
+  }
+
+  .header__name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.25;
+    color: var(--header-fg);
+  }
+
+  .header__tagline {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-xs);
+    font-style: italic;
+    line-height: 1.25;
+    color: var(--header-muted);
+  }
+
+  .header__steps {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-shrink: 0;
+  }
+
+  .header__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: var(--radius-full);
+    background: var(--header-dot-idle);
+    transition: all var(--transition-normal);
+
+    &.is-active {
+      width: 20px;
+      background: var(--header-fg);
+    }
+
+    &.is-done {
+      background: var(--header-accent);
+    }
+  }
+}

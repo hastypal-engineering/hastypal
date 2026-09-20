@@ -10,12 +10,12 @@ import (
 )
 
 type BookingService interface {
-	InitSession(ctx context.Context, businessID int, chatID int) (string, error)
+	InitSession(ctx context.Context, businessID int) (string, error)
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
-	RefreshSession(ctx context.Context, session *Session) error
+	PatchSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
-	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error)
+	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error)
 }
 
 type Service struct {
@@ -32,26 +32,25 @@ func NewService(logger *slog.Logger, sessionRepo SessionRepository, bookingRepo 
 	}
 }
 
-func (s *Service) InitSession(ctx context.Context, businessID int, chatID int) (string, error) {
-	sessionId := helper.ShortUuid()
+func (s *Service) InitSession(ctx context.Context, businessID int) (string, error) {
+	sessionID := helper.ShortUUID(8)
 
 	session := &Session{
-		Id:         sessionId,
-		BusinessId: businessID,
-		ChatId:     chatID,
-		ServiceId:  "",
+		ID:         sessionID,
+		BusinessID: businessID,
+		ServiceID:  0,
 		Date:       "",
 		Hour:       "",
 		DateAdd:    time.Now().UTC(),
 		DateUpd:    time.Now().UTC(),
-		Ttl:        time.Minute.Milliseconds() * 5,
+		TTL:        time.Minute.Milliseconds() * 5,
 	}
 
 	if err := s.sessionRepo.Save(ctx, session); err != nil {
 		return "", eris.Wrap(err, "Error storing the current session")
 	}
 
-	return sessionId, nil
+	return sessionID, nil
 }
 
 func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Session, error) {
@@ -64,7 +63,7 @@ func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Ses
 	return session, nil
 }
 
-func (s *Service) RefreshSession(ctx context.Context, session *Session) error {
+func (s *Service) PatchSession(ctx context.Context, session *Session) error {
 	session.Refresh()
 
 	if err := s.sessionRepo.Update(ctx, session); err != nil {
@@ -94,12 +93,12 @@ func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Sessio
 	return sessions, nil
 }
 
-func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID string, date time.Time) (string, error) {
+func (s *Service) RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error) {
 	booking := &Booking{
-		ID:         helper.Uuid().String(),
+		ID:         helper.UUID().String(),
 		SessionID:  sessionID,
 		BusinessID: businessID,
-		ServiceID:  serviceID,
+		ServiceID:  "",
 		Date:       date,
 	}
 

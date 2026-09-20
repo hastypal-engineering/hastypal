@@ -1,3 +1,4 @@
+// Package internal
 package internal
 
 import (
@@ -9,7 +10,11 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/database"
+	"github.com/adriein/hastypal/internal/booking"
+	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/internal/seed"
 	"github.com/adriein/hastypal/internal/telegram"
+	"github.com/adriein/hastypal/internal/web"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/adriein/hastypal/pkg/logger"
@@ -22,6 +27,8 @@ type Modules struct {
 	Database *sql.DB
 	Logger   *slog.Logger
 	Telegram telegram.TelegramService
+	Web      web.WebService
+	Seed     seed.SeedService
 }
 
 type App struct {
@@ -42,13 +49,10 @@ func NewApp() *App {
 		constants.DatabaseUrl,
 		constants.ServerPort,
 		constants.Env,
-		constants.Version,
-		constants.WhatsappBusinessApiToken,
 		constants.TelegramApiToken,
 		constants.TelegramApiBotUrl,
 		constants.GoogleClientId,
 		constants.GoogleClientSecret,
-		constants.JwtKey,
 	)
 
 	if envCheckerErr := checker.Check(); envCheckerErr != nil {
@@ -69,10 +73,21 @@ func NewApp() *App {
 }
 
 func initModules(db *sql.DB, logger *slog.Logger) *Modules {
+	businessRepo := business.NewPgBusinessRepository(db)
+	sessionRepo := booking.NewPgSessionRepository(db)
+	bookingRepo := booking.NewPgBookingRepository(db)
+
+	bookingService := booking.NewService(logger, sessionRepo, bookingRepo)
+	businessService := business.NewService(logger, businessRepo)
+	seedService := seed.NewService(logger, businessService)
+	webService := web.NewService(*logger, businessService, bookingService)
+
 	return &Modules{
 		Database: db,
 		Logger:   logger,
 		Telegram: nil,
+		Seed:     seedService,
+		Web:      webService,
 	}
 }
 

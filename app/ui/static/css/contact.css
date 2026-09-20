@@ -1,0 +1,96 @@
+@layer components {
+  .contact {
+    --contact-border: var(--color-border);
+    --contact-fg: var(--color-text-main);
+    --contact-label: #a8a29e;
+    --contact-row-border: var(--color-secondary);
+    --contact-icon-bg: var(--color-primary-light);
+    --contact-icon-fg: var(--color-text-muted);
+
+    margin-top: var(--space-6);
+    overflow: hidden;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--contact-border);
+    border-radius: var(--radius-lg);
+
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  .contact__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    list-style: none;
+    cursor: pointer;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::marker {
+      content: "";
+    }
+  }
+
+  .contact__toggle-label {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--contact-fg);
+  }
+
+  .contact__toggle-icon {
+    flex-shrink: 0;
+    color: var(--contact-icon-fg);
+    transition: transform var(--transition-normal);
+  }
+
+  .contact[open] .contact__toggle-icon {
+    transform: rotate(180deg);
+  }
+
+  .contact__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: 0.875rem var(--space-4);
+    text-decoration: none;
+    border-top: 1px solid var(--contact-row-border);
+  }
+
+  .contact__row-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border-radius: var(--radius-full);
+    background: var(--contact-icon-bg);
+    color: var(--contact-icon-fg);
+  }
+
+  .contact__row-body {
+    min-width: 0;
+  }
+
+  .contact__row-label {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-xs);
+    color: var(--contact-label);
+  }
+
+  .contact__row-value {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-main);
+  }
+}

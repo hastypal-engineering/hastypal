@@ -9,7 +9,7 @@ const TraceIDKey = "TraceID"
 
 func Tracer() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		traceID := helper.Uuid().String()
+		traceID := helper.UUID().String()
 
 		ctx.Set(TraceIDKey, traceID)
 

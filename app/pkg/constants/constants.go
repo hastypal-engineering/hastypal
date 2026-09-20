@@ -7,13 +7,10 @@ const (
 	ServerPort               = "SERVER_PORT"
 	Env                      = "ENV"
 	Pro                      = "PRO"
-	WhatsappBusinessApiToken = "WHATSAPP_BUSINESS_API_TOKEN"
 	TelegramApiToken         = "TELEGRAM_API_TOKEN"
 	TelegramApiBotUrl        = "TELEGRAM_BOT_API_URL"
 	GoogleClientId           = "GOOGLE_CLIENT_ID"
 	GoogleClientSecret       = "GOOGLE_CLIENT_SECRET"
-	JwtKey                   = "JWT_KEY"
-	Version                  = "Version"
 )
 
 // Criteria

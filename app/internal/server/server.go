@@ -1,3 +1,4 @@
+// Package server
 package server
 
 import (
@@ -5,7 +6,7 @@ import (
 	"os"
 
 	"github.com/adriein/hastypal/internal"
-	"github.com/adriein/hastypal/internal/web"
+	"github.com/adriein/hastypal/internal/controller"
 	"github.com/adriein/hastypal/pkg/constants"
 	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/adriein/hastypal/pkg/vendor"
@@ -23,15 +24,18 @@ func New(app *internal.App) *Server {
 	logger := app.Modules.Logger
 	engine := gin.New()
 
-	ginHtmlRenderer := engine.HTMLRender
+	ginHTMLRenderer := engine.HTMLRender
 
-	engine.HTMLRender = &vendor.HTMLTemplRenderer{FallbackHtmlRenderer: ginHtmlRenderer}
+	engine.HTMLRender = &vendor.HTMLTemplRenderer{FallbackHtmlRenderer: ginHTMLRenderer}
 
 	if os.Getenv(constants.Env) == constants.Pro {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	engine.SetTrustedProxies(nil)
+	if err := engine.SetTrustedProxies(nil); err != nil {
+		logger.Error(eris.ToString(err, true))
+		os.Exit(1)
+	}
 
 	engine.Use(gin.Logger(), gin.Recovery(), middleware.Tracer(), middleware.TimeZone())
 
@@ -57,33 +61,38 @@ func New(app *internal.App) *Server {
 }
 
 func (s *Server) routeSetup(app *internal.App) {
-	//HEALTH CHECK
-	s.gin.GET("/health", web.NewHealthController().Get())
+	// HEALTH CHECK
+	s.gin.GET("/health", controller.NewHealthController().Get())
 
-	//TELEGRAM WEBHOOK
+	// TELEGRAM WEBHOOK
 
 	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
 
+	s.gin.GET("/booking/:publicID/step-1", s.webController(app).GetStep1())
+
+	s.gin.POST("/booking/:publicID/step-1", s.webController(app).PostStep1())
+
 	cwd, _ := os.Getwd()
 
-	//STATIC
+	// STATIC
 	s.gin.Static("/ui/static", fmt.Sprintf("%s/ui/static", cwd))
-
-	//TODO: setup the routes again
 
 	/*
 		api.Route("GET /business/google-auth", constructGoogleAuthHandler(api))
 		api.Route("GET /business/google-auth-callback", constructGoogleAuthCallbackHandler(api, database))
-		api.Route("POST /business", constructCreateBusinessHandler(api, database))
-		api.Route("POST /business/login", constructLoginBusinessHandler(api, database))
-
-		api.Route("GET /notification/send", constructSendNotificationHandler(api, database))
 	*/
 }
 
-func (s *Server) webhookController(app *internal.App) *web.TelegramController {
+func (s *Server) webhookController(app *internal.App) *controller.TelegramController {
 	logger := app.Modules.Logger
 	service := app.Modules.Telegram
 
-	return web.NewTelegramController(logger, service)
+	return controller.NewTelegramController(logger, service)
+}
+
+func (s *Server) webController(app *internal.App) *controller.WebController {
+	logger := app.Modules.Logger
+	service := app.Modules.Web
+
+	return controller.NewWebController(logger, service)
 }
