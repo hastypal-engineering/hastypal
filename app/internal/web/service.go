@@ -6,11 +6,13 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/rotisserie/eris"
 )
 
 type WebService interface {
 	ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error)
+	StoreService(ctx context.Context, dto *BookingPatchDTO) error
 }
 
 type Service struct {
@@ -78,4 +80,27 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 	}
 
 	return dto, nil
+}
+
+func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error {
+	traceID := ctx.Value(middleware.TraceIDKey)
+
+	session, err := s.booking.GetCurrentSession(ctx, dto.SessionID)
+	if err != nil {
+		s.logger.Error("Error retrieving the session while storing the selected service", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Failed retrieving session to patch the booking")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		return eris.Wrap(err, "Session has expired")
+	}
+
+	session.ServiceID = dto.ServiceID
+
+	if err := s.booking.PatchSession(ctx, session); err != nil {
+		s.logger.Error("Error patching the session while storing the selected service", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Error patching the session with the serviceID")
+	}
+
+	return nil
 }

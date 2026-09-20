@@ -249,7 +249,7 @@ func (s *Service) showServices(ctx context.Context, update TelegramUpdate) error
 		return nil
 	}
 
-	if err := s.booking.RefreshSession(ctx, session); err != nil {
+	if err := s.booking.PatchSession(ctx, session); err != nil {
 		return eris.Wrap(err, "Error refreshing the current session")
 	}
 
@@ -359,7 +359,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 		return nil
 	}
 
-	if err := s.booking.RefreshSession(ctx, session); err != nil {
+	if err := s.booking.PatchSession(ctx, session); err != nil {
 		return eris.Wrap(err, "Error refreshing the current session")
 	}
 
@@ -577,7 +577,7 @@ func (s *Service) showHours(ctx context.Context, update TelegramUpdate) error {
 		return nil
 	}
 
-	if err := s.booking.RefreshSession(ctx, session); err != nil {
+	if err := s.booking.PatchSession(ctx, session); err != nil {
 		return eris.Wrap(err, "Error refreshing the current session")
 	}
 
@@ -715,7 +715,7 @@ func (s *Service) showConfirmation(ctx context.Context, update TelegramUpdate) e
 		return nil
 	}
 
-	if err := s.booking.RefreshSession(ctx, session); err != nil {
+	if err := s.booking.PatchSession(ctx, session); err != nil {
 		return eris.Wrap(err, "Error refreshing the current session")
 	}
 

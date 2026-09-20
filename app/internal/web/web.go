@@ -29,3 +29,8 @@ type BookingDTO struct {
 	Services  []*ServiceDTO
 	Business  *BusinessDTO
 }
+
+type BookingPatchDTO struct {
+	SessionID string
+	ServiceID int
+}

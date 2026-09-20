@@ -12,7 +12,7 @@ import (
 type BookingService interface {
 	InitSession(ctx context.Context, businessID int) (string, error)
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
-	RefreshSession(ctx context.Context, session *Session) error
+	PatchSession(ctx context.Context, session *Session) error
 	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
 	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error)
@@ -63,7 +63,7 @@ func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Ses
 	return session, nil
 }
 
-func (s *Service) RefreshSession(ctx context.Context, session *Session) error {
+func (s *Service) PatchSession(ctx context.Context, session *Session) error {
 	session.Refresh()
 
 	if err := s.sessionRepo.Update(ctx, session); err != nil {

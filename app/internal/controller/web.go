@@ -3,6 +3,7 @@ package controller
 import (
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/adriein/hastypal/internal/web"
 	"github.com/adriein/hastypal/pkg/middleware"
@@ -35,7 +36,6 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 			return
 		}
 
-
 		dto, err := c.service.ShowServices(ctx, req)
 		if err != nil {
 			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
@@ -49,6 +49,40 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 
 func (c *WebController) PostStep1() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		ctx.JSON(http.StatusOK, gin.H{})
+		traceID := ctx.Value(middleware.TraceIDKey)
+
+		publicID := ctx.Param("publicID")
+
+		rawServiceID := ctx.PostForm("service")
+
+		if rawServiceID == "" {
+			c.logger.Error("Error storing selected service, serviceID missing", "trace_id", traceID, "public_id", publicID)
+			return
+		}
+
+		sessionID := ctx.PostForm("sessionID")
+
+		if sessionID == "" {
+			c.logger.Error("Error storing selected service, sessionID missing", "trace_id", traceID, "public_id", publicID)
+			return
+		}
+
+		serviceID, err := strconv.Atoi(rawServiceID)
+		if err != nil {
+			c.logger.Error("Error storing selected service while parsing rawServiceID", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
+			return
+		}
+
+		dto := &web.BookingPatchDTO{
+			SessionID: sessionID,
+			ServiceID: serviceID,
+		}
+
+		if err := c.service.StoreService(ctx, dto); err != nil {
+			c.logger.Error("Error storing selected service", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
+			return
+		}
+
+		ctx.Redirect(203, "")
 	}
 }
