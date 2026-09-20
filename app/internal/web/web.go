@@ -1,6 +1,11 @@
 // Package web
 package web
 
+type ErrorDTO struct {
+	SessionID string
+	Business  *BusinessDTO
+}
+
 type GetServicesReq struct {
 	BusinessPublicID string `uri:"publicID" binding:"required"`
 }
