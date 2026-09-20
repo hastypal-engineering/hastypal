@@ -89,7 +89,7 @@
 
       svg {
         display: none;
-        color: #ffffff;
+        color: var(--color-white);
       }
     }
 
@@ -139,7 +139,7 @@
 
       .step__service_option__indicator {
         border: none;
-        background-color: #ffffff;
+        background-color: var(--color-white);
 
         svg {
           display: block;

@@ -1,0 +1,111 @@
+@layer components {
+  .error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--space-6);
+    background-color: var(--color-canvas);
+    color: var(--color-text-main);
+  }
+
+  .card--error {
+    padding: var(--space-8) var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    background: var(--color-bg-surface);
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+
+    h1 {
+      margin-bottom: var(--space-3);
+      font-family: var(--font-family-display);
+      font-size: var(--font-size-2xl);
+      font-weight: var(--font-weight-normal);
+      color: var(--color-text-main);
+    }
+
+    p {
+      margin-bottom: var(--space-6);
+      font-family: var(--font-family-base);
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+      color: var(--color-text-muted);
+    }
+  }
+
+  .error__logo-wrapper {
+    display: inline-block;
+    margin-bottom: var(--space-6);
+    animation: float 3s ease-in-out infinite;
+
+    img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+    }
+  }
+
+  .error__code {
+    margin-bottom: var(--space-2);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--color-primary);
+  }
+
+  .error__actions {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn--error {
+    padding: var(--space-3) var(--space-6);
+    border: none;
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+
+    &:active {
+      transform: scale(0.99);
+    }
+  }
+
+  .btn--error-primary {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    box-shadow: var(--shadow-md);
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+    }
+  }
+
+  .btn--error-secondary {
+    background-color: var(--color-secondary);
+    color: var(--color-text-main);
+
+    &:hover {
+      background-color: var(--color-secondary-hover);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+}
