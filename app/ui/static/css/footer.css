@@ -43,6 +43,23 @@
     transition: background var(--transition-normal);
   }
 
+  .footer__powered {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    margin-top: var(--space-4);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+
+    img {
+      width: 1rem;
+      height: 1rem;
+      object-fit: contain;
+    }
+  }
+
   main:has(.step__service_option__input:checked) .footer__continue {
     background: var(--color-primary);
     color: var(--color-bg-base);

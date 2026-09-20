@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -113,6 +114,6 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Redirect(203, "")
+		ctx.Redirect(http.StatusFound, fmt.Sprintf("/booking/%s/step-2", publicID))
 	}
 }

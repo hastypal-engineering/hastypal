@@ -40,6 +40,7 @@ templ Step1(dto *web.BookingDTO) {
 					<fieldset class="step__fields">
 						<legend class="sr-only">Choose a service</legend>
 						<form id="bookingForm" action={ fmt.Sprintf("/booking/%s/step-1", dto.Business.PublicID) } method="POST">
+							<input type="hidden" name="sessionID" value={ dto.SessionID }/>
 							<ul class="step__service_container list-unstyled">
 								for _, service := range dto.Services {
 									<li>
@@ -116,6 +117,10 @@ templ Step1(dto *web.BookingDTO) {
 						</button>
 						<button form="bookingForm" type="submit" class="footer__continue">Continue</button>
 					</div>
+					<span class="footer__powered">
+						<img src="/ui/static/images/hastypal_crab.png" alt="Hastypal logo"/>
+						Powered by hastypal
+					</span>
 				</footer>
 			</main>
 		</body>
