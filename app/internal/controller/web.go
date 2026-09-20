@@ -114,6 +114,58 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Redirect(http.StatusFound, fmt.Sprintf("/booking/%s/step-2", publicID))
+		ctx.Redirect(http.StatusFound, fmt.Sprintf("/booking/%s/step-2?sessionID=%s", publicID, sessionID))
+	}
+}
+
+func (c *WebController) GetStep2() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		traceID := ctx.Value(middleware.TraceIDKey)
+
+		var req web.GetDatesReq
+		if err := ctx.ShouldBindUri(&req); err != nil {
+			c.logger.Error("Error showing dates while binding GetDatesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
+
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+
+			ctx.Render(http.StatusOK, renderer)
+
+			return
+		}
+
+		if err := ctx.ShouldBindQuery(&req); err != nil {
+			c.logger.Error("Error showing dates while binding sessionID query param", "trace_id", traceID, "error", eris.ToString(err, true))
+
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+
+			ctx.Render(http.StatusOK, renderer)
+
+			return
+		}
+
+		if req.SessionID == "" {
+			c.logger.Error("Error showing dates, sessionID missing", "trace_id", traceID, "public_id", req.BusinessPublicID)
+
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+
+			ctx.Render(http.StatusOK, renderer)
+
+			return
+		}
+
+		dto, err := c.service.ShowDates(ctx, req)
+		if err != nil {
+			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", req.BusinessPublicID, "session_id", req.SessionID, "error", eris.ToString(err, true))
+
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+
+			ctx.Render(http.StatusOK, renderer)
+
+			return
+		}
+
+		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step2(dto))
+
+		ctx.Render(http.StatusOK, renderer)
 	}
 }

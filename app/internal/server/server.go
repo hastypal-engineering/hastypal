@@ -72,6 +72,8 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	s.gin.POST("/booking/:publicID/step-1", s.webController(app).PostStep1())
 
+	s.gin.GET("/booking/:publicID/step-2", s.webController(app).GetStep2())
+
 	cwd, _ := os.Getwd()
 
 	// STATIC

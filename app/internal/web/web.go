@@ -10,6 +10,11 @@ type GetServicesReq struct {
 	BusinessPublicID string `uri:"publicID" binding:"required"`
 }
 
+type GetDatesReq struct {
+	BusinessPublicID string `uri:"publicID" form:"publicID" binding:"required"`
+	SessionID        string `form:"sessionID"`
+}
+
 type ServiceDTO struct {
 	ID          int
 	Name        string

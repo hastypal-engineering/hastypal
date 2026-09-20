@@ -1,0 +1,21 @@
+
+package html
+
+import "github.com/adriein/hastypal/internal/web"
+
+templ Step2(dto *web.BookingDTO) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<title>{ dto.Business.Name }</title>
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+		</head>
+		<body>
+			<main>
+        <h1>Hello from step 2</h1>
+			</main>
+		</body>
+	</html>
+}

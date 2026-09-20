@@ -13,6 +13,7 @@ import (
 type WebService interface {
 	ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error)
 	StoreService(ctx context.Context, dto *BookingPatchDTO) error
+	ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error)
 }
 
 type Service struct {
@@ -103,4 +104,31 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 	}
 
 	return nil
+}
+
+func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error) {
+	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
+	if err != nil {
+		return nil, eris.Wrap(err, "Error showing services trying to fetch business by public ID")
+	}
+
+	session, err := s.booking.GetCurrentSession(ctx, req.SessionID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error creating session, to book on bussiness %d", business.ID)
+	}
+
+	dto := &BookingDTO{
+		SessionID: session.ID,
+		Step:      1,
+		Business: &BusinessDTO{
+			PublicID:    business.PublicID,
+			Name:        business.Name,
+			Email:       business.Email,
+			Address:     business.Address,
+			Phone:       business.ContactPhone,
+			Description: "the better business",
+		},
+	}
+
+	return dto, nil
 }
