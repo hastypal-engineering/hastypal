@@ -119,7 +119,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 
 	dto := &BookingDTO{
 		SessionID: session.ID,
-		Step:      1,
+		Step:      2,
 		Business: &BusinessDTO{
 			PublicID:    business.PublicID,
 			Name:        business.Name,

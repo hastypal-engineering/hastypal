@@ -1,7 +1,67 @@
-
 package html
 
-import "github.com/adriein/hastypal/internal/web"
+import (
+	"time"
+
+	"github.com/adriein/hastypal/internal/web"
+)
+
+var calendarMonthNames = [...]string{
+	"January", "February", "March", "April", "May", "June",
+	"July", "August", "September", "October", "November", "December",
+}
+
+var calendarDayNames = [...]string{"S", "M", "T", "W", "T", "F", "S"}
+
+func calendarCells(year int, month time.Month) []*time.Time {
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+
+	offset := int(firstOfMonth.Weekday())
+
+	start := firstOfMonth.AddDate(0, 0, -offset)
+
+	cells := make([]*time.Time, 0, 42)
+
+	for day := start; len(cells) < 42; day = day.AddDate(0, 0, 1) {
+		if day.Month() == month {
+			current := day
+			cells = append(cells, &current)
+		} else {
+			cells = append(cells, nil)
+		}
+	}
+
+	return cells
+}
+
+func calendarDayClass(cell *time.Time, now time.Time) string {
+	class := "calendar__day"
+
+	if cell.Before(now) {
+		class += " is-past"
+	}
+
+	return class
+}
+
+type timeslot struct {
+	Label       string
+	Unavailable bool
+}
+
+func sampleTimeslots() []timeslot {
+	return []timeslot{
+		{Label: "09:00"},
+		{Label: "09:30"},
+		{Label: "10:00", Unavailable: true},
+		{Label: "10:30"},
+		{Label: "11:00"},
+		{Label: "11:30", Unavailable: true},
+		{Label: "12:00"},
+		{Label: "12:30"},
+		{Label: "13:00"},
+	}
+}
 
 templ Step2(dto *web.BookingDTO) {
 	<html>
@@ -14,7 +74,109 @@ templ Step2(dto *web.BookingDTO) {
 		</head>
 		<body>
 			<main>
-        <h1>Hello from step 2</h1>
+				@Header(dto)
+				<div class="step">
+					<div class="step__header">
+						<p class="step__indicator">Step { dto.Step }</p>
+						<h2 class="step__title">Pick a Date and Time</h2>
+						<p class="step__instruction">Select an available slot to continue.</p>
+					</div>
+					<div class="calendar">
+						<div class="calendar__nav">
+							<button type="button" class="calendar__arrow is-disabled" aria-label="Previous month">
+								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+									<path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+								</svg>
+							</button>
+							<p class="calendar__month">{ calendarMonthNames[int(time.Now().Month())-1] } { time.Now().Year() }</p>
+							<button type="button" class="calendar__arrow" aria-label="Next month">
+								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+									<path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+								</svg>
+							</button>
+						</div>
+						<div class="calendar__weekdays">
+							for _, day := range calendarDayNames {
+								<div class="calendar__weekday">{ day }</div>
+							}
+						</div>
+						<div class="calendar__grid">
+							for _, cell := range calendarCells(time.Now().Year(), time.Now().Month()) {
+								if cell == nil {
+									<div></div>
+								} else {
+									<button type="button" class={ calendarDayClass(cell, time.Now()) }>
+										{ cell.Day() }
+										if cell.Day() == time.Now().Day() {
+											<span class="calendar__today-dot"></span>
+										}
+									</button>
+								}
+							}
+						</div>
+						<p class="calendar__caption">{ time.Now().Format("Monday, January 2") }</p>
+					</div>
+					<div class="timeslots">
+						<div class="timeslots__divider"></div>
+						<p class="timeslots__label">Available times — { time.Now().Format("Jan 2") }</p>
+						<div class="timeslots__grid">
+							for _, slot := range sampleTimeslots() {
+								if slot.Unavailable {
+									<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
+								} else {
+									<button type="button" class="timeslots__option">{ slot.Label }</button>
+								}
+							}
+						</div>
+						<p class="timeslots__footnote">Strikethrough times are booked.</p>
+					</div>
+					<details class="contact">
+						<summary class="contact__toggle">
+							<span class="contact__toggle-label">Need help?</span>
+							<svg class="contact__toggle-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+								<path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+						</summary>
+						<div class="contact__rows">
+							<a class="contact__row" href={ "mailto:" + dto.Business.Email }>
+								<div class="contact__row-icon">
+									<svg width="13" height="11" viewBox="0 0 13 11" fill="none">
+										<rect x="0.5" y="0.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1"></rect>
+										<path d="M1 1.5L6.5 6L12 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"></path>
+									</svg>
+								</div>
+								<div class="contact__row-body">
+									<p class="contact__row-label">Email</p>
+									<p class="contact__row-value">{ dto.Business.Email }</p>
+								</div>
+							</a>
+							<a class="contact__row" href={ "tel:" + dto.Business.Phone }>
+								<div class="contact__row-icon">
+									<svg width="12" height="13" viewBox="0 0 12 13" fill="none">
+										<path d="M1.5 1.5C1.5 1.5 3 1 3.5 2.5C4 4 4.5 4.5 4.5 4.5C4.5 4.5 5 5 4 5.5C3 6 3.5 7 4.5 8C5.5 9 6.5 9.5 7 8.5C7.5 7.5 8 8 8 8C8 8 8.5 8.5 10 9C11.5 9.5 11 11 11 11C11 11 10 12 8.5 11C4 8.5 1 4 1.5 1.5Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+								</div>
+								<div class="contact__row-body">
+									<p class="contact__row-label">Phone</p>
+									<p class="contact__row-value">{ dto.Business.Phone }</p>
+								</div>
+							</a>
+							<div class="contact__row">
+								<div class="contact__row-icon">
+									<svg width="10" height="13" viewBox="0 0 10 13" fill="none">
+										<path d="M5 1C2.8 1 1 2.8 1 5C1 7.8 5 12 5 12C5 12 9 7.8 9 5C9 2.8 7.2 1 5 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+										<circle cx="5" cy="5" r="1.5" stroke="currentColor" stroke-width="1"></circle>
+									</svg>
+								</div>
+								<div class="contact__row-body">
+									<p class="contact__row-label">Address</p>
+									<p class="contact__row-value">{ dto.Business.Address }</p>
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+				@Footer(dto)
 			</main>
 		</body>
 	</html>

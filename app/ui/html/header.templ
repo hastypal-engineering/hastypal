@@ -1,0 +1,22 @@
+package html
+
+import "github.com/adriein/hastypal/internal/web"
+
+templ Header(dto *web.BookingDTO) {
+	<header class="header">
+		<div class="header__content">
+			<div class="header__brand">
+				<div class="header__logo" aria-hidden="true">H</div>
+				<div class="header__brand-text">
+					<p class="header__name">{ dto.Business.Name }</p>
+					<p class="header__tagline">{ dto.Business.Description }</p>
+				</div>
+			</div>
+			<div class="header__steps" aria-label="Progress">
+				for i := range 4 {
+					<span class={ "header__dot", templ.KV("is-active", dto.Step == i+1) }></span>
+				}
+			</div>
+		</div>
+	</header>
+}
