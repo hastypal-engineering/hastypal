@@ -29,3 +29,37 @@ type ServiceCatalog struct {
 	DateAdd     time.Time
 	DateUpd     time.Time
 }
+
+type BusinessSchedule struct {
+	WeeklySchedule []*OperatingDay
+	Holidays       []*Holiday
+	Overrides      []*ScheduleOverride
+}
+
+type OperatingDay struct {
+	DayOfWeek time.Weekday
+	IsClosed  bool
+	TimeSlots []TimeSlot
+}
+
+type TimeSlot struct {
+	OpenTime  string
+	CloseTime string
+}
+
+type Holiday struct {
+	ID          int
+	Name        string
+	StartDate   time.Time
+	EndDate     time.Time
+	IsRecurring bool
+	IsClosed    bool
+	Type        string
+}
+
+type ScheduleOverride struct {
+	Date      time.Time
+	IsClosed  bool
+	TimeSlots []TimeSlot
+	Reason    string
+}

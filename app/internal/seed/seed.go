@@ -198,6 +198,85 @@ var ServiceSeed = map[string][]*business.ServiceCatalog{
 	},
 }
 
+var WeeklyScheduleSeed = []*business.OperatingDay{
+	{
+		DayOfWeek: time.Monday,
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "17:00"},
+		},
+	},
+	{
+		DayOfWeek: time.Tuesday,
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "17:00"},
+		},
+	},
+	{
+		DayOfWeek: time.Wednesday,
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "17:00"},
+		},
+	},
+	{
+		DayOfWeek: time.Thursday,
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "17:00"},
+		},
+	},
+	{
+		DayOfWeek: time.Friday,
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "17:00"},
+		},
+	},
+	{
+		DayOfWeek: time.Saturday,
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "13:00"},
+		},
+	},
+	{
+		DayOfWeek: time.Sunday,
+		IsClosed:  true,
+	},
+}
+
+var HolidaySeed = []*business.Holiday{
+	{
+		Name:        "Thanksgiving",
+		StartDate:   time.Date(2026, time.November, 26, 0, 0, 0, 0, time.UTC),
+		EndDate:     time.Date(2026, time.November, 27, 0, 0, 0, 0, time.UTC),
+		IsRecurring: false,
+		IsClosed:    true,
+		Type:        "public",
+	},
+	{
+		Name:        "Christmas Day",
+		StartDate:   time.Date(2026, time.December, 25, 0, 0, 0, 0, time.UTC),
+		EndDate:     time.Date(2026, time.December, 25, 0, 0, 0, 0, time.UTC),
+		IsRecurring: true,
+		IsClosed:    true,
+		Type:        "public",
+	},
+}
+
+var OverrideSeed = []*business.ScheduleOverride{
+	{
+		Date: time.Date(2026, time.November, 25, 0, 0, 0, 0, time.UTC),
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "13:00"},
+		},
+		Reason: "Day after Thanksgiving",
+	},
+	{
+		Date: time.Date(2026, time.December, 24, 0, 0, 0, 0, time.UTC),
+		TimeSlots: []business.TimeSlot{
+			{OpenTime: "09:00", CloseTime: "13:00"},
+		},
+		Reason: "Christmas Eve",
+	},
+}
+
 var BusinessSeed = []*business.Business{
 	{
 		Name:           "Serenity Wellness Spa",
@@ -243,4 +322,41 @@ var BusinessSeed = []*business.Business{
 		DateAdd:        time.Now(),
 		DateUpd:        time.Now(),
 	},
+}
+
+// ScheduleSeed holds the business schedule of every seeded business, keyed by business name
+var ScheduleSeed = map[string]*business.BusinessSchedule{
+	"Serenity Wellness Spa":    newSchedule(),
+	"Glam Hair Studio":         newSchedule(),
+	"Grand Heritage Hotel":     newSchedule(),
+	"Savor & Flame Restaurant": newSchedule(),
+}
+
+// newSchedule builds a fresh schedule, the operating days and the overrides are
+// persisted with IDs assigned by the database so each business needs its own copy
+func newSchedule() *business.BusinessSchedule {
+	weeklySchedule := make([]*business.OperatingDay, 0, len(WeeklyScheduleSeed))
+	for _, day := range WeeklyScheduleSeed {
+		weeklySchedule = append(weeklySchedule, &business.OperatingDay{
+			DayOfWeek: day.DayOfWeek,
+			IsClosed:  day.IsClosed,
+			TimeSlots: day.TimeSlots,
+		})
+	}
+
+	overrides := make([]*business.ScheduleOverride, 0, len(OverrideSeed))
+	for _, override := range OverrideSeed {
+		overrides = append(overrides, &business.ScheduleOverride{
+			Date:      override.Date,
+			IsClosed:  override.IsClosed,
+			TimeSlots: override.TimeSlots,
+			Reason:    override.Reason,
+		})
+	}
+
+	return &business.BusinessSchedule{
+		WeeklySchedule: weeklySchedule,
+		Holidays:       HolidaySeed,
+		Overrides:      overrides,
+	}
 }

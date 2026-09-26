@@ -52,6 +52,17 @@ func (s *Service) Run(ctx context.Context) error {
 				return eris.Wrapf(err, "Error creating fake service %s", fakeService.Name)
 			}
 		}
+
+		schedule, found := ScheduleSeed[fakeBusiness.Name]
+		if !found {
+			continue
+		}
+
+		s.logger.Debug(fmt.Sprintf("Creating fake schedule for business %s", fakeBusiness.Name))
+
+		if err := s.business.CreateBusinessSchedule(ctx, businessID, schedule); err != nil {
+			return eris.Wrapf(err, "Error creating fake schedule for business %s", fakeBusiness.Name)
+		}
 	}
 
 	return nil

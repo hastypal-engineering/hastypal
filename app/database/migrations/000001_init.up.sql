@@ -27,21 +27,74 @@ CREATE TABLE IF NOT EXISTS ha_service_catalog (
     hasc_business_id BIGINT NOT NULL,
     hasc_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     hasc_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    CONSTRAINT fk_service_catalog_business FOREIGN KEY(hasc_business_id) REFERENCES ha_business(hab_id)
+    CONSTRAINT fk_service_catalog_business FOREIGN KEY(hasc_business_id) 
+      REFERENCES ha_business(hab_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS ha_booking_session (
     habs_id VARCHAR(36) PRIMARY KEY,
     habs_business_id BIGINT NOT NULL,
     habs_service_id BIGINT NOT NULL,
-    habs_date VARCHAR(60) NOT NULL,
-    habs_hour VARCHAR(5) NOT NULL,
+    habs_date DATE NOT NULL,
+    habs_time TIME NOT NULL,
     habs_ttl INTEGER NOT NULL,
     habs_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     habs_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
-    CONSTRAINT fk_booking_session_business FOREIGN KEY(habs_business_id) REFERENCES ha_business(hab_id)
+    CONSTRAINT fk_booking_session_business FOREIGN KEY(habs_business_id) 
+      REFERENCES ha_business(hab_id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS ha_business_holiday (
+    habh_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    habh_business_id BIGINT NOT NULL,
+    habh_name VARCHAR NOT NULL,
+    habh_start_date DATE NOT NULL,
+    habh_end_date DATE NOT NULL,
+    habh_is_recurring BOOLEAN NOT NULL,
+    habh_is_closed BOOLEAN NOT NULL,
+    habh_type VARCHAR(36) NOT NULL,
+    habh_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    habh_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
+    CONSTRAINT fk_holiday_business FOREIGN KEY(habh_business_id) 
+      REFERENCES ha_business(hab_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS ha_business_operating_day (
+    habod_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    habod_business_id BIGINT NOT NULL,
+    habod_day_of_week SMALLINT NOT NULL,
+    habod_is_closed BOOLEAN NOT NULL,
+    CONSTRAINT fk_operating_day_business FOREIGN KEY(habod_business_id) 
+      REFERENCES ha_business(hab_id) ON DELETE CASCADE,
+    CONSTRAINT uq_business_operating_day UNIQUE (habod_business_id, habod_day_of_week)
+);
+
+CREATE TABLE IF NOT EXISTS ha_business_schedule_override (
+    habso_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    habso_business_id BIGINT NOT NULL,
+    habso_date DATE NOT NULL,
+    habso_is_closed BOOLEAN NOT NULL,
+    habso_reason VARCHAR NOT NULL,
+    CONSTRAINT fk_schedule_override_business FOREIGN KEY(habso_business_id) 
+      REFERENCES ha_business(hab_id) ON DELETE CASCADE,
+    CONSTRAINT uq_business_override_date UNIQUE (habso_business_id, habso_date)
+);
+
+CREATE TABLE IF NOT EXISTS ha_business_time_slot (
+    habts_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    habts_operating_day_id BIGINT NULL,
+    habts_override_id BIGINT NULL,
+    habts_open_time TIME NOT NULL,
+    habts_close_time TIME NOT NULL,
+    CONSTRAINT fk_time_slot_operating_day FOREIGN KEY(habts_operating_day_id) 
+      REFERENCES ha_business_operating_day(habod_id) ON DELETE CASCADE,
+    CONSTRAINT fk_time_slot_override FOREIGN KEY(habts_override_id)
+      REFERENCES ha_business_schedule_override(habso_id) ON DELETE CASCADE,
+    CONSTRAINT ck_time_slot_parent CHECK (
+      (habts_operating_day_id IS NOT NULL AND habts_override_id IS NULL) OR
+      (habts_operating_day_id IS NULL AND habts_override_id IS NOT NULL)
+    )
+);
 -- CREATE TABLE IF NOT EXISTS ha_employees (
 --     hae_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
 --     hae_name VARCHAR(255) NOT NULL,
@@ -49,20 +102,6 @@ CREATE TABLE IF NOT EXISTS ha_booking_session (
 --     hae_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
 --     hae_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
 --     CONSTRAINT fk_employees_business FOREIGN KEY(hae_business_id) REFERENCES ha_business(hab_id)
--- )
-
--- CREATE TABLE IF NOT EXISTS ha_open_hours (
---     haoh_business_id BIGINT,
---     haoh_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
---     haoh_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
---     CONSTRAINT fk_service_catalog_business FOREIGN KEY(haoh_business_id) REFERENCES ha_business(hab_id)
--- )
-
--- CREATE TABLE IF NOT EXISTS ha_business_holidays (
---     habh_business_id BIGINT,
---     habh_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
---     habh_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
---     CONSTRAINT fk_service_catalog_business FOREIGN KEY(habh_business_id) REFERENCES ha_business(hab_id)
 -- )
 
 --

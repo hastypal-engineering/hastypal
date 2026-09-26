@@ -34,7 +34,7 @@ func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error 
 			habs_business_id,
 			habs_service_id,
 			habs_date,
-			habs_hour,
+			habs_time,
 			habs_ttl,
 			habs_date_add,
 			habs_date_upd
@@ -68,7 +68,7 @@ func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*S
 			habs_business_id,
 			habs_service_id,
 			habs_date,
-			habs_hour,
+			habs_time,
 			habs_ttl,
 			habs_date_add,
 			habs_date_upd
@@ -110,7 +110,7 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 		SET
 			habs_service_id = $2,
 			habs_date = $3,
-			habs_hour = $4,
+			habs_time = $4,
 			habs_ttl = $5,
 			habs_date_upd = $6
 		WHERE

@@ -9,8 +9,10 @@ import (
 
 type BusinessService interface {
 	GetBusinessByPublicID(ctx context.Context, ID string) (*Business, error)
+	GetBusinessSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error)
 	CreateBusiness(ctx context.Context, business *Business) (int, error)
 	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error)
+	CreateBusinessSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error
 }
 
 type Service struct {
@@ -50,4 +52,21 @@ func (s *Service) CreateServiceCatalog(ctx context.Context, service *ServiceCata
 	}
 
 	return ID, nil
+}
+
+func (s *Service) GetBusinessSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error) {
+	schedule, err := s.repo.GetSchedule(ctx, businessID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error fetching schedule for business with ID %d", businessID)
+	}
+
+	return schedule, nil
+}
+
+func (s *Service) CreateBusinessSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error {
+	if err := s.repo.CreateSchedule(ctx, businessID, schedule); err != nil {
+		return eris.Wrapf(err, "Error creating schedule for business with ID %d", businessID)
+	}
+
+	return nil
 }
