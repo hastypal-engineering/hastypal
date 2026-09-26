@@ -435,20 +435,6 @@ func (r *PgBusinessRepository) GetSchedule(ctx context.Context, businessID int) 
 	return schedule, nil
 }
 
-func parseTimeSlot(slot TimeSlot) (time.Time, time.Time, error) {
-	openTime, err := time.Parse(timeOnlyFormat, slot.OpenTime)
-	if err != nil {
-		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot open time %s", slot.OpenTime)
-	}
-
-	closeTime, err := time.Parse(timeOnlyFormat, slot.CloseTime)
-	if err != nil {
-		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot close time %s", slot.CloseTime)
-	}
-
-	return openTime, closeTime, nil
-}
-
 func (r *PgBusinessRepository) GetByID(ctx context.Context, ID int) (*Business, error) {
 	query := `
 		SELECT

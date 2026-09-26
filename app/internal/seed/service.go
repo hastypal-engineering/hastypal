@@ -31,6 +31,7 @@ func (s *Service) Run(ctx context.Context) error {
 
 	for _, fakeBusiness := range BusinessSeed {
 		s.logger.Debug(fmt.Sprintf("Creating fake business %s", fakeBusiness.Name))
+
 		publicID, err := helper.GenerateUniqueSlug(fakeBusiness.Name, false)
 		if err != nil {
 			return eris.Wrapf(err, "Failed creating slug for business %s", fakeBusiness.Name)

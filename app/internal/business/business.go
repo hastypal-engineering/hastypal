@@ -1,7 +1,11 @@
 // Package business
 package business
 
-import "time"
+import (
+	"time"
+
+	"github.com/rotisserie/eris"
+)
 
 type Business struct {
 	ID             int
@@ -45,6 +49,20 @@ type OperatingDay struct {
 type TimeSlot struct {
 	OpenTime  string
 	CloseTime string
+}
+
+func parseTimeSlot(slot TimeSlot) (time.Time, time.Time, error) {
+	openTime, err := time.Parse(timeOnlyFormat, slot.OpenTime)
+	if err != nil {
+		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot open time %s", slot.OpenTime)
+	}
+
+	closeTime, err := time.Parse(timeOnlyFormat, slot.CloseTime)
+	if err != nil {
+		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot close time %s", slot.CloseTime)
+	}
+
+	return openTime, closeTime, nil
 }
 
 type Holiday struct {
