@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/adriein/hastypal/internal/booking"
@@ -114,14 +115,24 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error) {
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
-		return nil, eris.Wrap(err, "Error showing services trying to fetch business by public ID")
+		return nil, eris.Wrap(err, "Error showing dates trying to fetch business by public ID")
 	}
 
 	session, err := s.booking.GetCurrentSession(ctx, req.SessionID)
 	if err != nil {
-		return nil, eris.Wrapf(err, "Error creating session, to book on bussiness %d", business.ID)
+		return nil, eris.Wrapf(err, "Error showing dates while fetching session, to book on bussiness %d", business.ID)
 	}
 
+	if err := session.EnsureIsValid(); err != nil {
+		return nil, eris.Wrap(err, "Error showing dates, session has expired")
+	}
+
+	schedule, err := s.business.GetBusinessSchedule(ctx, business.ID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
+	}
+
+	fmt.Println(schedule)
 	dto := &BookingDTO{
 		SessionID: session.ID,
 		Step:      2,

@@ -34,9 +34,9 @@ CREATE TABLE IF NOT EXISTS ha_service_catalog (
 CREATE TABLE IF NOT EXISTS ha_booking_session (
     habs_id VARCHAR(36) PRIMARY KEY,
     habs_business_id BIGINT NOT NULL,
-    habs_service_id BIGINT NOT NULL,
-    habs_date DATE NOT NULL,
-    habs_time TIME NOT NULL,
+    habs_service_id BIGINT NULL,
+    habs_date DATE NULL,
+    habs_time TIME NULL,
     habs_ttl INTEGER NOT NULL,
     habs_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     habs_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,

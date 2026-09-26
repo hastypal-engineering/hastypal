@@ -1,6 +1,8 @@
 // Package web
 package web
 
+import "time"
+
 type ErrorDTO struct {
 	SessionID string
 	Business  *BusinessDTO
@@ -13,6 +15,7 @@ type GetServicesReq struct {
 type GetDatesReq struct {
 	BusinessPublicID string `uri:"publicID" form:"publicID" binding:"required"`
 	SessionID        string `form:"sessionID"`
+	Day              time.Time
 }
 
 type ServiceDTO struct {
@@ -43,4 +46,14 @@ type BookingDTO struct {
 type BookingPatchDTO struct {
 	SessionID string
 	ServiceID int
+}
+
+type SelectableHourDTO struct {
+	Hour        string
+	IsAvailable bool
+}
+
+type BookingDatesDTO struct {
+	Calendar    string
+	HoursPerDay map[string]SelectableHourDTO
 }

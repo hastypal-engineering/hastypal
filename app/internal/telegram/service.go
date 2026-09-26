@@ -719,11 +719,7 @@ func (s *Service) showConfirmation(ctx context.Context, update TelegramUpdate) e
 		return eris.Wrap(err, "Error refreshing the current session")
 	}
 
-	selectedDate, err := time.Parse(time.DateTime, session.Date)
-
-	if err != nil {
-		return eris.Wrap(err, "Error parsing selected date")
-	}
+	selectedDate := session.Date
 
 	dateParts := strings.Split(selectedDate.Format(time.RFC822), " ")
 
@@ -845,19 +841,22 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 		return nil
 	}
 
-	combinedStr := fmt.Sprintf("%s %s", session.Date, session.Hour)
-
 	loc, err := time.LoadLocation("Europe/Madrid")
 
 	if err != nil {
 		return eris.Wrap(err, "Error loading location")
 	}
 
-	mergedTime, err := time.ParseInLocation(time.DateTime, combinedStr, loc)
-
-	if err != nil {
-		eris.Wrap(err, "Error merging date and hour")
-	}
+	mergedTime := time.Date(
+		session.Date.Year(),
+		session.Date.Month(),
+		session.Date.Day(),
+		0,
+		0,
+		0,
+		0,
+		loc,
+	).Add(session.Hour)
 
 	bookingID, err := s.booking.RegisterBooking(ctx, sessionID, session.BusinessID, session.ServiceID, mergedTime)
 

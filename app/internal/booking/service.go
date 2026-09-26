@@ -38,12 +38,9 @@ func (s *Service) InitSession(ctx context.Context, businessID int) (string, erro
 	session := &Session{
 		ID:         sessionID,
 		BusinessID: businessID,
-		ServiceID:  0,
-		Date:       "",
-		Hour:       "",
 		DateAdd:    time.Now().UTC(),
 		DateUpd:    time.Now().UTC(),
-		TTL:        time.Minute.Milliseconds() * 5,
+		TTL:        5 * time.Minute,
 	}
 
 	if err := s.sessionRepo.Save(ctx, session); err != nil {

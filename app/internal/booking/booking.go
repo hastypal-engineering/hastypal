@@ -23,9 +23,9 @@ type Session struct {
 	ID         string
 	BusinessID int
 	ServiceID  int
-	Date       string
-	Hour       string
-	TTL        int64
+	Date       time.Time
+	Hour       time.Duration
+	TTL        time.Duration
 	SlotIndex  int
 	DateAdd    time.Time
 	DateUpd    time.Time

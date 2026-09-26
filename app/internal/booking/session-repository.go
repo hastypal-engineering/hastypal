@@ -6,6 +6,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/rotisserie/eris"
 )
 
@@ -48,9 +49,9 @@ func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error 
 		session.ID,
 		session.BusinessID,
 		session.ServiceID,
-		session.Date,
-		session.Hour,
-		session.TTL,
+		helper.DateToDB(session.Date),
+		helper.HourToDB(session.Hour),
+		session.TTL.Milliseconds(),
 		session.DateAdd,
 		session.DateUpd,
 	)
@@ -83,13 +84,20 @@ func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*S
 
 	session := &Session{}
 
+	var (
+		serviceID sql.NullInt64
+		date      sql.NullTime
+		hour      sql.NullTime
+		ttl       sql.NullInt64
+	)
+
 	err := r.connection.QueryRowContext(ctxTimeout, query, sessionID).Scan(
 		&session.ID,
 		&session.BusinessID,
-		&session.ServiceID,
-		&session.Date,
-		&session.Hour,
-		&session.TTL,
+		&serviceID,
+		&date,
+		&hour,
+		&ttl,
 		&session.DateAdd,
 		&session.DateUpd,
 	)
@@ -99,6 +107,17 @@ func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*S
 		}
 
 		return nil, eris.Wrap(err, "Failed to query session by ID")
+	}
+
+	session.ServiceID = int(serviceID.Int64)
+	session.TTL = time.Duration(ttl.Int64) * time.Millisecond
+
+	if date.Valid {
+		session.Date = date.Time
+	}
+
+	if hour.Valid {
+		session.Hour = helper.HourFromDB(hour.Time)
 	}
 
 	return session, nil
@@ -122,9 +141,9 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 		query,
 		session.ID,
 		session.ServiceID,
-		session.Date,
-		session.Hour,
-		session.TTL,
+		helper.DateToDB(session.Date),
+		helper.HourToDB(session.Hour),
+		session.TTL.Milliseconds(),
 		session.DateUpd,
 	)
 	if err != nil {
