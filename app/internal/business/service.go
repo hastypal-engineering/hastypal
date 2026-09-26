@@ -10,6 +10,7 @@ import (
 type BusinessService interface {
 	GetBusinessByPublicID(ctx context.Context, ID string) (*Business, error)
 	GetBusinessSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error)
+	GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error)
 	CreateBusiness(ctx context.Context, business *Business) (int, error)
 	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error)
 	CreateBusinessSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error
@@ -61,6 +62,15 @@ func (s *Service) GetBusinessSchedule(ctx context.Context, businessID int) (*Bus
 	}
 
 	return schedule, nil
+}
+
+func (s *Service) GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error) {
+	services, err := s.repo.GetServiceCatalog(ctx, businessID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error fetching service catalog for business with ID %d", businessID)
+	}
+
+	return services, nil
 }
 
 func (s *Service) CreateBusinessSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error {

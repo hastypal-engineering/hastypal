@@ -8,18 +8,17 @@ import (
 )
 
 type Business struct {
-	ID             int
-	PublicID       string
-	Name           string
-	ContactPhone   string
-	Email          string
-	Address        string
-	Country        string
-	Password       string
-	Lang           string
-	ServiceCatalog []*ServiceCatalog
-	DateAdd        time.Time
-	DateUpd        time.Time
+	ID           int
+	PublicID     string
+	Name         string
+	ContactPhone string
+	Email        string
+	Address      string
+	Country      string
+	Password     string
+	Lang         string
+	DateAdd      time.Time
+	DateUpd      time.Time
 }
 
 type ServiceCatalog struct {

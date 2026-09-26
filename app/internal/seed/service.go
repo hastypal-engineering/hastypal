@@ -44,7 +44,12 @@ func (s *Service) Run(ctx context.Context) error {
 			return eris.Wrapf(err, "Error creating fake business %s", fakeBusiness.Name)
 		}
 
-		for _, fakeService := range fakeBusiness.ServiceCatalog {
+		catalog, found := CatalogSeed[fakeBusiness.Name]
+		if !found {
+			continue
+		}
+
+		for _, fakeService := range catalog {
 			s.logger.Debug(fmt.Sprintf("Creating fake service %s", fakeService.Name))
 
 			fakeService.BusinessID = businessID

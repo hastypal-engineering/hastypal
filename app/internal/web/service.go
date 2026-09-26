@@ -51,9 +51,14 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 		return nil, eris.Wrapf(err, "Error creating session, to book on bussiness %d", business.ID)
 	}
 
+	catalog, err := s.business.GetServiceCatalog(ctx, business.ID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing services trying to fetch the catalog of business %d", business.ID)
+	}
+
 	var services []*ServiceDTO
 
-	for _, service := range business.ServiceCatalog {
+	for _, service := range catalog {
 		dto := &ServiceDTO{
 			ID:          service.ID,
 			Name:        service.Name,

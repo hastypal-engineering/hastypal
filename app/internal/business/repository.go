@@ -3,6 +3,7 @@ package business
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/adriein/hastypal/database"
@@ -17,6 +18,7 @@ type BusinessRepository interface {
 	Create(ctx context.Context, business *Business) (int, error)
 	CreateService(ctx context.Context, service *ServiceCatalog) (int, error)
 	CreateSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error
+	GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error)
 	GetSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error)
 	GetByID(ctx context.Context, ID int) (*Business, error)
 	GetByPublicID(ctx context.Context, ID string) (*Business, error)
@@ -108,6 +110,66 @@ func (r *PgBusinessRepository) CreateService(ctx context.Context, service *Servi
 	}
 
 	return service.ID, nil
+}
+
+func (r *PgBusinessRepository) GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error) {
+	query := `
+		SELECT
+			hasc_id,
+			hasc_name,
+			hasc_description,
+			hasc_price,
+			hasc_currency,
+			hasc_duration,
+			hasc_business_id,
+			hasc_date_add,
+			hasc_date_upd
+		FROM
+			ha_service_catalog
+		WHERE
+			hasc_business_id = $1
+		ORDER BY
+			hasc_id;
+	`
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	rows, err := r.connection.QueryContext(ctxTimeout, query, businessID)
+	if err != nil {
+		return nil, eris.Wrap(err, "Failed to query service catalog")
+	}
+
+	defer database.CloseRowsSafely(rows, &err)
+
+	var services []*ServiceCatalog
+
+	for rows.Next() {
+		var service ServiceCatalog
+
+		err = rows.Scan(
+			&service.ID,
+			&service.Name,
+			&service.Description,
+			&service.Price,
+			&service.Currency,
+			&service.Duration,
+			&service.BusinessID,
+			&service.DateAdd,
+			&service.DateUpd,
+		)
+		if err != nil {
+			return nil, eris.Wrap(err, "Failed to scan service catalog")
+		}
+
+		services = append(services, &service)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, eris.Wrap(err, "Failed to iterate service catalog rows")
+	}
+
+	return services, nil
 }
 
 func (r *PgBusinessRepository) CreateSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error {
@@ -438,82 +500,45 @@ func (r *PgBusinessRepository) GetSchedule(ctx context.Context, businessID int) 
 func (r *PgBusinessRepository) GetByID(ctx context.Context, ID int) (*Business, error) {
 	query := `
 		SELECT
-			b.hab_id,
-			b.hab_public_id,
-			b.hab_name,
-			b.hab_contact_phone,
-			b.hab_email,
-			b.hab_address,
-			b.hab_country,
-			b.hab_lang,
-			b.hab_date_add,
-			b.hab_date_upd,
-			s.hasc_id,
-			s.hasc_name,
-			s.hasc_description,
-			s.hasc_price,
-			s.hasc_currency,
-			s.hasc_duration,
-			s.hasc_business_id,
-			s.hasc_date_add,
-			s.hasc_date_upd
+			hab_id,
+			hab_public_id,
+			hab_name,
+			hab_contact_phone,
+			hab_email,
+			hab_address,
+			hab_country,
+			hab_lang,
+			hab_date_add,
+			hab_date_upd
 		FROM
-			ha_business b
-		INNER JOIN
-			ha_service_catalog s ON s.hasc_business_id = b.hab_id
+			ha_business
 		WHERE
-			b.hab_id = $1;
+			hab_id = $1;
 	`
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	rows, err := r.connection.QueryContext(ctxTimeout, query, ID)
-	if err != nil {
-		return nil, eris.Wrap(err, "Failed to query business by ID")
-	}
-
-	defer database.CloseRowsSafely(rows, &err)
-
 	business := &Business{}
 
-	for rows.Next() {
-		var service ServiceCatalog
-
-		err := rows.Scan(
-			&business.ID,
-			&business.PublicID,
-			&business.Name,
-			&business.ContactPhone,
-			&business.Email,
-			&business.Address,
-			&business.Country,
-			&business.Lang,
-			&business.DateAdd,
-			&business.DateUpd,
-			&service.ID,
-			&service.Name,
-			&service.Description,
-			&service.Price,
-			&service.Currency,
-			&service.Duration,
-			&service.BusinessID,
-			&service.DateAdd,
-			&service.DateUpd,
-		)
-		if err != nil {
-			return nil, eris.Wrap(err, "Failed to scan business by ID")
+	err := r.connection.QueryRowContext(ctxTimeout, query, ID).Scan(
+		&business.ID,
+		&business.PublicID,
+		&business.Name,
+		&business.ContactPhone,
+		&business.Email,
+		&business.Address,
+		&business.Country,
+		&business.Lang,
+		&business.DateAdd,
+		&business.DateUpd,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, BusinessNotFound
 		}
 
-		business.ServiceCatalog = append(business.ServiceCatalog, &service)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, eris.Wrap(err, "Failed to iterate business rows")
-	}
-
-	if business.ID == 0 {
-		return nil, BusinessNotFound
+		return nil, eris.Wrap(err, "Failed to query business by ID")
 	}
 
 	return business, nil
@@ -522,82 +547,45 @@ func (r *PgBusinessRepository) GetByID(ctx context.Context, ID int) (*Business, 
 func (r *PgBusinessRepository) GetByPublicID(ctx context.Context, ID string) (*Business, error) {
 	query := `
 		SELECT
-			b.hab_id,
-			b.hab_public_id,
-			b.hab_name,
-			b.hab_contact_phone,
-			b.hab_email,
-			b.hab_address,
-			b.hab_country,
-			b.hab_lang,
-			b.hab_date_add,
-			b.hab_date_upd,
-			s.hasc_id,
-			s.hasc_name,
-			s.hasc_description,
-			s.hasc_price,
-			s.hasc_currency,
-			s.hasc_duration,
-			s.hasc_business_id,
-			s.hasc_date_add,
-			s.hasc_date_upd
+			hab_id,
+			hab_public_id,
+			hab_name,
+			hab_contact_phone,
+			hab_email,
+			hab_address,
+			hab_country,
+			hab_lang,
+			hab_date_add,
+			hab_date_upd
 		FROM
-			ha_business b
-		INNER JOIN
-			ha_service_catalog s ON s.hasc_business_id = b.hab_id
+			ha_business
 		WHERE
-			b.hab_public_id = $1;
+			hab_public_id = $1;
 	`
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	rows, err := r.connection.QueryContext(ctxTimeout, query, ID)
-	if err != nil {
-		return nil, eris.Wrap(err, "Failed to query business by public ID")
-	}
-
-	defer database.CloseRowsSafely(rows, &err)
-
 	business := &Business{}
 
-	for rows.Next() {
-		var service ServiceCatalog
-
-		err := rows.Scan(
-			&business.ID,
-			&business.PublicID,
-			&business.Name,
-			&business.ContactPhone,
-			&business.Email,
-			&business.Address,
-			&business.Country,
-			&business.Lang,
-			&business.DateAdd,
-			&business.DateUpd,
-			&service.ID,
-			&service.Name,
-			&service.Description,
-			&service.Price,
-			&service.Currency,
-			&service.Duration,
-			&service.BusinessID,
-			&service.DateAdd,
-			&service.DateUpd,
-		)
-		if err != nil {
-			return nil, eris.Wrap(err, "Failed to scan business by public ID")
+	err := r.connection.QueryRowContext(ctxTimeout, query, ID).Scan(
+		&business.ID,
+		&business.PublicID,
+		&business.Name,
+		&business.ContactPhone,
+		&business.Email,
+		&business.Address,
+		&business.Country,
+		&business.Lang,
+		&business.DateAdd,
+		&business.DateUpd,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, BusinessNotFound
 		}
 
-		business.ServiceCatalog = append(business.ServiceCatalog, &service)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, eris.Wrap(err, "Failed to iterate business rows")
-	}
-
-	if business.ID == 0 {
-		return nil, BusinessNotFound
+		return nil, eris.Wrap(err, "Failed to query business by public ID")
 	}
 
 	return business, nil
