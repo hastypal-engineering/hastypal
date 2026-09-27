@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS ha_service_catalog (
     hasc_description VARCHAR(255) NOT NULL,
     hasc_price NUMERIC(12, 2) NOT NULL,
     hasc_currency VARCHAR(10) NOT NULL,
-    hasc_duration VARCHAR(10) NOT NULL,
+    hasc_duration BIGINT NOT NULL,
     hasc_business_id BIGINT NOT NULL,
     hasc_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     hasc_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,

@@ -10,7 +10,10 @@ import (
 	"github.com/rotisserie/eris"
 )
 
-var BusinessNotFound = eris.New("Business not found")
+var (
+	BusinessNotFound = eris.New("Business not found")
+	ServiceNotFound  = eris.New("Service not found")
+)
 
 const timeOnlyFormat = "15:04"
 
@@ -19,6 +22,7 @@ type BusinessRepository interface {
 	CreateService(ctx context.Context, service *ServiceCatalog) (int, error)
 	CreateSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error
 	GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error)
+	GetServiceByID(ctx context.Context, ID int) (*ServiceCatalog, error)
 	GetSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error)
 	GetByID(ctx context.Context, ID int) (*Business, error)
 	GetByPublicID(ctx context.Context, ID string) (*Business, error)
@@ -589,4 +593,49 @@ func (r *PgBusinessRepository) GetByPublicID(ctx context.Context, ID string) (*B
 	}
 
 	return business, nil
+}
+
+func (r *PgBusinessRepository) GetServiceByID(ctx context.Context, ID int) (*ServiceCatalog, error) {
+	query := `
+		SELECT
+			hasc_id,
+			hasc_name,
+			hasc_description,
+			hasc_price,
+			hasc_currency,
+			EXTRACT(EPOCH FROM hasc_duration)::double precision,
+			hasc_business_id,
+			hasc_date_add,
+			hasc_date_upd
+		FROM
+			ha_service_catalog
+		WHERE
+			hasc_id = $1
+		;
+	`
+
+	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+
+	var service ServiceCatalog
+
+	err := r.connection.QueryRowContext(ctxTimeout, query, ID).Scan(
+		&service.ID,
+		&service.Name,
+		&service.Description,
+		&service.Price,
+		&service.Currency,
+		&service.Duration,
+		&service.BusinessID,
+		&service.DateAdd,
+		&service.DateUpd,
+	)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ServiceNotFound
+		}
+		return nil, eris.Wrap(err, "Failed to query service catalog record")
+	}
+
+	return &service, nil
 }

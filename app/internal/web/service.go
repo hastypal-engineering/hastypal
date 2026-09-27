@@ -2,11 +2,12 @@ package web
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/pkg/helper/conversion"
 	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/rotisserie/eris"
 )
@@ -65,7 +66,7 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 			Name:        service.Name,
 			Price:       service.Price,
 			Currency:    service.Currency,
-			Duration:    service.Duration,
+			Duration:    conversion.BeautifyDuration(service.Duration),
 			Description: service.Description,
 		}
 
@@ -124,7 +125,6 @@ WEB SHOW DATES
 ==============================================================================
 */
 
-
 func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error) {
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
@@ -145,7 +145,32 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
 	}
 
-	fmt.Println(schedule)
+	selectedService, err := s.business.GetServiceByID(ctx, session.ServiceID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
+	}
+
+	var reqDay= req.Day
+
+	if req.Day.IsZero() {
+		reqDay = time.Now()
+	}
+
+	for _, day := range schedule.WeeklySchedule {
+		if reqDay.Weekday() != day.DayOfWeek {
+			continue
+		}
+
+		for _, timeSlot := range day.TimeSlots {
+			start, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
+			if err != nil {
+				return nil, eris.Wrapf(err, "Error showing dates while converting string %s to time", timeSlot.OpenTime)
+			}
+
+			start.Add(selectedService.Duration)
+		}
+	}
+
 	dto := &BookingDTO{
 		SessionID: session.ID,
 		Step:      2,
