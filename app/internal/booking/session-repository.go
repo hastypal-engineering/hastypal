@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/adriein/hastypal/pkg/helper"
+	"github.com/adriein/hastypal/pkg/helper/conversion"
 	"github.com/rotisserie/eris"
 )
 
@@ -49,8 +49,8 @@ func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error 
 		session.ID,
 		session.BusinessID,
 		session.ServiceID,
-		helper.DateToDB(session.Date),
-		helper.HourToDB(session.Hour),
+		conversion.DateToDB(session.Date),
+		conversion.HourToDB(session.Hour),
 		session.TTL.Milliseconds(),
 		session.DateAdd,
 		session.DateUpd,
@@ -117,7 +117,7 @@ func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*S
 	}
 
 	if hour.Valid {
-		session.Hour = helper.HourFromDB(hour.Time)
+		session.Hour = conversion.HourFromDB(hour.Time)
 	}
 
 	return session, nil
@@ -141,8 +141,8 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 		query,
 		session.ID,
 		session.ServiceID,
-		helper.DateToDB(session.Date),
-		helper.HourToDB(session.Hour),
+		conversion.DateToDB(session.Date),
+		conversion.HourToDB(session.Hour),
 		session.TTL.Milliseconds(),
 		session.DateUpd,
 	)

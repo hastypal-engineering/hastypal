@@ -89,6 +89,12 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 	return dto, nil
 }
 
+/*
+================================================================================
+WEB PATCH BOOKING
+==============================================================================
+*/
+
 func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error {
 	traceID := ctx.Value(middleware.TraceIDKey)
 
@@ -111,6 +117,13 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 
 	return nil
 }
+
+/*
+================================================================================
+WEB SHOW DATES
+==============================================================================
+*/
+
 
 func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error) {
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
