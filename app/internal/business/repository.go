@@ -603,7 +603,7 @@ func (r *PgBusinessRepository) GetServiceByID(ctx context.Context, ID int) (*Ser
 			hasc_description,
 			hasc_price,
 			hasc_currency,
-			EXTRACT(EPOCH FROM hasc_duration)::double precision,
+			hasc_duration,
 			hasc_business_id,
 			hasc_date_add,
 			hasc_date_upd
