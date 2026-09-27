@@ -150,11 +150,13 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
 	}
 
-	var reqDay= req.Day
+	reqDay := req.Day
 
 	if req.Day.IsZero() {
 		reqDay = time.Now()
 	}
+
+	var generatedSlots []*SlotDTO
 
 	for _, day := range schedule.WeeklySchedule {
 		if reqDay.Weekday() != day.DayOfWeek {
@@ -164,10 +166,36 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		for _, timeSlot := range day.TimeSlots {
 			start, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
 			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting string %s to time", timeSlot.OpenTime)
+				return nil, eris.Wrapf(err, "Error showing dates while converting open time string %s to time", timeSlot.OpenTime)
 			}
 
-			start.Add(selectedService.Duration)
+			closeTime, err := conversion.StringToTime(timeSlot.CloseTime, time.TimeOnly)
+			if err != nil {
+				return nil, eris.Wrapf(err, "Error showing dates while converting close time string %s to time", timeSlot.CloseTime)
+			}
+
+			currentStart := start
+			for {
+				if currentStart.Equal(start) {
+					generatedSlots = append(generatedSlots, &SlotDTO{
+						Hour:        currentStart.String(),
+						IsAvailable: true,
+					})
+				}
+
+				currentEnd := currentStart.Add(selectedService.Duration)
+
+				if currentEnd.After(closeTime) {
+					break
+				}
+
+				generatedSlots = append(generatedSlots, &SlotDTO{
+					Hour:        currentEnd.String(),
+					IsAvailable: true,
+				})
+
+				currentStart = currentEnd
+			}
 		}
 	}
 
@@ -181,6 +209,10 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 			Address:     business.Address,
 			Phone:       business.ContactPhone,
 			Description: "the better business",
+		},
+		Slots: &BookingDatesDTO{
+			Day:   reqDay.String(),
+			Slots: generatedSlots,
 		},
 	}
 

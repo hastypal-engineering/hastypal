@@ -41,6 +41,7 @@ type BookingDTO struct {
 	Step      int
 	Services  []*ServiceDTO
 	Business  *BusinessDTO
+	Slots     *BookingDatesDTO
 }
 
 type BookingPatchDTO struct {
@@ -48,12 +49,12 @@ type BookingPatchDTO struct {
 	ServiceID int
 }
 
-type SelectableHourDTO struct {
+type SlotDTO struct {
 	Hour        string
 	IsAvailable bool
 }
 
 type BookingDatesDTO struct {
-	Calendar    string
-	HoursPerDay map[string]SelectableHourDTO
+	Day    string
+	Slots []*SlotDTO
 }
