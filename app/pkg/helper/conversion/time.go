@@ -29,6 +29,21 @@ func HourFromDB(hour time.Time) time.Duration {
 		time.Duration(hour.Second())*time.Second
 }
 
+// CombineDayAndTime builds a single timestamp using the calendar day of day and
+// the hour, minutes and seconds of clock, which is expected to only carry a time.
+func CombineDayAndTime(day time.Time, clock time.Time) time.Time {
+	return time.Date(
+		day.Year(),
+		day.Month(),
+		day.Day(),
+		clock.Hour(),
+		clock.Minute(),
+		clock.Second(),
+		0,
+		day.Location(),
+	)
+}
+
 func StringToTime(s string, format string) (time.Time, error) {
 	date, err := time.Parse(format, s)
 	if err != nil {
@@ -36,4 +51,8 @@ func StringToTime(s string, format string) (time.Time, error) {
 	}
 
 	return date, nil
+}
+
+func TimeToMinFromMidnight(t time.Time) int {
+	return t.Hour()*60 + t.Minute()
 }

@@ -13,7 +13,7 @@ type BookingService interface {
 	InitSession(ctx context.Context, businessID int) (string, error)
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
 	PatchSession(ctx context.Context, session *Session) error
-	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
+	GetSessionsOnDateByBusiness(ctx context.Context, businessID int, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
 	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error)
 }
@@ -70,8 +70,8 @@ func (s *Service) PatchSession(ctx context.Context, session *Session) error {
 	return nil
 }
 
-func (s *Service) GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error) {
-	sessions, err := s.sessionRepo.GetByDate(ctx, date)
+func (s *Service) GetSessionsOnDateByBusiness(ctx context.Context, businessID int, date time.Time) ([]*Session, error) {
+	sessions, err := s.sessionRepo.GetByDate(ctx, businessID, date)
 
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching sessions on specific date")

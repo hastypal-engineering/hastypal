@@ -156,6 +156,16 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		reqDay = time.Now()
 	}
 
+	// We initialize a time table with 1440 positions, every position is a minute inside a day
+	timeTable := TimeTable{Data: make([]bool, 1440)}
+
+	stepInterval := 30 * time.Minute
+
+	otherUserSessions, err := s.booking.GetSessionsOnDateByBusiness(ctx, business.ID, reqDay)
+	if err != nil {
+		return nil, eris.Wrap(err, "Error showing dates while fetching other users sessions")
+	}
+
 	var generatedSlots []*SlotDTO
 
 	for _, day := range schedule.WeeklySchedule {
@@ -164,38 +174,27 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		}
 
 		for _, timeSlot := range day.TimeSlots {
-			start, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
+			openHour, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
 			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting open time string %s to time", timeSlot.OpenTime)
+				return nil, eris.Wrapf(err, "Error showing dates while converting openHour %s to time.Time", openHour)
 			}
 
-			closeTime, err := conversion.StringToTime(timeSlot.CloseTime, time.TimeOnly)
+			closeHour, err := conversion.StringToTime(timeSlot.CloseTime, time.TimeOnly)
 			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting close time string %s to time", timeSlot.CloseTime)
+				return nil, eris.Wrapf(err, "Error showing dates while converting closeHour %s to time.Time", closeHour)
 			}
 
-			currentStart := start
-			for {
-				if currentStart.Equal(start) {
-					generatedSlots = append(generatedSlots, &SlotDTO{
-						Hour:        currentStart.String(),
-						IsAvailable: true,
-					})
-				}
+			openTime := conversion.TimeToMinFromMidnight(openHour)
+			closeTime := conversion.TimeToMinFromMidnight(closeHour)
 
-				currentEnd := currentStart.Add(selectedService.Duration)
+			timeTable.MarkTimeSlot(openTime, closeTime, true)
+		}
 
-				if currentEnd.After(closeTime) {
-					break
-				}
+		for _, otherUserSession := range otherUserSessions {
+			serviceStartInMin := int(otherUserSession.Interval.Start)
+			serviceEndInMin := int(otherUserSession.Interval.End)
 
-				generatedSlots = append(generatedSlots, &SlotDTO{
-					Hour:        currentEnd.String(),
-					IsAvailable: true,
-				})
-
-				currentStart = currentEnd
-			}
+			timeTable.MarkTimeSlot(serviceStartInMin, serviceEndInMin, false)
 		}
 	}
 

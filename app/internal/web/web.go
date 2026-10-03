@@ -49,12 +49,35 @@ type BookingPatchDTO struct {
 	ServiceID int
 }
 
+type TimeTable struct {
+	Data []bool
+}
+
+func (t *TimeTable) MarkTimeSlot(start int, end int, symbol bool) {
+	// Normal intra-day range (e.g., 09:00 to 17:00)
+	if start <= end {
+		for i := start; i < end; i++ {
+			t.Data[i] = symbol
+		}
+	}
+
+	// Overnight range (e.g., 22:00 to 04:00 wrap-around)
+	for i := start; i < 1440; i++ {
+		t.Data[i] = symbol
+	}
+	for i := 0; i < end; i++ {
+		t.Data[i] = symbol
+	}
+}
+
 type SlotDTO struct {
-	Hour        string
-	IsAvailable bool
+	Start          time.Duration
+	End            time.Duration
+	BeautifiedHour string
+	IsAvailable    bool
 }
 
 type BookingDatesDTO struct {
-	Day    string
+	Day   string
 	Slots []*SlotDTO
 }

@@ -19,12 +19,17 @@ type Booking struct {
 	DateUpd    time.Time
 }
 
+type SessionInterval struct {
+	Start time.Duration
+	End   time.Duration
+}
+
 type Session struct {
 	ID         string
 	BusinessID int
 	ServiceID  int
 	Date       time.Time
-	Hour       time.Duration
+	Interval   *SessionInterval
 	TTL        time.Duration
 	SlotIndex  int
 	DateAdd    time.Time
@@ -63,7 +68,7 @@ func NewDaySchedule(dayStart time.Time) *DaySchedule {
 		WorkDayStart: dayStart,
 	}
 
-	//TODO: 16 is hardcoded and needs to be updated with real business config
+	// TODO: 16 is hardcoded and needs to be updated with real business config
 	for i := 0; i < 16; i++ {
 		slotTime := dayStart.Add(time.Duration(i) * 30)
 		schedule.Slots[i] = Slot{

@@ -400,7 +400,7 @@ func (s *Service) showDates(ctx context.Context, update TelegramUpdate) error {
 	for i := 0; i < 15; i++ {
 		newDate := startDateWithHour.AddDate(0, 0, i)
 
-		sessions, err := s.booking.GetSessionsOnDate(ctx, newDate)
+		sessions, err := s.booking.GetSessionsOnDateByBusiness(ctx, session.BusinessID, newDate)
 
 		if err != nil {
 			return eris.Wrap(err, "Error getting all sessions for a specific date")
@@ -856,7 +856,7 @@ func (s *Service) showBookingPreview(ctx context.Context, update TelegramUpdate)
 		0,
 		0,
 		loc,
-	).Add(session.Hour)
+	).Add(session.Interval.Start)
 
 	bookingID, err := s.booking.RegisterBooking(ctx, sessionID, session.BusinessID, session.ServiceID, mergedTime)
 
