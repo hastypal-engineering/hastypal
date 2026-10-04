@@ -3,8 +3,6 @@ package business
 
 import (
 	"time"
-
-	"github.com/rotisserie/eris"
 )
 
 type Business struct {
@@ -46,22 +44,8 @@ type OperatingDay struct {
 }
 
 type TimeSlot struct {
-	OpenTime  string
-	CloseTime string
-}
-
-func parseTimeSlot(slot TimeSlot) (time.Time, time.Time, error) {
-	openTime, err := time.Parse(time.TimeOnly, slot.OpenTime)
-	if err != nil {
-		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot open time %s", slot.OpenTime)
-	}
-
-	closeTime, err := time.Parse(time.TimeOnly, slot.CloseTime)
-	if err != nil {
-		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot close time %s", slot.CloseTime)
-	}
-
-	return openTime, closeTime, nil
+	OpenTime  time.Time
+	CloseTime time.Time
 }
 
 type Holiday struct {

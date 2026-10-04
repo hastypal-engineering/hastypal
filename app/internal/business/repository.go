@@ -260,13 +260,8 @@ func (r *PgBusinessRepository) CreateSchedule(ctx context.Context, businessID in
 		}
 
 		for _, slot := range day.TimeSlots {
-			openTime, closeTime, parseErr := parseTimeSlot(slot)
-			if parseErr != nil {
-				return parseErr
-			}
-
-			if _, err = tx.ExecContext(ctxTimeout, timeSlotQuery, operatingDayID, openTime, closeTime); err != nil {
-				return eris.Wrapf(err, "Failed to create time slot %s-%s for operating day %d", slot.OpenTime, slot.CloseTime, operatingDayID)
+			if _, err = tx.ExecContext(ctxTimeout, timeSlotQuery, operatingDayID, slot.OpenTime, slot.CloseTime); err != nil {
+				return eris.Wrapf(err, "Failed to create time slot %s-%s for operating day %d", slot.OpenTime.Format(time.TimeOnly), slot.CloseTime.Format(time.TimeOnly), operatingDayID)
 			}
 		}
 	}
@@ -301,13 +296,8 @@ func (r *PgBusinessRepository) CreateSchedule(ctx context.Context, businessID in
 		}
 
 		for _, slot := range override.TimeSlots {
-			openTime, closeTime, parseErr := parseTimeSlot(slot)
-			if parseErr != nil {
-				return parseErr
-			}
-
-			if _, err = tx.ExecContext(ctxTimeout, overrideTimeSlotQuery, overrideID, openTime, closeTime); err != nil {
-				return eris.Wrapf(err, "Failed to create time slot %s-%s for schedule override %d", slot.OpenTime, slot.CloseTime, overrideID)
+			if _, err = tx.ExecContext(ctxTimeout, overrideTimeSlotQuery, overrideID, slot.OpenTime, slot.CloseTime); err != nil {
+				return eris.Wrapf(err, "Failed to create time slot %s-%s for schedule override %d", slot.OpenTime.Format(time.TimeOnly), slot.CloseTime.Format(time.TimeOnly), overrideID)
 			}
 		}
 	}
@@ -411,8 +401,8 @@ func (r *PgBusinessRepository) GetSchedule(ctx context.Context, businessID int) 
 
 		if openTime.Valid && closeTime.Valid {
 			day.TimeSlots = append(day.TimeSlots, TimeSlot{
-				OpenTime:  openTime.Time.Format(time.TimeOnly),
-				CloseTime: closeTime.Time.Format(time.TimeOnly),
+				OpenTime:  openTime.Time,
+				CloseTime: closeTime.Time,
 			})
 		}
 	}
@@ -457,8 +447,8 @@ func (r *PgBusinessRepository) GetSchedule(ctx context.Context, businessID int) 
 
 		if openTime.Valid && closeTime.Valid {
 			override.TimeSlots = append(override.TimeSlots, TimeSlot{
-				OpenTime:  openTime.Time.Format(time.TimeOnly),
-				CloseTime: closeTime.Time.Format(time.TimeOnly),
+				OpenTime:  openTime.Time,
+				CloseTime: closeTime.Time,
 			})
 		}
 	}

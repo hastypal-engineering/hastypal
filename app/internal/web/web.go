@@ -67,7 +67,7 @@ func (t *TimeTable) MarkTimeSlot(start int, end int, symbol bool) {
 	for i := start; i < 1440; i++ {
 		t.Data[i] = symbol
 	}
-	for i := 0; i < end; i++ {
+	for i := range end {
 		t.Data[i] = symbol
 	}
 }

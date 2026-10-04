@@ -174,18 +174,8 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		}
 
 		for _, timeSlot := range day.TimeSlots {
-			openHour, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
-			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting openHour %s to time.Time", openHour)
-			}
-
-			closeHour, err := conversion.StringToTime(timeSlot.CloseTime, time.TimeOnly)
-			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting closeHour %s to time.Time", closeHour)
-			}
-
-			openTime := conversion.TimeToMinFromMidnight(openHour)
-			closeTime := conversion.TimeToMinFromMidnight(closeHour)
+			openTime := conversion.TimeToMinFromMidnight(timeSlot.OpenTime)
+			closeTime := conversion.TimeToMinFromMidnight(timeSlot.CloseTime)
 
 			timeTable.MarkTimeSlot(openTime, closeTime, true)
 		}
@@ -200,18 +190,8 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		stepInterval := 30
 
 		for _, timeSlot := range day.TimeSlots {
-			openHour, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
-			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting openHour %s to time.Time", openHour)
-			}
-
-			closeHour, err := conversion.StringToTime(timeSlot.CloseTime, time.TimeOnly)
-			if err != nil {
-				return nil, eris.Wrapf(err, "Error showing dates while converting closeHour %s to time.Time", closeHour)
-			}
-
-			openTime := conversion.TimeToMinFromMidnight(openHour)
-			closeTime := conversion.TimeToMinFromMidnight(closeHour)
+			openTime := conversion.TimeToMinFromMidnight(timeSlot.OpenTime)
+			closeTime := conversion.TimeToMinFromMidnight(timeSlot.CloseTime)
 
 			for i := openTime; i+stepInterval <= closeTime; i += stepInterval {
 				isAvailable := timeTable.IsChunkAllTrue(i, stepInterval)

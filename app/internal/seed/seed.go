@@ -198,41 +198,47 @@ var ServiceSeed = map[string][]*business.ServiceCatalog{
 	},
 }
 
+// timeOfDay builds a time.Time carrying only a clock time, matching the
+// TIME columns used by ha_business_time_slot.
+func timeOfDay(hour int, minute int) time.Time {
+	return time.Date(0, time.January, 1, hour, minute, 0, 0, time.UTC)
+}
+
 var WeeklyScheduleSeed = []*business.OperatingDay{
 	{
 		DayOfWeek: time.Monday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "17:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Tuesday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "17:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Wednesday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "17:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Thursday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "17:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Friday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "17:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Saturday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "13:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
 		},
 	},
 	{
@@ -264,14 +270,14 @@ var OverrideSeed = []*business.ScheduleOverride{
 	{
 		Date: time.Date(2026, time.November, 25, 0, 0, 0, 0, time.UTC),
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "13:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
 		},
 		Reason: "Day after Thanksgiving",
 	},
 	{
 		Date: time.Date(2026, time.December, 24, 0, 0, 0, 0, time.UTC),
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: "09:00", CloseTime: "13:00"},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
 		},
 		Reason: "Christmas Eve",
 	},
