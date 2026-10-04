@@ -105,7 +105,7 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 			habs_service_id = $2,
 			habs_date = $3,
 			habs_start_time = $4,
-			habs_end_time = $5
+			habs_end_time = $5,
 			habs_ttl = $6,
 			habs_date_upd = $7
 		WHERE
@@ -149,7 +149,7 @@ func (r *PgSessionRepository) GetByDate(ctx context.Context, businessID int, dat
 		AND
 			habs_business_id = $2
 		ORDER BY
-			habs_time ASC;
+			habs_start_time ASC;
 	`
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
@@ -220,13 +220,14 @@ func scanSession(row scanner) (*Session, error) {
 		session.Date = date.Time
 	}
 
-	if start.Valid {
+	if start.Valid && end.Valid {
 		session.Interval.Start = conversion.HourFromDB(start.Time)
+		session.Interval.End = conversion.HourFromDB(end.Time)
+
+		return session, nil
 	}
 
-	if start.Valid {
-		session.Interval.End = conversion.HourFromDB(end.Time)
-	}
+	session.Interval = &SessionInterval{}
 
 	return session, nil
 }

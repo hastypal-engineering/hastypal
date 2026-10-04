@@ -44,6 +44,7 @@ func CombineDayAndTime(day time.Time, clock time.Time) time.Time {
 	)
 }
 
+// StringToTime converts a string to time in the formatted input
 func StringToTime(s string, format string) (time.Time, error) {
 	date, err := time.Parse(format, s)
 	if err != nil {
@@ -53,6 +54,24 @@ func StringToTime(s string, format string) (time.Time, error) {
 	return date, nil
 }
 
+// TimeToMinFromMidnight returns minutes from midnight
 func TimeToMinFromMidnight(t time.Time) int {
 	return t.Hour()*60 + t.Minute()
+}
+
+// TimeFromInt returns time.Time from an int representing minutes from midnight
+func TimeFromInt(m int) (time.Time, error) {
+	if m < 0 || m >= 1440 {
+		return time.Time{}, eris.New("Minutes out of range [0, 1439]")
+	}
+
+	now := time.Now()
+	hours := m / 60
+	minutes := m % 60
+
+	return time.Date(
+		now.Year(), now.Month(), now.Day(),
+		hours, minutes, 0, 0,
+		now.Location(),
+	), nil
 }

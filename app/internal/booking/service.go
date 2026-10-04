@@ -38,6 +38,7 @@ func (s *Service) InitSession(ctx context.Context, businessID int) (string, erro
 	session := &Session{
 		ID:         sessionID,
 		BusinessID: businessID,
+		Interval:   &SessionInterval{},
 		DateAdd:    time.Now().UTC(),
 		DateUpd:    time.Now().UTC(),
 		TTL:        5 * time.Minute,
@@ -52,7 +53,6 @@ func (s *Service) InitSession(ctx context.Context, businessID int) (string, erro
 
 func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Session, error) {
 	session, err := s.sessionRepo.GetByID(ctx, sessionID)
-
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching session by ID")
 	}
@@ -72,7 +72,6 @@ func (s *Service) PatchSession(ctx context.Context, session *Session) error {
 
 func (s *Service) GetSessionsOnDateByBusiness(ctx context.Context, businessID int, date time.Time) ([]*Session, error) {
 	sessions, err := s.sessionRepo.GetByDate(ctx, businessID, date)
-
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching sessions on specific date")
 	}
@@ -82,7 +81,6 @@ func (s *Service) GetSessionsOnDateByBusiness(ctx context.Context, businessID in
 
 func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error) {
 	sessions, err := s.sessionRepo.GetByHour(ctx, date)
-
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching sessions on specific date")
 	}

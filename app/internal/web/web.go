@@ -59,6 +59,8 @@ func (t *TimeTable) MarkTimeSlot(start int, end int, symbol bool) {
 		for i := start; i < end; i++ {
 			t.Data[i] = symbol
 		}
+
+		return
 	}
 
 	// Overnight range (e.g., 22:00 to 04:00 wrap-around)
@@ -70,11 +72,22 @@ func (t *TimeTable) MarkTimeSlot(start int, end int, symbol bool) {
 	}
 }
 
+func (t *TimeTable) IsChunkAllTrue(start int, interval int) bool {
+	if start+interval > len(t.Data) {
+		return false
+	}
+	
+	for _, minute := range t.Data[start : start+interval] {
+		if !minute {
+			return false
+		}
+	}
+	return true
+}
+
 type SlotDTO struct {
-	Start          time.Duration
-	End            time.Duration
-	BeautifiedHour string
-	IsAvailable    bool
+	Hour        string
+	IsAvailable bool
 }
 
 type BookingDatesDTO struct {

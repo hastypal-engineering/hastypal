@@ -15,8 +15,6 @@ var (
 	ServiceNotFound  = eris.New("Service not found")
 )
 
-const timeOnlyFormat = "15:04"
-
 type BusinessRepository interface {
 	Create(ctx context.Context, business *Business) (int, error)
 	CreateService(ctx context.Context, service *ServiceCatalog) (int, error)
@@ -413,8 +411,8 @@ func (r *PgBusinessRepository) GetSchedule(ctx context.Context, businessID int) 
 
 		if openTime.Valid && closeTime.Valid {
 			day.TimeSlots = append(day.TimeSlots, TimeSlot{
-				OpenTime:  openTime.Time.Format(timeOnlyFormat),
-				CloseTime: closeTime.Time.Format(timeOnlyFormat),
+				OpenTime:  openTime.Time.Format(time.TimeOnly),
+				CloseTime: closeTime.Time.Format(time.TimeOnly),
 			})
 		}
 	}
@@ -459,8 +457,8 @@ func (r *PgBusinessRepository) GetSchedule(ctx context.Context, businessID int) 
 
 		if openTime.Valid && closeTime.Valid {
 			override.TimeSlots = append(override.TimeSlots, TimeSlot{
-				OpenTime:  openTime.Time.Format(timeOnlyFormat),
-				CloseTime: closeTime.Time.Format(timeOnlyFormat),
+				OpenTime:  openTime.Time.Format(time.TimeOnly),
+				CloseTime: closeTime.Time.Format(time.TimeOnly),
 			})
 		}
 	}

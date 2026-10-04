@@ -51,12 +51,12 @@ type TimeSlot struct {
 }
 
 func parseTimeSlot(slot TimeSlot) (time.Time, time.Time, error) {
-	openTime, err := time.Parse(timeOnlyFormat, slot.OpenTime)
+	openTime, err := time.Parse(time.TimeOnly, slot.OpenTime)
 	if err != nil {
 		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot open time %s", slot.OpenTime)
 	}
 
-	closeTime, err := time.Parse(timeOnlyFormat, slot.CloseTime)
+	closeTime, err := time.Parse(time.TimeOnly, slot.CloseTime)
 	if err != nil {
 		return time.Time{}, time.Time{}, eris.Wrapf(err, "Invalid time slot close time %s", slot.CloseTime)
 	}

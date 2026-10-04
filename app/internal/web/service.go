@@ -2,6 +2,7 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -149,24 +150,23 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 	if err != nil {
 		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
 	}
+	fmt.Println(selectedService)
 
 	reqDay := req.Day
 
 	if req.Day.IsZero() {
-		reqDay = time.Now()
+		reqDay = time.Now().Add(-24 * time.Hour)
 	}
 
 	// We initialize a time table with 1440 positions, every position is a minute inside a day
 	timeTable := TimeTable{Data: make([]bool, 1440)}
-
-	stepInterval := 30 * time.Minute
 
 	otherUserSessions, err := s.booking.GetSessionsOnDateByBusiness(ctx, business.ID, reqDay)
 	if err != nil {
 		return nil, eris.Wrap(err, "Error showing dates while fetching other users sessions")
 	}
 
-	var generatedSlots []*SlotDTO
+	var slots []*SlotDTO
 
 	for _, day := range schedule.WeeklySchedule {
 		if reqDay.Weekday() != day.DayOfWeek {
@@ -196,6 +196,39 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 
 			timeTable.MarkTimeSlot(serviceStartInMin, serviceEndInMin, false)
 		}
+
+		stepInterval := 30
+
+		for _, timeSlot := range day.TimeSlots {
+			openHour, err := conversion.StringToTime(timeSlot.OpenTime, time.TimeOnly)
+			if err != nil {
+				return nil, eris.Wrapf(err, "Error showing dates while converting openHour %s to time.Time", openHour)
+			}
+
+			closeHour, err := conversion.StringToTime(timeSlot.CloseTime, time.TimeOnly)
+			if err != nil {
+				return nil, eris.Wrapf(err, "Error showing dates while converting closeHour %s to time.Time", closeHour)
+			}
+
+			openTime := conversion.TimeToMinFromMidnight(openHour)
+			closeTime := conversion.TimeToMinFromMidnight(closeHour)
+
+			for i := openTime; i+stepInterval <= closeTime; i += stepInterval {
+				isAvailable := timeTable.IsChunkAllTrue(i, stepInterval)
+
+				slotTime, err := conversion.TimeFromInt(i)
+				if err != nil {
+					return nil, eris.Wrap(err, "Error showing dates while converting timeTable int to time")
+				}
+
+				hourStr := fmt.Sprintf("%02d:%02d", slotTime.Hour(), slotTime.Minute())
+
+				slots = append(slots, &SlotDTO{
+					Hour:        hourStr,
+					IsAvailable: isAvailable,
+				})
+			}
+		}
 	}
 
 	dto := &BookingDTO{
@@ -211,7 +244,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		},
 		Slots: &BookingDatesDTO{
 			Day:   reqDay.String(),
-			Slots: generatedSlots,
+			Slots: slots,
 		},
 	}
 
