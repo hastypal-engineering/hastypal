@@ -74,6 +74,11 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	s.gin.GET("/booking/:publicID/step-2", s.webController(app).GetStep2())
 
+	// ERROR PAGES
+	s.gin.GET("/error", s.webController(app).GetError())
+
+	s.gin.GET("/booking/:publicID/session-expired", s.webController(app).GetSessionExpired())
+
 	cwd, _ := os.Getwd()
 
 	// STATIC

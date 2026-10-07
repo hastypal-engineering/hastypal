@@ -28,6 +28,25 @@ func NewWebController(logger *slog.Logger, service web.WebService) *WebControlle
 	}
 }
 
+func redirectOnError(ctx *gin.Context, location string) {
+	if ctx.GetHeader("HX-Request") == "true" {
+		ctx.Header("HX-Redirect", location)
+		ctx.Status(http.StatusOK)
+
+		return
+	}
+
+	ctx.Redirect(http.StatusFound, location)
+}
+
+func sessionExpiredLocation(publicID string) string {
+	if publicID == "" {
+		return "/error"
+	}
+
+	return fmt.Sprintf("/booking/%s/session-expired", publicID)
+}
+
 func (c *WebController) GetStep1() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		traceID := ctx.Value(middleware.TraceIDKey)
@@ -36,9 +55,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error binding GetServicesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -46,18 +63,14 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		dto, err := c.service.ShowServices(ctx, req)
 		if err != nil {
 			if errors.Is(err, booking.BookingSessionExpired) {
-				renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.SessionExpired(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}))
-
-				ctx.Render(http.StatusOK, renderer)
+				redirectOnError(ctx, sessionExpiredLocation(req.BusinessPublicID))
 
 				return
 			}
 
 			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -79,9 +92,7 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		if rawServiceID == "" {
 			c.logger.Error("Error storing selected service, serviceID missing", "trace_id", traceID, "public_id", publicID)
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -91,9 +102,7 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		if sessionID == "" {
 			c.logger.Error("Error storing selected service, sessionID missing", "trace_id", traceID, "public_id", publicID)
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -102,9 +111,7 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		if err != nil {
 			c.logger.Error("Error storing selected service while parsing rawServiceID", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -116,18 +123,14 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 
 		if err := c.service.StoreService(ctx, dto); err != nil {
 			if errors.Is(err, booking.BookingSessionExpired) {
-				renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.SessionExpired(&web.ErrorDTO{BusinessPublicID: publicID}))
-
-				ctx.Render(http.StatusOK, renderer)
+				redirectOnError(ctx, sessionExpiredLocation(publicID))
 
 				return
 			}
 
 			c.logger.Error("Error storing selected service", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -144,9 +147,7 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error showing dates while binding GetDatesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -154,9 +155,7 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 		if err := ctx.ShouldBindQuery(&req); err != nil {
 			c.logger.Error("Error showing dates while binding sessionID query param", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -164,9 +163,7 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 		if req.SessionID == "" {
 			c.logger.Error("Error showing dates, sessionID missing", "trace_id", traceID, "public_id", req.BusinessPublicID)
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -174,22 +171,14 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 		dto, err := c.service.ShowDates(ctx, req)
 		if err != nil {
 			if errors.Is(err, booking.BookingSessionExpired) {
-				renderer := vendor.NewTemplRenderer(
-					ctx,
-					http.StatusOK,
-					html.SessionExpired(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}),
-				)
-
-				ctx.Render(http.StatusOK, renderer)
+				redirectOnError(ctx, sessionExpiredLocation(req.BusinessPublicID))
 
 				return
 			}
 
 			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", req.BusinessPublicID, "session_id", req.SessionID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
-
-			ctx.Render(http.StatusOK, renderer)
+			redirectOnError(ctx, "/error")
 
 			return
 		}
@@ -197,5 +186,27 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Step2(dto))
 
 		ctx.Render(http.StatusOK, renderer)
+	}
+}
+
+func (c *WebController) GetError() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		renderer := vendor.NewTemplRenderer(ctx, http.StatusInternalServerError, html.Error(&web.ErrorDTO{}))
+
+		ctx.Render(http.StatusInternalServerError, renderer)
+	}
+}
+
+func (c *WebController) GetSessionExpired() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		publicID := ctx.Param("publicID")
+
+		renderer := vendor.NewTemplRenderer(
+			ctx,
+			http.StatusUnauthorized,
+			html.SessionExpired(&web.ErrorDTO{BusinessPublicID: publicID}),
+		)
+
+		ctx.Render(http.StatusUnauthorized, renderer)
 	}
 }
