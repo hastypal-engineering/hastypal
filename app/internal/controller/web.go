@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
 
+	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/web"
 	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/adriein/hastypal/pkg/vendor"
@@ -34,7 +36,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error binding GetServicesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}))
 
 			ctx.Render(http.StatusOK, renderer)
 
@@ -43,6 +45,14 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 
 		dto, err := c.service.ShowServices(ctx, req)
 		if err != nil {
+			if errors.Is(err, booking.BookingSessionExpired) {
+				renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.SessionExpired(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}))
+
+				ctx.Render(http.StatusOK, renderer)
+
+				return
+			}
+
 			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
 
 			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
@@ -105,6 +115,14 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		}
 
 		if err := c.service.StoreService(ctx, dto); err != nil {
+			if errors.Is(err, booking.BookingSessionExpired) {
+				renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.SessionExpired(&web.ErrorDTO{BusinessPublicID: publicID}))
+
+				ctx.Render(http.StatusOK, renderer)
+
+				return
+			}
+
 			c.logger.Error("Error storing selected service", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
 
 			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
@@ -126,7 +144,7 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error showing dates while binding GetDatesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))
+			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}))
 
 			ctx.Render(http.StatusOK, renderer)
 
@@ -155,6 +173,18 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 
 		dto, err := c.service.ShowDates(ctx, req)
 		if err != nil {
+			if errors.Is(err, booking.BookingSessionExpired) {
+				renderer := vendor.NewTemplRenderer(
+					ctx,
+					http.StatusOK,
+					html.SessionExpired(&web.ErrorDTO{BusinessPublicID: req.BusinessPublicID}),
+				)
+
+				ctx.Render(http.StatusOK, renderer)
+
+				return
+			}
+
 			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", req.BusinessPublicID, "session_id", req.SessionID, "error", eris.ToString(err, true))
 
 			renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Error(&web.ErrorDTO{}))

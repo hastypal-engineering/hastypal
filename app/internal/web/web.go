@@ -5,7 +5,7 @@ import "time"
 
 type ErrorDTO struct {
 	SessionID string
-	Business  *BusinessDTO
+	BusinessPublicID string
 }
 
 type GetServicesReq struct {
@@ -41,7 +41,7 @@ type BookingDTO struct {
 	Step      int
 	Services  []*ServiceDTO
 	Business  *BusinessDTO
-	Slots     *BookingDatesDTO
+	Dates     *BookingDatesDTO
 }
 
 type BookingPatchDTO struct {
@@ -76,7 +76,7 @@ func (t *TimeTable) IsChunkAllTrue(start int, interval int) bool {
 	if start+interval > len(t.Data) {
 		return false
 	}
-	
+
 	for _, minute := range t.Data[start : start+interval] {
 		if !minute {
 			return false
@@ -86,7 +86,7 @@ func (t *TimeTable) IsChunkAllTrue(start int, interval int) bool {
 }
 
 type SlotDTO struct {
-	Hour        string
+	Label       string
 	IsAvailable bool
 }
 

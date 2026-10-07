@@ -146,12 +146,6 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
 	}
 
-	selectedService, err := s.business.GetServiceByID(ctx, session.ServiceID)
-	if err != nil {
-		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
-	}
-	fmt.Println(selectedService)
-
 	reqDay := req.Day
 
 	if req.Day.IsZero() {
@@ -204,7 +198,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 				hourStr := fmt.Sprintf("%02d:%02d", slotTime.Hour(), slotTime.Minute())
 
 				slots = append(slots, &SlotDTO{
-					Hour:        hourStr,
+					Label:        hourStr,
 					IsAvailable: isAvailable,
 				})
 			}
@@ -222,7 +216,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 			Phone:       business.ContactPhone,
 			Description: "the better business",
 		},
-		Slots: &BookingDatesDTO{
+		Dates: &BookingDatesDTO{
 			Day:   reqDay.String(),
 			Slots: slots,
 		},

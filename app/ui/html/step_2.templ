@@ -1,6 +1,7 @@
 package html
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/adriein/hastypal/internal/web"
@@ -71,6 +72,7 @@ templ Step2(dto *web.BookingDTO) {
 			<title>{ dto.Business.Name }</title>
 			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
 			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+			<script src="/ui/static/js/htmx.min.js"></script>
 		</head>
 		<body>
 			<main>
@@ -105,7 +107,7 @@ templ Step2(dto *web.BookingDTO) {
 								if cell == nil {
 									<div></div>
 								} else {
-									<button type="button" class={ calendarDayClass(cell, time.Now()) }>
+									<button hx-get={ fmt.Sprintf("step-2?%s", dto.SessionID) } type="button" class={ calendarDayClass(cell, time.Now()) }>
 										{ cell.Day() }
 										if cell.Day() == time.Now().Day() {
 											<span class="calendar__today-dot"></span>
@@ -120,8 +122,8 @@ templ Step2(dto *web.BookingDTO) {
 						<div class="timeslots__divider"></div>
 						<p class="timeslots__label">Available times — { time.Now().Format("Jan 2") }</p>
 						<div class="timeslots__grid">
-							for _, slot := range sampleTimeslots() {
-								if slot.Unavailable {
+							for _, slot := range dto.Dates.Slots {
+								if !slot.IsAvailable {
 									<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
 								} else {
 									<button type="button" class="timeslots__option">{ slot.Label }</button>

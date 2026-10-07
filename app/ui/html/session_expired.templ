@@ -1,0 +1,37 @@
+package html
+
+import (
+	"fmt"
+	"github.com/adriein/hastypal/internal/web"
+)
+
+templ SessionExpired(dto *web.ErrorDTO) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<title>401 - Session Expired</title>
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+		</head>
+		<body>
+			<main class="error">
+				<div class="card--error">
+					<div class="error__logo-wrapper">
+						<img src="/ui/static/images/hastypal_crab.png" alt="Hastypal Crab Logo"/>
+					</div>
+					<div class="error__code">Error 401 — Timeout</div>
+					<h1>Session Expired</h1>
+					<p>
+						Your booking session timed out due to inactivity. To ensure availability and secure your slot, please start your request over again.
+					</p>
+					<div class="error__actions">
+						<a href={ fmt.Sprintf("/booking/%s/step-1", dto.BusinessPublicID) } class="btn--error btn--error-primary">
+							Start Over
+						</a>
+					</div>
+				</div>
+			</main>
+		</body>
+	</html>
+}
