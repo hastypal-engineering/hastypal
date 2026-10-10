@@ -83,62 +83,64 @@ templ Step2(dto *web.BookingDTO) {
 						<h2 class="step__title">Pick a Date and Time</h2>
 						<p class="step__instruction">Select an available slot to continue.</p>
 					</div>
-					<div class="calendar">
-						<div class="calendar__nav">
-							<button type="button" class="calendar__arrow is-disabled" aria-label="Previous month">
-								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-									<path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-								</svg>
-							</button>
-							<p class="calendar__month">{ calendarMonthNames[int(time.Now().Month())-1] } { time.Now().Year() }</p>
-							<button type="button" class="calendar__arrow" aria-label="Next month">
-								<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-									<path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-								</svg>
-							</button>
-						</div>
-						<div class="calendar__weekdays">
-							for _, day := range calendarDayNames {
-								<div class="calendar__weekday">{ day }</div>
-							}
-						</div>
-						<div class="calendar__grid">
-							for _, cell := range calendarCells(time.Now().Year(), time.Now().Month()) {
-								if cell == nil {
-									<div></div>
-								} else {
-									<button
-										hx-select="#step"
-										hx-target="#step"
-										hx-swap="outerHTML"
-										hx-get={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)) }
-										hx-push-url="true"
-										type="button"
-										class={ calendarDayClass(cell, time.Now()) }
-									>
-										{ cell.Day() }
-										if cell.Day() == dto.Dates.SelectedDay.Day() {
-											<span class="calendar__today-dot"></span>
-										}
-									</button>
+					<div id="calendar">
+						<div class="calendar">
+							<div class="calendar__nav">
+								<button type="button" class="calendar__arrow is-disabled" aria-label="Previous month">
+									<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+										<path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+								</button>
+								<p class="calendar__month">{ calendarMonthNames[int(time.Now().Month())-1] } { time.Now().Year() }</p>
+								<button type="button" class="calendar__arrow" aria-label="Next month">
+									<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+										<path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="calendar__weekdays">
+								for _, day := range calendarDayNames {
+									<div class="calendar__weekday">{ day }</div>
 								}
-							}
-						</div>
-						<p class="calendar__caption">{ time.Now().Format("Monday, January 2") }</p>
-					</div>
-					<div class="timeslots">
-						<div class="timeslots__divider"></div>
-						<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
-						<div class="timeslots__grid">
-							for _, slot := range dto.Dates.Slots {
-								if !slot.IsAvailable {
-									<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
-								} else {
-									<button type="button" class="timeslots__option">{ slot.Label }</button>
+							</div>
+							<div class="calendar__grid">
+								for _, cell := range calendarCells(time.Now().Year(), time.Now().Month()) {
+									if cell == nil {
+										<div></div>
+									} else {
+										<button
+											hx-select="#calendar"
+											hx-target="#calendar"
+											hx-swap="outerHTML"
+											hx-get={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)) }
+											hx-push-url="true"
+											type="button"
+											class={ calendarDayClass(cell, time.Now()) }
+										>
+											{ cell.Day() }
+											if cell.Day() == dto.Dates.SelectedDay.Day() {
+												<span class="calendar__today-dot"></span>
+											}
+										</button>
+									}
 								}
-							}
+							</div>
+							<p class="calendar__caption">{ time.Now().Format("Monday, January 2") }</p>
 						</div>
-						<p class="timeslots__footnote">Strikethrough times are booked.</p>
+						<div class="timeslots">
+							<div class="timeslots__divider"></div>
+							<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
+							<div class="timeslots__grid">
+								for _, slot := range dto.Dates.Slots {
+									if !slot.IsAvailable {
+										<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
+									} else {
+										<button type="button" class="timeslots__option">{ slot.Label }</button>
+									}
+								}
+							</div>
+							<p class="timeslots__footnote">Strikethrough times are booked.</p>
+						</div>
 					</div>
 					<details class="contact">
 						<summary class="contact__toggle">

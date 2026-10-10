@@ -127,14 +127,14 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><h2 class=\"step__title\">Pick a Date and Time</h2><p class=\"step__instruction\">Select an available slot to continue.</p></div><div class=\"calendar\"><div class=\"calendar__nav\"><button type=\"button\" class=\"calendar__arrow is-disabled\" aria-label=\"Previous month\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><path d=\"M10 3L5 8L10 13\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button><p class=\"calendar__month\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "</p><h2 class=\"step__title\">Pick a Date and Time</h2><p class=\"step__instruction\">Select an available slot to continue.</p></div><div id=\"calendar\"><div class=\"calendar\"><div class=\"calendar__nav\"><button type=\"button\" class=\"calendar__arrow is-disabled\" aria-label=\"Previous month\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\"><path d=\"M10 3L5 8L10 13\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></button><p class=\"calendar__month\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(calendarMonthNames[int(time.Now().Month())-1])
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 93, Col: 81}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 94, Col: 82}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -147,7 +147,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Year())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 93, Col: 103}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 94, Col: 104}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -165,7 +165,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(day)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 102, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 103, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -192,14 +192,14 @@ func Step2(dto *web.BookingDTO) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<button hx-select=\"#step\" hx-target=\"#step\" hx-swap=\"outerHTML\" hx-get=\"")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<button hx-select=\"#calendar\" hx-target=\"#calendar\" hx-swap=\"outerHTML\" hx-get=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.ResolveAttributeValue(fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 114, Col: 136}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 115, Col: 137}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var8)
 				if templ_7745c5c3_Err != nil {
@@ -225,7 +225,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(cell.Day())
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 119, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 120, Col: 23}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -254,7 +254,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(time.Now().Format("Monday, January 2"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 127, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 128, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -267,7 +267,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Dates.SelectedDay.Format("Jan 2"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 131, Col: 93}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 132, Col: 94}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -286,7 +286,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 135, Col: 93}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 136, Col: 94}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -304,7 +304,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 				var templ_7745c5c3_Var14 string
 				templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(slot.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 137, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 138, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 				if templ_7745c5c3_Err != nil {
@@ -316,14 +316,14 @@ func Step2(dto *web.BookingDTO) templ.Component {
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><p class=\"timeslots__footnote\">Strikethrough times are booked.</p></div><details class=\"contact\"><summary class=\"contact__toggle\"><span class=\"contact__toggle-label\">Need help?</span> <svg class=\"contact__toggle-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 6L8 10L12 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></summary><div class=\"contact__rows\"><a class=\"contact__row\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div><p class=\"timeslots__footnote\">Strikethrough times are booked.</p></div></div><details class=\"contact\"><summary class=\"contact__toggle\"><span class=\"contact__toggle-label\">Need help?</span> <svg class=\"contact__toggle-icon\" width=\"16\" height=\"16\" viewBox=\"0 0 16 16\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 6L8 10L12 6\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg></summary><div class=\"contact__rows\"><a class=\"contact__row\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 templ.SafeURL
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinURLErrs("mailto:" + dto.Business.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 151, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 153, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -336,7 +336,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 160, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 162, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -349,7 +349,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var17 templ.SafeURL
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinURLErrs("tel:" + dto.Business.Phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 163, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 165, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -362,7 +362,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 171, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 173, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -375,7 +375,7 @@ func Step2(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Address)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 183, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_2.templ`, Line: 185, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
