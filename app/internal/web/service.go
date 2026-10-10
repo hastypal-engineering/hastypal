@@ -149,7 +149,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 	reqDay := req.Day
 
 	if req.Day.IsZero() {
-		reqDay = time.Now().Add(-24 * time.Hour)
+		reqDay = time.Now()
 	}
 
 	// We initialize a time table with 1440 positions, every position is a minute inside a day
@@ -217,7 +217,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 			Description: "the better business",
 		},
 		Dates: &BookingDatesDTO{
-			Day:   reqDay.String(),
+			SelectedDay:   reqDay,
 			Slots: slots,
 		},
 	}

@@ -4,7 +4,7 @@ package web
 import "time"
 
 type ErrorDTO struct {
-	SessionID string
+	SessionID        string
 	BusinessPublicID string
 }
 
@@ -13,9 +13,9 @@ type GetServicesReq struct {
 }
 
 type GetDatesReq struct {
-	BusinessPublicID string `uri:"publicID" form:"publicID" binding:"required"`
-	SessionID        string `form:"sessionID"`
-	Day              time.Time
+	BusinessPublicID string    `uri:"publicID" binding:"required"`
+	SessionID        string    `uri:"sessionID" binding:"required"`
+	Day              time.Time `form:"day" time_format:"2006-01-02"`
 }
 
 type ServiceDTO struct {
@@ -91,6 +91,6 @@ type SlotDTO struct {
 }
 
 type BookingDatesDTO struct {
-	Day   string
+	SelectedDay   time.Time
 	Slots []*SlotDTO
 }

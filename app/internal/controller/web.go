@@ -40,10 +40,6 @@ func redirectOnError(ctx *gin.Context, location string) {
 }
 
 func sessionExpiredLocation(publicID string) string {
-	if publicID == "" {
-		return "/error"
-	}
-
 	return fmt.Sprintf("/booking/%s/session-expired", publicID)
 }
 
@@ -55,7 +51,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 		if err := ctx.ShouldBindUri(&req); err != nil {
 			c.logger.Error("Error binding GetServicesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
 			return
 		}
@@ -70,7 +66,7 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 
 			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
 			return
 		}
@@ -92,7 +88,7 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		if rawServiceID == "" {
 			c.logger.Error("Error storing selected service, serviceID missing", "trace_id", traceID, "public_id", publicID)
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 
 			return
 		}
@@ -102,7 +98,7 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		if sessionID == "" {
 			c.logger.Error("Error storing selected service, sessionID missing", "trace_id", traceID, "public_id", publicID)
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 
 			return
 		}
@@ -111,7 +107,7 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 		if err != nil {
 			c.logger.Error("Error storing selected service while parsing rawServiceID", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 
 			return
 		}
@@ -130,12 +126,12 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 
 			c.logger.Error("Error storing selected service", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 
 			return
 		}
 
-		ctx.Redirect(http.StatusFound, fmt.Sprintf("/booking/%s/step-2?sessionID=%s", publicID, sessionID))
+		ctx.Redirect(http.StatusFound, fmt.Sprintf("/booking/%s/session/%s/step-2", publicID, sessionID))
 	}
 }
 
@@ -145,25 +141,17 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 
 		var req web.GetDatesReq
 		if err := ctx.ShouldBindUri(&req); err != nil {
-			c.logger.Error("Error showing dates while binding GetDatesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
+			c.logger.Error("Error showing dates while binding GetDatesReq uri params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
 			return
 		}
 
 		if err := ctx.ShouldBindQuery(&req); err != nil {
-			c.logger.Error("Error showing dates while binding sessionID query param", "trace_id", traceID, "error", eris.ToString(err, true))
+			c.logger.Error("Error showing dates while binding GetDatesReq query params", "trace_id", traceID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
-
-			return
-		}
-
-		if req.SessionID == "" {
-			c.logger.Error("Error showing dates, sessionID missing", "trace_id", traceID, "public_id", req.BusinessPublicID)
-
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
 			return
 		}
@@ -178,7 +166,7 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 
 			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", req.BusinessPublicID, "session_id", req.SessionID, "error", eris.ToString(err, true))
 
-			redirectOnError(ctx, "/error")
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
 			return
 		}

@@ -208,31 +208,36 @@ var WeeklyScheduleSeed = []*business.OperatingDay{
 	{
 		DayOfWeek: time.Monday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
+			{OpenTime: timeOfDay(15, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Tuesday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
+			{OpenTime: timeOfDay(15, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Wednesday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
+			{OpenTime: timeOfDay(15, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Thursday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
+			{OpenTime: timeOfDay(15, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
 		DayOfWeek: time.Friday,
 		TimeSlots: []business.TimeSlot{
-			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(17, 0)},
+			{OpenTime: timeOfDay(9, 0), CloseTime: timeOfDay(13, 0)},
+			{OpenTime: timeOfDay(15, 0), CloseTime: timeOfDay(17, 0)},
 		},
 	},
 	{
