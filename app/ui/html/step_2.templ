@@ -77,7 +77,7 @@ templ Step2(dto *web.BookingDTO) {
 		<body>
 			<main>
 				@Header(dto)
-				<div class="step">
+				<div id="step" class="step">
 					<div class="step__header">
 						<p class="step__indicator">Step { dto.Step }</p>
 						<h2 class="step__title">Pick a Date and Time</h2>
@@ -108,8 +108,9 @@ templ Step2(dto *web.BookingDTO) {
 									<div></div>
 								} else {
 									<button
-										hx-select="#timeslots"
-										hx-target="#timeslots"
+										hx-select="#step"
+										hx-target="#step"
+										hx-swap="outerHTML"
 										hx-get={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)) }
 										hx-push-url="true"
 										type="button"
@@ -125,7 +126,7 @@ templ Step2(dto *web.BookingDTO) {
 						</div>
 						<p class="calendar__caption">{ time.Now().Format("Monday, January 2") }</p>
 					</div>
-					<div id="timeslots" class="timeslots">
+					<div class="timeslots">
 						<div class="timeslots__divider"></div>
 						<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
 						<div class="timeslots__grid">
