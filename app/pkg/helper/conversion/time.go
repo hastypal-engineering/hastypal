@@ -75,3 +75,8 @@ func TimeFromInt(m int) (time.Time, error) {
 		now.Location(),
 	), nil
 }
+
+// StripTime strips the time of a date eg: 2026-10-10 12:00:00 returns 2026-10-10
+func StripTime(t *time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}

@@ -149,7 +149,8 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 	reqDay := req.Day
 
 	if req.Day.IsZero() {
-		reqDay = time.Now()
+		loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
+		reqDay = time.Now().In(loc)
 	}
 
 	// We initialize a time table with 1440 positions, every position is a minute inside a day

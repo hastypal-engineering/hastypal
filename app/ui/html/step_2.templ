@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/adriein/hastypal/internal/web"
+	"github.com/adriein/hastypal/pkg/helper/conversion"
 )
 
 var calendarMonthNames = [...]string{
@@ -14,8 +15,8 @@ var calendarMonthNames = [...]string{
 
 var calendarDayNames = [...]string{"S", "M", "T", "W", "T", "F", "S"}
 
-func calendarCells(year int, month time.Month) []*time.Time {
-	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, time.UTC)
+func calendarCells(year int, month time.Month, loc *time.Location) []*time.Time {
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, loc)
 
 	offset := int(firstOfMonth.Weekday())
 
@@ -35,11 +36,20 @@ func calendarCells(year int, month time.Month) []*time.Time {
 	return cells
 }
 
-func calendarDayClass(cell *time.Time, now time.Time) string {
+func calendarDayClass(cell *time.Time, selected *time.Time) string {
 	class := "calendar__day"
 
-	if cell.Before(now) {
+	now := time.Now().In(selected.Location())
+	cellDate := conversion.StripTime(cell)
+	selectedDate := conversion.StripTime(selected)
+	nowDate := conversion.StripTime(&now)
+
+	if cellDate.Before(nowDate) {
 		class += " is-past"
+	}
+
+	if cellDate.Equal(selectedDate) {
+		class += " is-selected"
 	}
 
 	return class
@@ -104,7 +114,7 @@ templ Step2(dto *web.BookingDTO) {
 								}
 							</div>
 							<div class="calendar__grid">
-								for _, cell := range calendarCells(time.Now().Year(), time.Now().Month()) {
+								for _, cell := range calendarCells(time.Now().Year(), time.Now().Month(), dto.Dates.SelectedDay.Location()) {
 									if cell == nil {
 										<div></div>
 									} else {
@@ -115,7 +125,7 @@ templ Step2(dto *web.BookingDTO) {
 											hx-get={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)) }
 											hx-push-url="true"
 											type="button"
-											class={ calendarDayClass(cell, time.Now()) }
+											class={ calendarDayClass(cell, &dto.Dates.SelectedDay) }
 										>
 											{ cell.Day() }
 											if cell.Day() == dto.Dates.SelectedDay.Day() {

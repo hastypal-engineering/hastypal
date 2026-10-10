@@ -2,6 +2,14 @@ package html
 
 import "github.com/adriein/hastypal/internal/web"
 
+script initTimezone() {
+    if (!document.cookie.includes("User_Tz=")) {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.cookie = "User_Tz=" + tz + ";path=/;max-age=31536000;SameSite=Lax";
+        window.location.reload();
+    }
+}
+
 templ Header(dto *web.BookingDTO) {
 	<header class="header">
 		<div class="header__content">

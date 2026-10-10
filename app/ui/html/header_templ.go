@@ -10,6 +10,20 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/adriein/hastypal/internal/web"
 
+func initTimezone() templ.ComponentScript {
+	return templ.ComponentScript{
+		Name: `__templ_initTimezone_4297`,
+		Function: `function __templ_initTimezone_4297(){if (!document.cookie.includes("User_Tz=")) {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        document.cookie = "User_Tz=" + tz + ";path=/;max-age=31536000;SameSite=Lax";
+        window.location.reload();
+    }
+}`,
+		Call:       templ.SafeScript(`__templ_initTimezone_4297`),
+		CallInline: templ.SafeScriptInline(`__templ_initTimezone_4297`),
+	}
+}
+
 func Header(dto *web.BookingDTO) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -38,7 +52,7 @@ func Header(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/header.templ`, Line: 11, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/header.templ`, Line: 19, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -51,7 +65,7 @@ func Header(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/header.templ`, Line: 12, Col: 58}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/header.templ`, Line: 20, Col: 58}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
