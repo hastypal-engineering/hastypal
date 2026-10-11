@@ -60,7 +60,8 @@
     }
   }
 
-  main:has(.step__service_option__input:checked) .footer__continue {
+  main:has(.step__service_option__input:checked) .footer__continue,
+  main:has(.timeslots__option__input:checked) .footer__continue {
     background: var(--color-primary);
     color: var(--color-bg-base);
     cursor: pointer;

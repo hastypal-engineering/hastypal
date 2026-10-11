@@ -152,6 +152,7 @@
   }
 
   .timeslots__option {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -168,6 +169,30 @@
 
     &:active {
       transform: scale(0.95);
+    }
+
+    .timeslots__option__input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    &:has(.timeslots__option__input:focus-visible) {
+      outline: 2px solid var(--timeslots-ink);
+      outline-offset: 2px;
+    }
+
+    &:has(.timeslots__option__input:checked) {
+      font-weight: var(--font-weight-bold);
+      border-color: var(--timeslots-ink);
+      background: var(--timeslots-ink);
+      color: var(--timeslots-ink-fg);
     }
 
     &:disabled,

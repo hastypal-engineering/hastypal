@@ -120,21 +120,27 @@ templ Step2(dto *web.BookingDTO) {
 									}
 								}
 							</div>
-							<p class="calendar__caption">{ time.Now().Format("Monday, January 2") }</p>
+							<p class="calendar__caption">{ dto.Dates.SelectedDay.Format("Monday, January 2") }</p>
 						</div>
 						<div class="timeslots">
 							<div class="timeslots__divider"></div>
 							if len(dto.Dates.Slots) > 0 {
 								<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
-								<div class="timeslots__grid">
-									for _, slot := range dto.Dates.Slots {
-										if !slot.IsAvailable {
-											<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
-										} else {
-											<button type="button" class="timeslots__option">{ slot.Label }</button>
+								<form id="bookingForm">
+									<input type="hidden" name="sessionID" value={ dto.SessionID }/>
+									<div class="timeslots__grid">
+										for _, slot := range dto.Dates.Slots {
+											if !slot.IsAvailable {
+												<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
+											} else {
+												<label class="timeslots__option">
+													<input type="radio" name="slot" value={ slot.Label } class="timeslots__option__input"/>
+													{ slot.Label }
+												</label>
+											}
 										}
-									}
-								</div>
+									</div>
+								</form>
 								<p class="timeslots__footnote">Strikethrough times are booked.</p>
 							} else {
 								<div class="timeslots__closed" role="status">
