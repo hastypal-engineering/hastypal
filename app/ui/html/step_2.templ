@@ -55,25 +55,6 @@ func calendarDayClass(cell *time.Time, selected *time.Time) string {
 	return class
 }
 
-type timeslot struct {
-	Label       string
-	Unavailable bool
-}
-
-func sampleTimeslots() []timeslot {
-	return []timeslot{
-		{Label: "09:00"},
-		{Label: "09:30"},
-		{Label: "10:00", Unavailable: true},
-		{Label: "10:30"},
-		{Label: "11:00"},
-		{Label: "11:30", Unavailable: true},
-		{Label: "12:00"},
-		{Label: "12:30"},
-		{Label: "13:00"},
-	}
-}
-
 templ Step2(dto *web.BookingDTO) {
 	<html>
 		<head>
@@ -118,6 +99,7 @@ templ Step2(dto *web.BookingDTO) {
 									if cell == nil {
 										<div></div>
 									} else {
+										{{ nowDate := time.Now().In(dto.Dates.SelectedDay.Location()) }}
 										<button
 											hx-select="#calendar"
 											hx-target="#calendar"
@@ -126,6 +108,9 @@ templ Step2(dto *web.BookingDTO) {
 											hx-push-url="true"
 											type="button"
 											class={ calendarDayClass(cell, &dto.Dates.SelectedDay) }
+											if conversion.StripTime(cell).Before(conversion.StripTime(&nowDate)) {
+												disabled
+											}
 										>
 											{ cell.Day() }
 											if cell.Day() == dto.Dates.SelectedDay.Day() {
@@ -139,17 +124,30 @@ templ Step2(dto *web.BookingDTO) {
 						</div>
 						<div class="timeslots">
 							<div class="timeslots__divider"></div>
-							<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
-							<div class="timeslots__grid">
-								for _, slot := range dto.Dates.Slots {
-									if !slot.IsAvailable {
-										<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
-									} else {
-										<button type="button" class="timeslots__option">{ slot.Label }</button>
+							if len(dto.Dates.Slots) > 0 {
+								<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
+								<div class="timeslots__grid">
+									for _, slot := range dto.Dates.Slots {
+										if !slot.IsAvailable {
+											<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
+										} else {
+											<button type="button" class="timeslots__option">{ slot.Label }</button>
+										}
 									}
-								}
-							</div>
-							<p class="timeslots__footnote">Strikethrough times are booked.</p>
+								</div>
+								<p class="timeslots__footnote">Strikethrough times are booked.</p>
+							} else {
+								<div class="timeslots__closed" role="status">
+									<div class="timeslots__closed-icon">
+										<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+											<circle cx="9" cy="9" r="6.75" stroke="currentColor" stroke-width="1.5"></circle>
+											<path d="M9 5.25V9L11.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+										</svg>
+									</div>
+									<p class="timeslots__closed-title">Closed on { dto.Dates.SelectedDay.Weekday() }s</p>
+									<p class="timeslots__closed-text">No appointments are offered on this day. Please select another date to see available times.</p>
+								</div>
+							}
 						</div>
 					</div>
 					<details class="contact">
