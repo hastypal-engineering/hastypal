@@ -145,7 +145,7 @@ func (r *PgSessionRepository) GetByDate(ctx context.Context, businessID int, dat
 		FROM
 			ha_booking_session
 		WHERE
-			habs_date >= $1
+			habs_date = $1
 		AND
 			habs_business_id = $2
 		ORDER BY
@@ -155,12 +155,12 @@ func (r *PgSessionRepository) GetByDate(ctx context.Context, businessID int, dat
 	ctxTimeout, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 
-	rows, err := r.connection.QueryContext(ctxTimeout, query, date, businessID)
+	rows, err := r.connection.QueryContext(ctxTimeout, query, date.Format(time.DateOnly), businessID)
 	if err != nil {
 		return nil, eris.Wrap(err, "Failed to query sessions by date")
 	}
 
-	database.CloseRowsSafely(rows, &err)
+	defer database.CloseRowsSafely(rows, &err)
 
 	sessions := []*Session{}
 
@@ -189,7 +189,9 @@ type scanner interface {
 }
 
 func scanSession(row scanner) (*Session, error) {
-	session := &Session{}
+	session := &Session{
+		Interval: &SessionInterval{},
+	}
 
 	var (
 		serviceID sql.NullInt64
@@ -226,8 +228,6 @@ func scanSession(row scanner) (*Session, error) {
 
 		return session, nil
 	}
-
-	session.Interval = &SessionInterval{}
 
 	return session, nil
 }

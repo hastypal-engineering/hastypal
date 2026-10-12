@@ -18,6 +18,7 @@ type WebService interface {
 	ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error)
 	StoreService(ctx context.Context, dto *BookingPatchDTO) error
 	ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error)
+	StoreDates(ctx context.Context, dto *BookingPatchDTO) error
 }
 
 type Service struct {
@@ -121,6 +122,44 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 	return nil
 }
 
+func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
+	traceID := ctx.Value(middleware.TraceIDKey)
+
+	session, err := s.booking.GetCurrentSession(ctx, dto.SessionID)
+	if err != nil {
+		s.logger.Error("Error retrieving the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Failed retrieving session to patch the booking dates")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		return eris.Wrap(err, "Session has expired")
+	}
+
+	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
+	if err != nil {
+		s.logger.Error("Error retrieving the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Failed retrieving service to patch the booking dates")
+	}
+
+	session.ServiceID = dto.ServiceID
+	session.Date = dto.Date
+
+	start := helper.TimeToMinFromMidnight(dto.Hour)
+	end := start + int(service.Duration *time.Minute)
+
+	session.Interval = &booking.SessionInterval{
+		Start: time.Duration(start) * time.Minute,
+		End: time.Duration(end) * time.Minute,
+	}
+
+	if err := s.booking.PatchSession(ctx, session); err != nil {
+		s.logger.Error("Error patching the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Error patching the session with the selected dates")
+	}
+
+	return nil
+}
+
 /*
 ================================================================================
 WEB SHOW DATES
@@ -170,8 +209,8 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 				Description: "the better business",
 			},
 			Dates: &BookingDatesDTO{
-				SelectedDay: reqDay,
-				Slots:       slots,
+				SelectedDay:        reqDay,
+				Slots:              slots,
 				InvalidSelectedDay: true,
 			},
 		}, nil

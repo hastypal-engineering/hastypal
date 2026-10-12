@@ -47,7 +47,8 @@ func sessionExpiredLocation(publicID string) string {
 
 func (c *WebController) GetError() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		renderer := vendor.NewTemplRenderer(ctx, http.StatusInternalServerError, html.Error(&web.ErrorDTO{}))
+		publicID := ctx.Param("publicID")
+		renderer := vendor.NewTemplRenderer(ctx, http.StatusInternalServerError, html.Error(&web.ErrorDTO{BusinessPublicID: publicID}))
 
 		ctx.Render(http.StatusInternalServerError, renderer)
 	}
@@ -213,28 +214,46 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 func (c *WebController) PostStep2() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		traceID := ctx.Value(middleware.TraceIDKey)
+		loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
 
-		rawStrHour := ctx.PostForm("hour")
+		rawStrHour := ctx.PostForm("slot")
+		rawStrDate := ctx.DefaultQuery("day", helper.Today(loc).Format(time.DateOnly))
+
 		sessionID := ctx.Param("sessionID")
 		publicID := ctx.Param("publicID")
 
-		time.Parse(time.TimeOnly, rawStrHour)
+		hour, err := time.ParseInLocation(time.TimeOnly, rawStrHour, loc)
+		if err != nil {
+			c.logger.Error("Error patching dates", "trace_id", traceID, "public_id", publicID, "session_id", sessionID, "error", eris.ToString(err, true))
+
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
+
+			return
+		}
+
+		date, err := time.ParseInLocation(time.DateOnly, rawStrDate, loc)
+		if err != nil {
+			c.logger.Error("Error patching dates", "trace_id", traceID, "public_id", publicID, "session_id", sessionID, "error", eris.ToString(err, true))
+
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
+
+			return
+		}
 
 		dto := &web.BookingPatchDTO{
 			SessionID: sessionID,
+			Date:      date,
+			Hour:      hour,
 		}
 
-		fmt.Println(dto)
-
-		err := eris.New("placeholder")
-		if err != nil {
+		if err := c.service.StoreDates(ctx, dto); err != nil {
 			if errors.Is(err, booking.BookingSessionExpired) {
 				redirectOnError(ctx, sessionExpiredLocation(publicID))
 
 				return
 			}
 
-			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", publicID, "session_id", sessionID, "error", eris.ToString(err, true))
+			c.logger.Error("Error patching dates", "trace_id", traceID, "public_id", publicID, "session_id", sessionID, "error", eris.ToString(err, true))
 
 			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 

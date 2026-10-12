@@ -123,7 +123,11 @@ templ Step2(dto *web.BookingDTO) {
 							<div class="timeslots__divider"></div>
 							if len(dto.Dates.Slots) > 0 {
 								<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
-								<form id="bookingForm">
+								<form
+									id="bookingForm"
+									action={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, dto.Dates.SelectedDay.Format(time.DateOnly)) }
+									method="POST"
+								>
 									<input type="hidden" name="sessionID" value={ dto.SessionID }/>
 									<div class="timeslots__grid">
 										for _, slot := range dto.Dates.Slots {
@@ -131,7 +135,7 @@ templ Step2(dto *web.BookingDTO) {
 												<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
 											} else {
 												<label class="timeslots__option">
-													<input type="radio" name="slot" value={ slot.Label } class="timeslots__option__input"/>
+													<input type="radio" name="slot" value={ fmt.Sprintf("%s:00", slot.Label) } class="timeslots__option__input"/>
 													{ slot.Label }
 												</label>
 											}
