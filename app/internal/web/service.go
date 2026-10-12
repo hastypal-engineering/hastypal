@@ -145,11 +145,11 @@ func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
 	session.Date = dto.Date
 
 	start := helper.TimeToMinFromMidnight(dto.Hour)
-	end := start + int(service.Duration *time.Minute)
+	end := start + int(service.Duration.Minutes())
 
 	session.Interval = &booking.SessionInterval{
 		Start: time.Duration(start) * time.Minute,
-		End: time.Duration(end) * time.Minute,
+		End:   time.Duration(end) * time.Minute,
 	}
 
 	if err := s.booking.PatchSession(ctx, session); err != nil {
@@ -184,6 +184,11 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 	schedule, err := s.business.GetBusinessSchedule(ctx, business.ID)
 	if err != nil {
 		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
+	}
+
+	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
 	}
 
 	loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
@@ -237,8 +242,8 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		}
 
 		for _, otherUserSession := range otherUserSessions {
-			serviceStartInMin := int(otherUserSession.Interval.Start)
-			serviceEndInMin := int(otherUserSession.Interval.End)
+			serviceStartInMin := int(otherUserSession.Interval.Start.Minutes())
+			serviceEndInMin := int(otherUserSession.Interval.End.Minutes())
 
 			timeTable.MarkTimeSlot(serviceStartInMin, serviceEndInMin, false)
 		}
@@ -250,7 +255,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 			closeTime := helper.TimeToMinFromMidnight(timeSlot.CloseTime)
 
 			for i := openTime; i+stepInterval <= closeTime; i += stepInterval {
-				isAvailable := timeTable.IsChunkAllTrue(i, stepInterval)
+				isAvailable := timeTable.IsChunkAllTrue(i, int(service.Duration.Minutes()))
 
 				slotTime, err := helper.TimeFromInt(i)
 				if err != nil {
