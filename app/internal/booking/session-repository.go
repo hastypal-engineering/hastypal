@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/adriein/hastypal/database"
-	"github.com/adriein/hastypal/pkg/helper/conversion"
+	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/rotisserie/eris"
 )
 
@@ -51,9 +51,9 @@ func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error 
 		session.ID,
 		session.BusinessID,
 		session.ServiceID,
-		conversion.DateToDB(session.Date),
-		conversion.HourToDB(session.Interval.Start),
-		conversion.HourToDB(session.Interval.End),
+		helper.DateToDB(session.Date),
+		helper.HourToDB(session.Interval.Start),
+		helper.HourToDB(session.Interval.End),
 		session.TTL.Milliseconds(),
 		session.DateAdd,
 		session.DateUpd,
@@ -117,9 +117,9 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 		query,
 		session.ID,
 		session.ServiceID,
-		conversion.DateToDB(session.Date),
-		conversion.HourToDB(session.Interval.Start),
-		conversion.HourToDB(session.Interval.End),
+		helper.DateToDB(session.Date),
+		helper.HourToDB(session.Interval.Start),
+		helper.HourToDB(session.Interval.End),
 		session.TTL.Milliseconds(),
 		session.DateUpd,
 	)
@@ -221,8 +221,8 @@ func scanSession(row scanner) (*Session, error) {
 	}
 
 	if start.Valid && end.Valid {
-		session.Interval.Start = conversion.HourFromDB(start.Time)
-		session.Interval.End = conversion.HourFromDB(end.Time)
+		session.Interval.Start = helper.HourFromDB(start.Time)
+		session.Interval.End = helper.HourFromDB(end.Time)
 
 		return session, nil
 	}

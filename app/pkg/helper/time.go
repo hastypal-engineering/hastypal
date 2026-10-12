@@ -1,11 +1,17 @@
-// Package conversion
-package conversion
+package helper
 
 import (
 	"time"
 
 	"github.com/rotisserie/eris"
 )
+
+// Today creates a time.Now in a specific location, strips time and returns the Date with UTC hours
+func Today(loc *time.Location) time.Time {
+	now := time.Now().In(loc)
+
+	return StripTime(&now)
+}
 
 func DateToDB(date time.Time) *time.Time {
 	if date.IsZero() {
@@ -76,7 +82,7 @@ func TimeFromInt(m int) (time.Time, error) {
 	), nil
 }
 
-// StripTime strips the time of a date eg: 2026-10-10 12:00:00 returns 2026-10-10
+// StripTime strips the time of a date eg: 2026-10-10 12:00:00 returns 2026-10-10 in UTC
 func StripTime(t *time.Time) time.Time {
 	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
 }

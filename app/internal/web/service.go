@@ -8,6 +8,7 @@ import (
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/pkg/helper"
 	"github.com/adriein/hastypal/pkg/helper/conversion"
 	"github.com/adriein/hastypal/pkg/middleware"
 	"github.com/rotisserie/eris"
@@ -146,11 +147,34 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
 	}
 
+	loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
+
 	reqDay := req.Day
 
 	if req.Day.IsZero() {
-		loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
-		reqDay = time.Now().In(loc)
+		reqDay = helper.Today(loc)
+	}
+
+	var slots []*SlotDTO
+
+	if reqDay.Before(helper.Today(loc)) {
+		return &BookingDTO{
+			SessionID: session.ID,
+			Step:      2,
+			Business: &BusinessDTO{
+				PublicID:    business.PublicID,
+				Name:        business.Name,
+				Email:       business.Email,
+				Address:     business.Address,
+				Phone:       business.ContactPhone,
+				Description: "the better business",
+			},
+			Dates: &BookingDatesDTO{
+				SelectedDay: reqDay,
+				Slots:       slots,
+				InvalidSelectedDay: true,
+			},
+		}, nil
 	}
 
 	// We initialize a time table with 1440 positions, every position is a minute inside a day
@@ -161,16 +185,14 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		return nil, eris.Wrap(err, "Error showing dates while fetching other users sessions")
 	}
 
-	var slots []*SlotDTO
-
 	for _, day := range schedule.WeeklySchedule {
 		if reqDay.Weekday() != day.DayOfWeek {
 			continue
 		}
 
 		for _, timeSlot := range day.TimeSlots {
-			openTime := conversion.TimeToMinFromMidnight(timeSlot.OpenTime)
-			closeTime := conversion.TimeToMinFromMidnight(timeSlot.CloseTime)
+			openTime := helper.TimeToMinFromMidnight(timeSlot.OpenTime)
+			closeTime := helper.TimeToMinFromMidnight(timeSlot.CloseTime)
 
 			timeTable.MarkTimeSlot(openTime, closeTime, true)
 		}
@@ -185,13 +207,13 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 		stepInterval := 30
 
 		for _, timeSlot := range day.TimeSlots {
-			openTime := conversion.TimeToMinFromMidnight(timeSlot.OpenTime)
-			closeTime := conversion.TimeToMinFromMidnight(timeSlot.CloseTime)
+			openTime := helper.TimeToMinFromMidnight(timeSlot.OpenTime)
+			closeTime := helper.TimeToMinFromMidnight(timeSlot.CloseTime)
 
 			for i := openTime; i+stepInterval <= closeTime; i += stepInterval {
 				isAvailable := timeTable.IsChunkAllTrue(i, stepInterval)
 
-				slotTime, err := conversion.TimeFromInt(i)
+				slotTime, err := helper.TimeFromInt(i)
 				if err != nil {
 					return nil, eris.Wrap(err, "Error showing dates while converting timeTable int to time")
 				}
@@ -199,7 +221,7 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 				hourStr := fmt.Sprintf("%02d:%02d", slotTime.Hour(), slotTime.Minute())
 
 				slots = append(slots, &SlotDTO{
-					Label:        hourStr,
+					Label:       hourStr,
 					IsAvailable: isAvailable,
 				})
 			}
@@ -218,8 +240,8 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 			Description: "the better business",
 		},
 		Dates: &BookingDatesDTO{
-			SelectedDay:   reqDay,
-			Slots: slots,
+			SelectedDay: reqDay,
+			Slots:       slots,
 		},
 	}
 

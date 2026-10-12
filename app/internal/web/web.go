@@ -1,7 +1,9 @@
 // Package web
 package web
 
-import "time"
+import (
+	"time"
+)
 
 type ErrorDTO struct {
 	SessionID        string
@@ -13,9 +15,9 @@ type GetServicesReq struct {
 }
 
 type GetDatesReq struct {
-	BusinessPublicID string    `uri:"publicID" binding:"required"`
-	SessionID        string    `uri:"sessionID" binding:"required"`
-	Day              time.Time `form:"day" time_format:"2006-01-02"`
+	BusinessPublicID string `uri:"publicID" binding:"required"`
+	SessionID        string `uri:"sessionID" binding:"required"`
+	Day              time.Time
 }
 
 type ServiceDTO struct {
@@ -47,6 +49,8 @@ type BookingDTO struct {
 type BookingPatchDTO struct {
 	SessionID string
 	ServiceID int
+	Date      time.Time
+	Hour      time.Time
 }
 
 type TimeTable struct {
@@ -91,6 +95,7 @@ type SlotDTO struct {
 }
 
 type BookingDatesDTO struct {
-	SelectedDay   time.Time
-	Slots []*SlotDTO
+	SelectedDay        time.Time
+	Slots              []*SlotDTO
+	InvalidSelectedDay bool
 }

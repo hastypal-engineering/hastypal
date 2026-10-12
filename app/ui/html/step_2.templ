@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/adriein/hastypal/internal/web"
-	"github.com/adriein/hastypal/pkg/helper/conversion"
+	"github.com/adriein/hastypal/pkg/helper"
 )
 
 var calendarMonthNames = [...]string{
@@ -18,9 +18,11 @@ var calendarDayNames = [...]string{"S", "M", "T", "W", "T", "F", "S"}
 func calendarCells(year int, month time.Month, loc *time.Location) []*time.Time {
 	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, loc)
 
-	offset := int(firstOfMonth.Weekday())
+	firstOfMonthDay := helper.StripTime(&firstOfMonth)
 
-	start := firstOfMonth.AddDate(0, 0, -offset)
+	offset := int(firstOfMonthDay.Weekday())
+
+	start := firstOfMonthDay.AddDate(0, 0, -offset)
 
 	cells := make([]*time.Time, 0, 42)
 
@@ -36,19 +38,14 @@ func calendarCells(year int, month time.Month, loc *time.Location) []*time.Time 
 	return cells
 }
 
-func calendarDayClass(cell *time.Time, selected *time.Time) string {
+func calendarDayClass(cell *time.Time, selected time.Time) string {
 	class := "calendar__day"
 
-	now := time.Now().In(selected.Location())
-	cellDate := conversion.StripTime(cell)
-	selectedDate := conversion.StripTime(selected)
-	nowDate := conversion.StripTime(&now)
-
-	if cellDate.Before(nowDate) {
+	if cell.Before(helper.Today(selected.Location())) {
 		class += " is-past"
 	}
 
-	if cellDate.Equal(selectedDate) {
+	if cell.Equal(selected) {
 		class += " is-selected"
 	}
 
@@ -99,7 +96,7 @@ templ Step2(dto *web.BookingDTO) {
 									if cell == nil {
 										<div></div>
 									} else {
-										{{ nowDate := time.Now().In(dto.Dates.SelectedDay.Location()) }}
+										{{ today := helper.Today(dto.Dates.SelectedDay.Location()) }}
 										<button
 											hx-select="#calendar"
 											hx-target="#calendar"
@@ -107,13 +104,13 @@ templ Step2(dto *web.BookingDTO) {
 											hx-get={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)) }
 											hx-push-url="true"
 											type="button"
-											class={ calendarDayClass(cell, &dto.Dates.SelectedDay) }
-											if conversion.StripTime(cell).Before(conversion.StripTime(&nowDate)) {
+											class={ calendarDayClass(cell, dto.Dates.SelectedDay) }
+											if cell.Before(today) {
 												disabled
 											}
 										>
 											{ cell.Day() }
-											if cell.Day() == dto.Dates.SelectedDay.Day() {
+											if cell.Day() == time.Now().In(dto.Dates.SelectedDay.Location()).Day() {
 												<span class="calendar__today-dot"></span>
 											}
 										</button>
@@ -150,7 +147,11 @@ templ Step2(dto *web.BookingDTO) {
 											<path d="M9 5.25V9L11.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
 										</svg>
 									</div>
-									<p class="timeslots__closed-title">Closed on { dto.Dates.SelectedDay.Weekday() }s</p>
+									if dto.Dates.InvalidSelectedDay {
+										<p class="timeslots__closed-title">You selected an invalid date { dto.Dates.SelectedDay.Format(time.DateOnly) }</p>
+									} else {
+										<p class="timeslots__closed-title">Closed on { dto.Dates.SelectedDay.Weekday() }s</p>
+									}
 									<p class="timeslots__closed-text">No appointments are offered on this day. Please select another date to see available times.</p>
 								</div>
 							}
