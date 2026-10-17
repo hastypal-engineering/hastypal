@@ -279,7 +279,6 @@ func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
 		return eris.Wrap(err, "Failed retrieving service to patch the booking dates")
 	}
 
-	session.ServiceID = dto.ServiceID
 	session.Date = dto.Date
 
 	start := helper.TimeToMinFromMidnight(dto.Hour)

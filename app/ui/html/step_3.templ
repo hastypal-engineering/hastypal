@@ -1,0 +1,85 @@
+package html
+
+import (
+	"fmt"
+
+	"github.com/adriein/hastypal/internal/web"
+)
+
+templ Step3(dto *web.BookingDTO) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<title>{ dto.Business.Name }</title>
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+			<script src="/ui/static/js/htmx.min.js"></script>
+		</head>
+		<body>
+			<main>
+				@Header(dto)
+				<div class="step">
+					<div class="step__header">
+						<p class="step__indicator">Step { dto.Step }</p>
+						<h2 class="step__title">Your Details</h2>
+						<p class="step__instruction">We'll use this to confirm your appointment.</p>
+					</div>
+
+					<div class="booking-summary">
+						<div class="booking-summary__head">
+							<p class="booking-summary__title">Booking summary</p>
+							<span class="booking-summary__price">{ dto.SelectedService.Price }</span>
+						</div>
+						<p class="booking-summary__service">{ dto.SelectedService.Name }</p>
+						<p class="booking-summary__meta">{ dto.SelectedService.Duration } · { dto.SelectedService.Category }</p>
+						<div class="booking-summary__divider"></div>
+						<div class="booking-summary__schedule">
+							<div class="booking-summary__schedule-item">
+								<svg class="booking-summary__schedule-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+									<rect x="1.25" y="2.25" width="11.5" height="10.5" rx="1.5" stroke="currentColor" stroke-width="1.2"></rect>
+									<path d="M1.5 5.25H12.5M4 1V3.5M10 1V3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"></path>
+								</svg>
+								<p class="booking-summary__schedule-text">{ dto.Dates.SelectedDay.Format("Mon, Jan 2") }</p>
+							</div>
+							<div class="booking-summary__schedule-item">
+								<svg class="booking-summary__schedule-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+									<circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"></circle>
+									<path d="M7 4V7L9 8.25" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
+								</svg>
+								<p class="booking-summary__schedule-text">{ dto.SelectedTime }</p>
+							</div>
+						</div>
+					</div>
+
+					<form id="bookingForm" class="details-form" action={ fmt.Sprintf("/booking/%s/session/%s/step-3", dto.Business.PublicID, dto.SessionID) } method="POST">
+						<input type="hidden" name="sessionID" value={ dto.SessionID }/>
+						<div class="details-form__row">
+							<div class="details-form__field">
+								<label class="details-form__label" for="firstName">First Name</label>
+								<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" value={ dto.Customer.FirstName } autocomplete="given-name"/>
+							</div>
+							<div class="details-form__field">
+								<label class="details-form__label" for="lastName">Last Name</label>
+								<input class="details-form__input" id="lastName" name="lastName" type="text" placeholder="Okafor" value={ dto.Customer.LastName } autocomplete="family-name"/>
+							</div>
+						</div>
+						<div class="details-form__field">
+							<label class="details-form__label" for="email">Email Address</label>
+							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com" value={ dto.Customer.Email } autocomplete="email" inputmode="email"/>
+						</div>
+						<div class="details-form__field">
+							<label class="details-form__label" for="phone">Phone Number</label>
+							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456" value={ dto.Customer.Phone } autocomplete="tel" inputmode="tel"/>
+						</div>
+						<div class="details-form__field">
+							<label class="details-form__label" for="notes">Notes <span class="details-form__optional">(optional)</span></label>
+							<textarea class="details-form__input details-form__textarea" id="notes" name="notes" rows="3" placeholder="Any health concerns or preferences...">{ dto.Customer.Notes }</textarea>
+						</div>
+					</form>
+				</div>
+				@Footer(dto)
+			</main>
+		</body>
+	</html>
+}

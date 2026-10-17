@@ -259,5 +259,40 @@ func (c *WebController) PostStep2() gin.HandlerFunc {
 
 			return
 		}
+
+		ctx.Redirect(http.StatusFound, fmt.Sprintf("/booking/%s/session/%s/confirmation", publicID, sessionID))
+	}
+}
+
+func (c *WebController) GetConfirmation() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		traceID := ctx.Value(middleware.TraceIDKey)
+
+		sessionID := ctx.Param("sessionID")
+		publicID := ctx.Param("publicID")
+
+		req := web.GetDatesReq{
+			BusinessPublicID: publicID,
+			SessionID: sessionID,
+		}
+
+		dto, err := c.service.ShowDates(ctx, req)
+		if err != nil {
+			if errors.Is(err, booking.BookingSessionExpired) {
+				redirectOnError(ctx, sessionExpiredLocation(publicID))
+
+				return
+			}
+
+			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", publicID, "session_id", sessionID, "error", eris.ToString(err, true))
+
+			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error",publicID))
+
+			return
+		}
+
+		renderer := vendor.NewTemplRenderer(ctx, http.StatusOK, html.Confirmation(dto))
+
+		ctx.Render(http.StatusOK, renderer)
 	}
 }

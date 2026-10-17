@@ -78,6 +78,8 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	s.gin.POST("/booking/:publicID/session/:sessionID/step-2", s.webController(app).PostStep2())
 
+	s.gin.GET("/booking/:publicID/session/:sessionID/confirmation", s.webController(app).GetConfirmation())
+
 	// BOOKING ERROR PAGES
 	s.gin.GET("/booking/:publicID/error", s.webController(app).GetError())
 
