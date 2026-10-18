@@ -387,6 +387,10 @@ func (s *Service) ShowBooking(ctx context.Context, req GetBookingReq) (*BookingD
 		return nil, eris.Wrap(err, "Error retrieving the session")
 	}
 
+	if err := session.EnsureIsValid(); err != nil {
+		return nil, eris.Wrap(err, "Session has expired")
+	}
+
 	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
 	if err != nil {
 		logger.Error(

@@ -55,15 +55,15 @@ templ Step3(dto *web.BookingDTO) {
 						<input type="hidden" name="sessionID" value={ dto.SessionID }/>
 						<div class="details-form__field">
 							<label class="details-form__label" for="firstName">Name</label>
-							<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" autocomplete="given-name"/>
+							<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" autocomplete="given-name" required/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="email">Email Address</label>
-							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com" autocomplete="email" inputmode="email"/>
+							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com" autocomplete="email" inputmode="email" required/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="phone">Phone Number</label>
-							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456" autocomplete="tel" inputmode="tel"/>
+							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456" autocomplete="tel" inputmode="tel" required/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="notes">Notes <span class="details-form__optional">(optional)</span></label>
