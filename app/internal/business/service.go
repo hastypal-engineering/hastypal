@@ -9,8 +9,12 @@ import (
 
 type BusinessService interface {
 	GetBusinessByPublicID(ctx context.Context, ID string) (*Business, error)
+	GetBusinessSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error)
+	GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error)
+	GetServiceByID(ctx context.Context, serviceID int) (*ServiceCatalog, error)
 	CreateBusiness(ctx context.Context, business *Business) (int, error)
 	CreateServiceCatalog(ctx context.Context, service *ServiceCatalog) (int, error)
+	CreateBusinessSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error
 }
 
 type Service struct {
@@ -50,4 +54,39 @@ func (s *Service) CreateServiceCatalog(ctx context.Context, service *ServiceCata
 	}
 
 	return ID, nil
+}
+
+func (s *Service) GetBusinessSchedule(ctx context.Context, businessID int) (*BusinessSchedule, error) {
+	schedule, err := s.repo.GetSchedule(ctx, businessID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error fetching schedule for business with ID %d", businessID)
+	}
+
+	return schedule, nil
+}
+
+func (s *Service) GetServiceCatalog(ctx context.Context, businessID int) ([]*ServiceCatalog, error) {
+	services, err := s.repo.GetServiceCatalog(ctx, businessID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error fetching service catalog for business with ID %d", businessID)
+	}
+
+	return services, nil
+}
+
+func (s *Service) CreateBusinessSchedule(ctx context.Context, businessID int, schedule *BusinessSchedule) error {
+	if err := s.repo.CreateSchedule(ctx, businessID, schedule); err != nil {
+		return eris.Wrapf(err, "Error creating schedule for business with ID %d", businessID)
+	}
+
+	return nil
+}
+
+func (s *Service) GetServiceByID(ctx context.Context, serviceID int) (*ServiceCatalog, error) {
+	service, err := s.repo.GetServiceByID(ctx, serviceID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error fetching service with ID %d", serviceID)
+	}
+
+	return service, nil
 }

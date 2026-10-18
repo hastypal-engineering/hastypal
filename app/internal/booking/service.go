@@ -13,7 +13,7 @@ type BookingService interface {
 	InitSession(ctx context.Context, businessID int) (string, error)
 	GetCurrentSession(ctx context.Context, sessionID string) (*Session, error)
 	PatchSession(ctx context.Context, session *Session) error
-	GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error)
+	GetSessionsOnDateByBusiness(ctx context.Context, businessID int, date time.Time) ([]*Session, error)
 	GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error)
 	RegisterBooking(ctx context.Context, sessionID string, businessID int, serviceID int, date time.Time) (string, error)
 }
@@ -38,12 +38,10 @@ func (s *Service) InitSession(ctx context.Context, businessID int) (string, erro
 	session := &Session{
 		ID:         sessionID,
 		BusinessID: businessID,
-		ServiceID:  0,
-		Date:       "",
-		Hour:       "",
+		Interval:   &SessionInterval{},
 		DateAdd:    time.Now().UTC(),
 		DateUpd:    time.Now().UTC(),
-		TTL:        time.Minute.Milliseconds() * 5,
+		TTL:        5 * time.Minute,
 	}
 
 	if err := s.sessionRepo.Save(ctx, session); err != nil {
@@ -55,7 +53,6 @@ func (s *Service) InitSession(ctx context.Context, businessID int) (string, erro
 
 func (s *Service) GetCurrentSession(ctx context.Context, sessionID string) (*Session, error) {
 	session, err := s.sessionRepo.GetByID(ctx, sessionID)
-
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching session by ID")
 	}
@@ -73,9 +70,8 @@ func (s *Service) PatchSession(ctx context.Context, session *Session) error {
 	return nil
 }
 
-func (s *Service) GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Session, error) {
-	sessions, err := s.sessionRepo.GetByDate(ctx, date)
-
+func (s *Service) GetSessionsOnDateByBusiness(ctx context.Context, businessID int, date time.Time) ([]*Session, error) {
+	sessions, err := s.sessionRepo.GetByDate(ctx, businessID, date)
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching sessions on specific date")
 	}
@@ -85,7 +81,6 @@ func (s *Service) GetSessionsOnDate(ctx context.Context, date time.Time) ([]*Ses
 
 func (s *Service) GetSessionOnHour(ctx context.Context, date time.Time) (*Session, error) {
 	sessions, err := s.sessionRepo.GetByHour(ctx, date)
-
 	if err != nil {
 		return nil, eris.Wrap(err, "Error fetching sessions on specific date")
 	}

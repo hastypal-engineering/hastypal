@@ -8,7 +8,10 @@ package html
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/adriein/hastypal/internal/web"
+import (
+	"fmt"
+	"github.com/adriein/hastypal/internal/web"
+)
 
 func Error(dto *web.ErrorDTO) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -31,7 +34,20 @@ func Error(dto *web.ErrorDTO) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"><title>500 - Something Went Wrong</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body class=\"error\"><div class=\"card--error\"><div class=\"error__logo-wrapper\"><img src=\"/ui/static/images/hastypal_crab.png\" alt=\"Hastypal Crab Logo\"></div><div class=\"error__code\">Error 500</div><h1>Looks like we pinched a wire!</h1><p>Something went wrong on our end. Don't worry, our team has been notified and we're working to snap things back into place.</p><div class=\"error__actions\"><a href=\"/\" class=\"btn--error btn--error-primary\">Take Me Home</a> <button onclick=\"window.location.reload()\" class=\"btn--error btn--error-secondary\">Try Again</button></div></div></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, viewport-fit=cover\"><title>500 - Something Went Wrong</title><link rel=\"icon\" type=\"image/x-icon\" href=\"/ui/static/images/golden_helmet.ico\"><link rel=\"stylesheet\" href=\"/ui/static/css/main.css\"></head><body class=\"error\"><div class=\"card--error\"><div class=\"error__logo-wrapper\"><img src=\"/ui/static/images/hastypal_crab.png\" alt=\"Hastypal Crab Logo\"></div><div class=\"error__code\">Error 500</div><h1>Looks like we pinched a wire!</h1><p>Something went wrong on our end. Don't worry, our team has been notified and we're working to snap things back into place.</p><div class=\"error__actions\"><a href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var2 templ.SafeURL
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("/booking/%s/step-1", dto.BusinessPublicID))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/error.templ`, Line: 26, Col: 70}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"btn--error btn--error-primary\">Take Me Home</a></div></div></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

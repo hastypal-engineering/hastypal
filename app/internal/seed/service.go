@@ -31,6 +31,7 @@ func (s *Service) Run(ctx context.Context) error {
 
 	for _, fakeBusiness := range BusinessSeed {
 		s.logger.Debug(fmt.Sprintf("Creating fake business %s", fakeBusiness.Name))
+
 		publicID, err := helper.GenerateUniqueSlug(fakeBusiness.Name, false)
 		if err != nil {
 			return eris.Wrapf(err, "Failed creating slug for business %s", fakeBusiness.Name)
@@ -43,7 +44,12 @@ func (s *Service) Run(ctx context.Context) error {
 			return eris.Wrapf(err, "Error creating fake business %s", fakeBusiness.Name)
 		}
 
-		for _, fakeService := range fakeBusiness.ServiceCatalog {
+		catalog, found := CatalogSeed[fakeBusiness.Name]
+		if !found {
+			continue
+		}
+
+		for _, fakeService := range catalog {
 			s.logger.Debug(fmt.Sprintf("Creating fake service %s", fakeService.Name))
 
 			fakeService.BusinessID = businessID
@@ -51,6 +57,17 @@ func (s *Service) Run(ctx context.Context) error {
 			if _, err := s.business.CreateServiceCatalog(ctx, fakeService); err != nil {
 				return eris.Wrapf(err, "Error creating fake service %s", fakeService.Name)
 			}
+		}
+
+		schedule, found := ScheduleSeed[fakeBusiness.Name]
+		if !found {
+			continue
+		}
+
+		s.logger.Debug(fmt.Sprintf("Creating fake schedule for business %s", fakeBusiness.Name))
+
+		if err := s.business.CreateBusinessSchedule(ctx, businessID, schedule); err != nil {
+			return eris.Wrapf(err, "Error creating fake schedule for business %s", fakeBusiness.Name)
 		}
 	}
 

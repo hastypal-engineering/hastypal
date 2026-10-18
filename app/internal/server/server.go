@@ -68,9 +68,24 @@ func (s *Server) routeSetup(app *internal.App) {
 
 	s.gin.POST("/telegram-webhook", s.webhookController(app).Post())
 
+	// BOOKING
+
 	s.gin.GET("/booking/:publicID/step-1", s.webController(app).GetStep1())
 
 	s.gin.POST("/booking/:publicID/step-1", s.webController(app).PostStep1())
+
+	s.gin.GET("/booking/:publicID/session/:sessionID/step-2", s.webController(app).GetStep2())
+
+	s.gin.POST("/booking/:publicID/session/:sessionID/step-2", s.webController(app).PostStep2())
+
+	s.gin.GET("/booking/:publicID/session/:sessionID/step-3", s.webController(app).GetStep3())
+
+	s.gin.GET("/booking/:publicID/session/:sessionID/confirmation", s.webController(app).GetConfirmation())
+
+	// BOOKING ERROR PAGES
+	s.gin.GET("/booking/:publicID/error", s.webController(app).GetError())
+
+	s.gin.GET("/booking/:publicID/session-expired", s.webController(app).GetSessionExpired())
 
 	cwd, _ := os.Getwd()
 

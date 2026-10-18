@@ -2,17 +2,25 @@ package web
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/adriein/hastypal/internal/booking"
 	"github.com/adriein/hastypal/internal/business"
+	"github.com/adriein/hastypal/pkg/helper"
+	"github.com/adriein/hastypal/pkg/helper/conversion"
 	"github.com/adriein/hastypal/pkg/middleware"
+	"github.com/bytedance/gopkg/util/logger"
 	"github.com/rotisserie/eris"
 )
 
 type WebService interface {
 	ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error)
 	StoreService(ctx context.Context, dto *BookingPatchDTO) error
+	ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error)
+	StoreDates(ctx context.Context, dto *BookingPatchDTO) error
+	ShowBooking(ctx context.Context, req GetBookingReq) (*BookingDTO, error)
 }
 
 type Service struct {
@@ -50,15 +58,20 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 		return nil, eris.Wrapf(err, "Error creating session, to book on bussiness %d", business.ID)
 	}
 
+	catalog, err := s.business.GetServiceCatalog(ctx, business.ID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing services trying to fetch the catalog of business %d", business.ID)
+	}
+
 	var services []*ServiceDTO
 
-	for _, service := range business.ServiceCatalog {
+	for _, service := range catalog {
 		dto := &ServiceDTO{
 			ID:          service.ID,
 			Name:        service.Name,
 			Price:       service.Price,
 			Currency:    service.Currency,
-			Duration:    service.Duration,
+			Duration:    conversion.BeautifyDuration(service.Duration),
 			Description: service.Description,
 		}
 
@@ -82,6 +95,12 @@ func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*Bookin
 	return dto, nil
 }
 
+/*
+================================================================================
+WEB PATCH BOOKING WITH SERVICE
+==============================================================================
+*/
+
 func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error {
 	traceID := ctx.Value(middleware.TraceIDKey)
 
@@ -103,4 +122,228 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 	}
 
 	return nil
+}
+
+/*
+================================================================================
+WEB SHOW DATES
+==============================================================================
+*/
+
+func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error) {
+	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
+	if err != nil {
+		return nil, eris.Wrap(err, "Error showing dates trying to fetch business by public ID")
+	}
+
+	session, err := s.booking.GetCurrentSession(ctx, req.SessionID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing dates while fetching session, to book on bussiness %d", business.ID)
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		return nil, eris.Wrap(err, "Error showing dates, session has expired")
+	}
+
+	schedule, err := s.business.GetBusinessSchedule(ctx, business.ID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
+	}
+
+	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
+	if err != nil {
+		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
+	}
+
+	loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
+
+	reqDay := req.Day
+
+	if req.Day.IsZero() {
+		reqDay = helper.Today(loc)
+	}
+
+	var slots []*SlotDTO
+
+	if reqDay.Before(helper.Today(loc)) {
+		return &BookingDTO{
+			SessionID: session.ID,
+			Step:      2,
+			Business: &BusinessDTO{
+				PublicID:    business.PublicID,
+				Name:        business.Name,
+				Email:       business.Email,
+				Address:     business.Address,
+				Phone:       business.ContactPhone,
+				Description: "the better business",
+			},
+			Dates: &BookingDatesDTO{
+				SelectedDay:        reqDay,
+				Slots:              slots,
+				InvalidSelectedDay: true,
+			},
+		}, nil
+	}
+
+	// We initialize a time table with 1440 positions, every position is a minute inside a day
+	timeTable := TimeTable{Data: make([]bool, 1440)}
+
+	otherUserSessions, err := s.booking.GetSessionsOnDateByBusiness(ctx, business.ID, reqDay)
+	if err != nil {
+		return nil, eris.Wrap(err, "Error showing dates while fetching other users sessions")
+	}
+
+	for _, day := range schedule.WeeklySchedule {
+		if reqDay.Weekday() != day.DayOfWeek {
+			continue
+		}
+
+		for _, timeSlot := range day.TimeSlots {
+			openTime := helper.TimeToMinFromMidnight(timeSlot.OpenTime)
+			closeTime := helper.TimeToMinFromMidnight(timeSlot.CloseTime)
+
+			timeTable.MarkTimeSlot(openTime, closeTime, true)
+		}
+
+		for _, otherUserSession := range otherUserSessions {
+			serviceStartInMin := int(otherUserSession.Interval.Start.Minutes())
+			serviceEndInMin := int(otherUserSession.Interval.End.Minutes())
+
+			timeTable.MarkTimeSlot(serviceStartInMin, serviceEndInMin, false)
+		}
+
+		stepInterval := 30
+
+		for _, timeSlot := range day.TimeSlots {
+			openTime := helper.TimeToMinFromMidnight(timeSlot.OpenTime)
+			closeTime := helper.TimeToMinFromMidnight(timeSlot.CloseTime)
+
+			for i := openTime; i+stepInterval <= closeTime; i += stepInterval {
+				isAvailable := timeTable.IsChunkAllTrue(i, int(service.Duration.Minutes()))
+
+				slotTime, err := helper.TimeFromInt(i)
+				if err != nil {
+					return nil, eris.Wrap(err, "Error showing dates while converting timeTable int to time")
+				}
+
+				hourStr := fmt.Sprintf("%02d:%02d", slotTime.Hour(), slotTime.Minute())
+
+				slots = append(slots, &SlotDTO{
+					Label:       hourStr,
+					IsAvailable: isAvailable,
+				})
+			}
+		}
+	}
+
+	dto := &BookingDTO{
+		SessionID: session.ID,
+		Step:      2,
+		Business: &BusinessDTO{
+			PublicID:    business.PublicID,
+			Name:        business.Name,
+			Email:       business.Email,
+			Address:     business.Address,
+			Phone:       business.ContactPhone,
+			Description: "the better business",
+		},
+		Dates: &BookingDatesDTO{
+			SelectedDay: reqDay,
+			Slots:       slots,
+		},
+	}
+
+	return dto, nil
+}
+
+/*
+================================================================================
+WEB PATCH BOOKING DATES
+==============================================================================
+*/
+
+func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
+	traceID := ctx.Value(middleware.TraceIDKey)
+
+	session, err := s.booking.GetCurrentSession(ctx, dto.SessionID)
+	if err != nil {
+		s.logger.Error("Error retrieving the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", dto.SessionID)
+		return eris.Wrap(err, "Failed retrieving session to patch the booking dates")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		return eris.Wrap(err, "Session has expired")
+	}
+
+	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
+	if err != nil {
+		s.logger.Error("Error retrieving the service while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Failed retrieving service to patch the booking dates")
+	}
+
+	session.Date = dto.Date
+
+	start := helper.TimeToMinFromMidnight(dto.Hour)
+	end := start + int(service.Duration.Minutes())
+
+	session.Interval = &booking.SessionInterval{
+		Start: time.Duration(start) * time.Minute,
+		End:   time.Duration(end) * time.Minute,
+	}
+
+	if err := s.booking.PatchSession(ctx, session); err != nil {
+		s.logger.Error("Error patching the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return eris.Wrap(err, "Error patching the session with the selected dates")
+	}
+
+	return nil
+}
+
+/*
+================================================================================
+WEB SHOW CURRENT BOOKING STATUS
+==============================================================================
+*/
+
+func (s *Service) ShowBooking(ctx context.Context, req GetBookingReq) (*BookingDTO, error) {
+	traceID := ctx.Value(middleware.TraceIDKey)
+	loc := ctx.Value(middleware.TimezoneKey).(*time.Location)
+
+	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
+	if err != nil {
+		logger.Error("Error retrieving the business while showing booking", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID)
+		return nil, eris.Wrap(err, "Error showing booking trying to fetch business by public ID")
+	}
+
+	session, err := s.booking.GetCurrentSession(ctx, req.SessionID)
+	if err != nil {
+		logger.Error("Error retrieving the session while showing booking", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID)
+		return nil, eris.Wrap(err, "Error retrieving the session")
+	}
+
+	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
+	if err != nil {
+		logger.Error("Error retrieving the service while showing booking", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		return nil, eris.Wrap(err, "Error retrieving the service")
+	}
+
+	hour := helper.TimeFromDuration(session.Interval.Start, loc)
+
+	date := helper.CombineDayAndTime(session.Date.In(loc), hour)
+
+	dto := &BookingDTO{
+		SessionID: session.ID,
+		Step:      3,
+		Business: &BusinessDTO{
+			Name: business.Name,
+		},
+		SelectedService: &ServiceDTO{
+			Name:     service.Name,
+			Duration: conversion.BeautifyDuration(service.Duration),
+			Price:    service.Price,
+		},
+		SelectedDate: &date,
+	}
+
+	return dto, nil
 }

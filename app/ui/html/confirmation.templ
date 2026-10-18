@@ -1,0 +1,80 @@
+package html
+
+import "github.com/adriein/hastypal/internal/web"
+
+templ Confirmation(dto *web.BookingDTO) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<title>{ dto.Business.Name }</title>
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+		</head>
+		<body>
+			<main>
+				@Header(dto)
+				<div class="step">
+					<div class="confirmation">
+						<div class="confirmation__icon">
+							<svg width="18" height="14" viewBox="0 0 20 16" fill="none">
+								<path d="M1.5 8L7 13.5L18.5 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+						</div>
+
+						<p class="confirmation__eyebrow">Confirmed</p>
+						<h2 class="confirmation__title">You're all set, Adria.</h2>
+						<p class="confirmation__subtitle">
+							Confirmation sent to <strong>adria.claret23@gmail.com</strong>.
+						</p>
+
+						<div class="confirmation__card">
+							<div class="confirmation__card-head">
+								<div>
+									<p class="confirmation__label">Reference</p>
+									<p class="confirmation__reference">{ dto.SessionID }</p>
+								</div>
+								<span class="confirmation__status">Pending</span>
+							</div>
+							<div class="confirmation__divider"></div>
+							<div class="confirmation__grid">
+								<div class="confirmation__item">
+									<p class="confirmation__item-label">Service</p>
+									<p class="confirmation__value">I have to add it</p>
+									<p class="confirmation__sub">30min · 50€</p>
+								</div>
+								<div class="confirmation__item">
+									<p class="confirmation__item-label">Category</p>
+									<p class="confirmation__value">I don't know what to add here</p>
+								</div>
+								<div class="confirmation__item">
+									<p class="confirmation__item-label">Date</p>
+									<p class="confirmation__value">{ dto.Dates.SelectedDay.Format("Mon, January 2") }</p>
+								</div>
+								<div class="confirmation__item">
+									<p class="confirmation__item-label">Time</p>
+									<p class="confirmation__value">12:30</p>
+								</div>
+								<div class="confirmation__item">
+									<p class="confirmation__item-label">Name</p>
+									<p class="confirmation__value">Adria Claret</p>
+								</div>
+								<div class="confirmation__item">
+									<p class="confirmation__item-label">Phone</p>
+									<p class="confirmation__value">564758675</p>
+								</div>
+							</div>
+						</div>
+
+						<div class="confirmation__policy">
+							<p class="confirmation__policy-text">
+								<strong>Cancellation policy:</strong> Free cancellations up to 24 hours before your appointment. Call us at <span>{ dto.Business.Phone }</span> to reschedule.
+							</p>
+						</div>
+					</div>
+				</div>
+				@Footer(dto)
+			</main>
+		</body>
+	</html>
+}

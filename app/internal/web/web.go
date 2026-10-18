@@ -1,13 +1,28 @@
 // Package web
 package web
 
+import (
+	"time"
+)
+
 type ErrorDTO struct {
-	SessionID string
-	Business  *BusinessDTO
+	SessionID        string
+	BusinessPublicID string
 }
 
 type GetServicesReq struct {
 	BusinessPublicID string `uri:"publicID" binding:"required"`
+}
+
+type GetDatesReq struct {
+	BusinessPublicID string `uri:"publicID" binding:"required"`
+	SessionID        string `uri:"sessionID" binding:"required"`
+	Day              time.Time
+}
+
+type GetBookingReq struct {
+	BusinessPublicID string `uri:"publicID" binding:"required"`
+	SessionID        string `uri:"sessionID" binding:"required"`
 }
 
 type ServiceDTO struct {
@@ -33,9 +48,61 @@ type BookingDTO struct {
 	Step      int
 	Services  []*ServiceDTO
 	Business  *BusinessDTO
+	Dates     *BookingDatesDTO
+	SelectedService *ServiceDTO
+	SelectedDate *time.Time
 }
 
 type BookingPatchDTO struct {
 	SessionID string
 	ServiceID int
+	Date      time.Time
+	Hour      time.Time
+}
+
+type TimeTable struct {
+	Data []bool
+}
+
+func (t *TimeTable) MarkTimeSlot(start int, end int, symbol bool) {
+	// Normal intra-day range (e.g., 09:00 to 17:00)
+	if start <= end {
+		for i := start; i < end; i++ {
+			t.Data[i] = symbol
+		}
+
+		return
+	}
+
+	// Overnight range (e.g., 22:00 to 04:00 wrap-around)
+	for i := start; i < 1440; i++ {
+		t.Data[i] = symbol
+	}
+	for i := range end {
+		t.Data[i] = symbol
+	}
+}
+
+func (t *TimeTable) IsChunkAllTrue(start int, interval int) bool {
+	if start+interval > len(t.Data) {
+		return false
+	}
+
+	for _, minute := range t.Data[start : start+interval] {
+		if !minute {
+			return false
+		}
+	}
+	return true
+}
+
+type SlotDTO struct {
+	Label       string
+	IsAvailable bool
+}
+
+type BookingDatesDTO struct {
+	SelectedDay        time.Time
+	Slots              []*SlotDTO
+	InvalidSelectedDay bool
 }

@@ -1,6 +1,9 @@
 package html
 
-import "github.com/adriein/hastypal/internal/web"
+import (
+	"fmt"
+	"github.com/adriein/hastypal/internal/web"
+)
 
 templ Error(dto *web.ErrorDTO) {
 	<html>
@@ -20,8 +23,7 @@ templ Error(dto *web.ErrorDTO) {
 				<h1>Looks like we pinched a wire!</h1>
 				<p>Something went wrong on our end. Don't worry, our team has been notified and we're working to snap things back into place.</p>
 				<div class="error__actions">
-					<a href="/" class="btn--error btn--error-primary">Take Me Home</a>
-					<button onclick="window.location.reload()" class="btn--error btn--error-secondary">Try Again</button>
+					<a href={ fmt.Sprintf("/booking/%s/step-1", dto.BusinessPublicID) } class="btn--error btn--error-primary">Take Me Home</a>
 				</div>
 			</div>
 		</body>

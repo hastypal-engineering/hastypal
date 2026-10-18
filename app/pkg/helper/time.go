@@ -1,0 +1,97 @@
+package helper
+
+import (
+	"time"
+
+	"github.com/rotisserie/eris"
+)
+
+// Today creates a time.Now in a specific location, strips time and returns the Date with UTC hours
+func Today(loc *time.Location) time.Time {
+	now := time.Now().In(loc)
+
+	return StripTime(&now)
+}
+
+func DateToDB(date time.Time) *time.Time {
+	if date.IsZero() {
+		return nil
+	}
+
+	return &date
+}
+
+func HourToDB(hour time.Duration) any {
+	if hour == 0 {
+		return nil
+	}
+
+	return time.Date(0, time.January, 1, 0, 0, 0, 0, time.UTC).Add(hour)
+}
+
+func HourFromDB(hour time.Time) time.Duration {
+	return time.Duration(hour.Hour())*time.Hour +
+		time.Duration(hour.Minute())*time.Minute +
+		time.Duration(hour.Second())*time.Second
+}
+
+// CombineDayAndTime builds a single timestamp using the calendar day of day and
+// the hour, minutes and seconds of clock, which is expected to only carry a time.
+func CombineDayAndTime(day time.Time, clock time.Time) time.Time {
+	return time.Date(
+		day.Year(),
+		day.Month(),
+		day.Day(),
+		clock.Hour(),
+		clock.Minute(),
+		clock.Second(),
+		0,
+		day.Location(),
+	)
+}
+
+// StringToTime converts a string to time in the formatted input
+func StringToTime(s string, format string) (time.Time, error) {
+	date, err := time.Parse(format, s)
+	if err != nil {
+		return time.Now(), eris.Wrapf(err, "Error converting string %s to time with format %s", s, format)
+	}
+
+	return date, nil
+}
+
+// TimeToMinFromMidnight returns minutes from midnight
+func TimeToMinFromMidnight(t time.Time) int {
+	return t.Hour()*60 + t.Minute()
+}
+
+// TimeFromDuration returns a time from a duration
+func TimeFromDuration(d time.Duration, loc *time.Location) time.Time {
+	now := time.Now().In(loc)
+
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+
+	return midnight.Add(d)
+}
+
+// TimeFromInt returns time.Time from an int representing minutes from midnight
+func TimeFromInt(m int) (time.Time, error) {
+	if m < 0 || m >= 1440 {
+		return time.Time{}, eris.New("Minutes out of range [0, 1439]")
+	}
+
+	now := time.Now()
+	hours := m / 60
+	minutes := m % 60
+
+	return time.Date(
+		now.Year(), now.Month(), now.Day(),
+		hours, minutes, 0, 0,
+		now.Location(),
+	), nil
+}
+
+// StripTime strips the time of a date eg: 2026-10-10 12:00:00 returns 2026-10-10 in UTC
+func StripTime(t *time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, t.Location())
+}

@@ -1,0 +1,214 @@
+package html
+
+import (
+	"fmt"
+	"time"
+
+	"github.com/adriein/hastypal/internal/web"
+	"github.com/adriein/hastypal/pkg/helper"
+)
+
+var calendarMonthNames = [...]string{
+	"January", "February", "March", "April", "May", "June",
+	"July", "August", "September", "October", "November", "December",
+}
+
+var calendarDayNames = [...]string{"S", "M", "T", "W", "T", "F", "S"}
+
+func calendarCells(year int, month time.Month, loc *time.Location) []*time.Time {
+	firstOfMonth := time.Date(year, month, 1, 0, 0, 0, 0, loc)
+
+	firstOfMonthDay := helper.StripTime(&firstOfMonth)
+
+	offset := int(firstOfMonthDay.Weekday())
+
+	start := firstOfMonthDay.AddDate(0, 0, -offset)
+
+	cells := make([]*time.Time, 0, 42)
+
+	for day := start; len(cells) < 42; day = day.AddDate(0, 0, 1) {
+		if day.Month() == month {
+			current := day
+			cells = append(cells, &current)
+		} else {
+			cells = append(cells, nil)
+		}
+	}
+
+	return cells
+}
+
+func calendarDayClass(cell *time.Time, selected time.Time) string {
+	class := "calendar__day"
+
+	if cell.Before(helper.Today(selected.Location())) {
+		class += " is-past"
+	}
+
+	if cell.Equal(selected) {
+		class += " is-selected"
+	}
+
+	return class
+}
+
+templ Step2(dto *web.BookingDTO) {
+	<html>
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+			<title>{ dto.Business.Name }</title>
+			<link rel="icon" type="image/x-icon" href="/ui/static/images/golden_helmet.ico"/>
+			<link rel="stylesheet" href="/ui/static/css/main.css"/>
+			<script src="/ui/static/js/htmx.min.js"></script>
+		</head>
+		<body>
+			<main>
+				@Header(dto)
+				<div id="step" class="step">
+					<div class="step__header">
+						<p class="step__indicator">Step { dto.Step }</p>
+						<h2 class="step__title">Pick a Date and Time</h2>
+						<p class="step__instruction">Select an available slot to continue.</p>
+					</div>
+					<div id="calendar">
+						<div class="calendar">
+							<div class="calendar__nav">
+								<button type="button" class="calendar__arrow is-disabled" aria-label="Previous month">
+									<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+										<path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+								</button>
+								<p class="calendar__month">{ calendarMonthNames[int(time.Now().Month())-1] } { time.Now().Year() }</p>
+								<button type="button" class="calendar__arrow" aria-label="Next month">
+									<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+										<path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+								</button>
+							</div>
+							<div class="calendar__weekdays">
+								for _, day := range calendarDayNames {
+									<div class="calendar__weekday">{ day }</div>
+								}
+							</div>
+							<div class="calendar__grid">
+								for _, cell := range calendarCells(time.Now().Year(), time.Now().Month(), dto.Dates.SelectedDay.Location()) {
+									if cell == nil {
+										<div></div>
+									} else {
+										{{ today := helper.Today(dto.Dates.SelectedDay.Location()) }}
+										<button
+											hx-select="#calendar"
+											hx-target="#calendar"
+											hx-swap="outerHTML"
+											hx-get={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, cell.Format(time.DateOnly)) }
+											hx-push-url="true"
+											type="button"
+											class={ calendarDayClass(cell, dto.Dates.SelectedDay) }
+											if cell.Before(today) {
+												disabled
+											}
+										>
+											{ cell.Day() }
+											if cell.Day() == time.Now().In(dto.Dates.SelectedDay.Location()).Day() {
+												<span class="calendar__today-dot"></span>
+											}
+										</button>
+									}
+								}
+							</div>
+							<p class="calendar__caption">{ dto.Dates.SelectedDay.Format("Monday, January 2") }</p>
+						</div>
+						<div class="timeslots">
+							<div class="timeslots__divider"></div>
+							if len(dto.Dates.Slots) > 0 {
+								<p class="timeslots__label">Available times — { dto.Dates.SelectedDay.Format("Jan 2") }</p>
+								<form
+									id="bookingForm"
+									action={ fmt.Sprintf("/booking/%s/session/%s/step-2?day=%s", dto.Business.PublicID, dto.SessionID, dto.Dates.SelectedDay.Format(time.DateOnly)) }
+									method="POST"
+								>
+									<input type="hidden" name="sessionID" value={ dto.SessionID }/>
+									<div class="timeslots__grid">
+										for _, slot := range dto.Dates.Slots {
+											if !slot.IsAvailable {
+												<button type="button" disabled class="timeslots__option is-unavailable">{ slot.Label }</button>
+											} else {
+												<label class="timeslots__option">
+													<input type="radio" name="slot" value={ fmt.Sprintf("%s:00", slot.Label) } class="timeslots__option__input"/>
+													{ slot.Label }
+												</label>
+											}
+										}
+									</div>
+								</form>
+								<p class="timeslots__footnote">Strikethrough times are booked.</p>
+							} else {
+								<div class="timeslots__closed" role="status">
+									<div class="timeslots__closed-icon">
+										<svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+											<circle cx="9" cy="9" r="6.75" stroke="currentColor" stroke-width="1.5"></circle>
+											<path d="M9 5.25V9L11.5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+										</svg>
+									</div>
+									if dto.Dates.InvalidSelectedDay {
+										<p class="timeslots__closed-title">You selected an invalid date { dto.Dates.SelectedDay.Format(time.DateOnly) }</p>
+									} else {
+										<p class="timeslots__closed-title">Closed on { dto.Dates.SelectedDay.Weekday() }s</p>
+									}
+									<p class="timeslots__closed-text">No appointments are offered on this day. Please select another date to see available times.</p>
+								</div>
+							}
+						</div>
+					</div>
+					<details class="contact">
+						<summary class="contact__toggle">
+							<span class="contact__toggle-label">Need help?</span>
+							<svg class="contact__toggle-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+								<path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+						</summary>
+						<div class="contact__rows">
+							<a class="contact__row" href={ "mailto:" + dto.Business.Email }>
+								<div class="contact__row-icon">
+									<svg width="13" height="11" viewBox="0 0 13 11" fill="none">
+										<rect x="0.5" y="0.5" width="12" height="10" rx="1.5" stroke="currentColor" stroke-width="1"></rect>
+										<path d="M1 1.5L6.5 6L12 1.5" stroke="currentColor" stroke-width="1" stroke-linecap="round"></path>
+									</svg>
+								</div>
+								<div class="contact__row-body">
+									<p class="contact__row-label">Email</p>
+									<p class="contact__row-value">{ dto.Business.Email }</p>
+								</div>
+							</a>
+							<a class="contact__row" href={ "tel:" + dto.Business.Phone }>
+								<div class="contact__row-icon">
+									<svg width="12" height="13" viewBox="0 0 12 13" fill="none">
+										<path d="M1.5 1.5C1.5 1.5 3 1 3.5 2.5C4 4 4.5 4.5 4.5 4.5C4.5 4.5 5 5 4 5.5C3 6 3.5 7 4.5 8C5.5 9 6.5 9.5 7 8.5C7.5 7.5 8 8 8 8C8 8 8.5 8.5 10 9C11.5 9.5 11 11 11 11C11 11 10 12 8.5 11C4 8.5 1 4 1.5 1.5Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+									</svg>
+								</div>
+								<div class="contact__row-body">
+									<p class="contact__row-label">Phone</p>
+									<p class="contact__row-value">{ dto.Business.Phone }</p>
+								</div>
+							</a>
+							<div class="contact__row">
+								<div class="contact__row-icon">
+									<svg width="10" height="13" viewBox="0 0 10 13" fill="none">
+										<path d="M5 1C2.8 1 1 2.8 1 5C1 7.8 5 12 5 12C5 12 9 7.8 9 5C9 2.8 7.2 1 5 1Z" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+										<circle cx="5" cy="5" r="1.5" stroke="currentColor" stroke-width="1"></circle>
+									</svg>
+								</div>
+								<div class="contact__row-body">
+									<p class="contact__row-label">Address</p>
+									<p class="contact__row-value">{ dto.Business.Address }</p>
+								</div>
+							</div>
+						</div>
+					</details>
+				</div>
+				@Footer(dto)
+			</main>
+		</body>
+	</html>
+}
