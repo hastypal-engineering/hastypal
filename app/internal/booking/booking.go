@@ -25,15 +25,19 @@ type SessionInterval struct {
 }
 
 type Session struct {
-	ID         string
-	BusinessID int
-	ServiceID  int
-	Date       time.Time
-	Interval   *SessionInterval
-	TTL        time.Duration
-	SlotIndex  int
-	DateAdd    time.Time
-	DateUpd    time.Time
+	ID          string
+	BusinessID  int
+	ServiceID   int
+	Date        time.Time
+	Interval    *SessionInterval
+	TTL         time.Duration
+	SlotIndex   int
+	ClientName  string
+	ClientEmail string
+	ClientPhone string
+	Notes       string
+	DateAdd     time.Time
+	DateUpd     time.Time
 }
 
 func (s *Session) EnsureIsValid() error {

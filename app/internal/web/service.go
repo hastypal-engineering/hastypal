@@ -21,6 +21,7 @@ type WebService interface {
 	ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error)
 	StoreDates(ctx context.Context, dto *BookingPatchDTO) error
 	ShowBooking(ctx context.Context, req GetBookingReq) (*BookingDTO, error)
+	StoreContact(ctx context.Context, dto *BookingPatchDTO) error
 }
 
 type Service struct {
@@ -419,4 +420,42 @@ func (s *Service) ShowBooking(ctx context.Context, req GetBookingReq) (*BookingD
 	}
 
 	return dto, nil
+}
+
+/*
+================================================================================
+WEB PATCH SESSION WITH CONTACT DETAILS
+==============================================================================
+*/
+
+func (s *Service) StoreContact(ctx context.Context, dto *BookingPatchDTO) error {
+	traceID := ctx.Value(middleware.TraceIDKey)
+
+	session, err := s.booking.GetCurrentSession(ctx, dto.SessionID)
+	if err != nil {
+		s.logger.Error(
+			"Error retrieving the session while storing contact details",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", dto.SessionID,
+		)
+		return eris.Wrap(err, "Failed retrieving session to patch the booking contact details")
+	}
+
+	if err := session.EnsureIsValid(); err != nil {
+		return eris.Wrap(err, "Session has expired")
+	}
+
+	session.ClientEmail = dto.ClientEmail
+	session.ClientName = dto.ClientName
+	session.ClientPhone = dto.ClientPhone
+	session.Notes = dto.Notes
+
+	if err := s.booking.PatchSession(ctx, session); err != nil {
+		s.logger.Error(
+			"Error patching the session while storing contact details",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID,
+		)
+		return eris.Wrap(err, "Error patching the session with the contact details")
+	}
+
+	return nil
 }

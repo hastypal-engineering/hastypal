@@ -44,20 +44,24 @@ type BusinessDTO struct {
 }
 
 type BookingDTO struct {
-	SessionID string
-	Step      int
-	Services  []*ServiceDTO
-	Business  *BusinessDTO
-	Dates     *BookingDatesDTO
+	SessionID       string
+	Step            int
+	Services        []*ServiceDTO
+	Business        *BusinessDTO
+	Dates           *BookingDatesDTO
 	SelectedService *ServiceDTO
-	SelectedDate *time.Time
+	SelectedDate    *time.Time
 }
 
 type BookingPatchDTO struct {
-	SessionID string
-	ServiceID int
-	Date      time.Time
-	Hour      time.Time
+	SessionID   string
+	ServiceID   int
+	Date        time.Time
+	Hour        time.Time
+	ClientName  string
+	ClientPhone string
+	ClientEmail string
+	Notes       string
 }
 
 type TimeTable struct {

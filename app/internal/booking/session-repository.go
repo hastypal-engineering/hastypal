@@ -39,10 +39,15 @@ func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error 
 			habs_start_time,
 			habs_end_time,
 			habs_ttl,
+			habs_slot_index,
+			habs_client_name,
+			habs_client_email,
+			habs_client_phone,
+			habs_notes,
 			habs_date_add,
 			habs_date_upd
 		)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14);
 	`
 
 	_, err := r.connection.ExecContext(
@@ -55,6 +60,11 @@ func (r *PgSessionRepository) Save(ctx context.Context, session *Session) error 
 		helper.HourToDB(session.Interval.Start),
 		helper.HourToDB(session.Interval.End),
 		session.TTL.Milliseconds(),
+		session.SlotIndex,
+		nullableString(session.ClientName),
+		nullableString(session.ClientEmail),
+		nullableString(session.ClientPhone),
+		nullableString(session.Notes),
 		session.DateAdd,
 		session.DateUpd,
 	)
@@ -75,6 +85,11 @@ func (r *PgSessionRepository) GetByID(ctx context.Context, sessionID string) (*S
 			habs_start_time,
 			habs_end_time,
 			habs_ttl,
+			habs_slot_index,
+			habs_client_name,
+			habs_client_email,
+			habs_client_phone,
+			habs_notes,
 			habs_date_add,
 			habs_date_upd
 		FROM
@@ -107,7 +122,12 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 			habs_start_time = $4,
 			habs_end_time = $5,
 			habs_ttl = $6,
-			habs_date_upd = $7
+			habs_slot_index = $7,
+			habs_client_name = $8,
+			habs_client_email = $9,
+			habs_client_phone = $10,
+			habs_notes = $11,
+			habs_date_upd = $12
 		WHERE
 			habs_id = $1;
 	`
@@ -121,6 +141,11 @@ func (r *PgSessionRepository) Update(ctx context.Context, session *Session) erro
 		helper.HourToDB(session.Interval.Start),
 		helper.HourToDB(session.Interval.End),
 		session.TTL.Milliseconds(),
+		session.SlotIndex,
+		nullableString(session.ClientName),
+		nullableString(session.ClientEmail),
+		nullableString(session.ClientPhone),
+		nullableString(session.Notes),
 		session.DateUpd,
 	)
 	if err != nil {
@@ -140,6 +165,11 @@ func (r *PgSessionRepository) GetByDate(ctx context.Context, businessID int, dat
 			habs_start_time,
 			habs_end_time,
 			habs_ttl,
+			habs_slot_index,
+			habs_client_name,
+			habs_client_email,
+			habs_client_phone,
+			habs_notes,
 			habs_date_add,
 			habs_date_upd
 		FROM
@@ -188,17 +218,30 @@ type scanner interface {
 	Scan(dest ...any) error
 }
 
+func nullableString(s string) any {
+	if s == "" {
+		return nil
+	}
+
+	return s
+}
+
 func scanSession(row scanner) (*Session, error) {
 	session := &Session{
 		Interval: &SessionInterval{},
 	}
 
 	var (
-		serviceID sql.NullInt64
-		date      sql.NullTime
-		start     sql.NullTime
-		end       sql.NullTime
-		ttl       sql.NullInt64
+		serviceID   sql.NullInt64
+		date        sql.NullTime
+		start       sql.NullTime
+		end         sql.NullTime
+		ttl         sql.NullInt64
+		slotIndex   sql.NullInt64
+		clientName  sql.NullString
+		clientEmail sql.NullString
+		clientPhone sql.NullString
+		notes       sql.NullString
 	)
 
 	if err := row.Scan(
@@ -209,6 +252,11 @@ func scanSession(row scanner) (*Session, error) {
 		&start,
 		&end,
 		&ttl,
+		&slotIndex,
+		&clientName,
+		&clientEmail,
+		&clientPhone,
+		&notes,
 		&session.DateAdd,
 		&session.DateUpd,
 	); err != nil {
@@ -217,6 +265,26 @@ func scanSession(row scanner) (*Session, error) {
 
 	session.ServiceID = int(serviceID.Int64)
 	session.TTL = time.Duration(ttl.Int64) * time.Millisecond
+
+	if slotIndex.Valid {
+		session.SlotIndex = int(slotIndex.Int64)
+	}
+
+	if clientName.Valid {
+		session.ClientName = clientName.String
+	}
+
+	if clientEmail.Valid {
+		session.ClientEmail = clientEmail.String
+	}
+
+	if clientPhone.Valid {
+		session.ClientPhone = clientPhone.String
+	}
+
+	if notes.Valid {
+		session.Notes = notes.String
+	}
 
 	if date.Valid {
 		session.Date = date.Time

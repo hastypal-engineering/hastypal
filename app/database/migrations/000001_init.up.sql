@@ -39,6 +39,11 @@ CREATE TABLE IF NOT EXISTS ha_booking_session (
     habs_start_time TIME NULL,
     habs_end_time TIME NULL,
     habs_ttl INTEGER NOT NULL,
+    habs_slot_index INTEGER NULL,
+    habs_client_name VARCHAR(255) NULL,
+    habs_client_email VARCHAR(255) NULL,
+    habs_client_phone VARCHAR(36) NULL,
+    habs_notes TEXT NULL,
     habs_date_add TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     habs_date_upd TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL,
     CONSTRAINT fk_booking_session_business FOREIGN KEY(habs_business_id) 
