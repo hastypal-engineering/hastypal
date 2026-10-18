@@ -89,7 +89,6 @@ func (c *WebController) GetStep1() gin.HandlerFunc {
 				return
 			}
 
-			c.logger.Error("Error showing services", "trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true))
 
 			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
@@ -149,8 +148,6 @@ func (c *WebController) PostStep1() gin.HandlerFunc {
 				return
 			}
 
-			c.logger.Error("Error storing selected service", "trace_id", traceID, "public_id", publicID, "error", eris.ToString(err, true))
-
 			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 
 			return
@@ -197,8 +194,6 @@ func (c *WebController) GetStep2() gin.HandlerFunc {
 
 				return
 			}
-
-			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", req.BusinessPublicID, "session_id", req.SessionID, "error", eris.ToString(err, true))
 
 			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
@@ -270,7 +265,7 @@ func (c *WebController) GetStep3() gin.HandlerFunc {
 
 		var req web.GetBookingReq
 		if err := ctx.ShouldBindUri(&req); err != nil {
-			c.logger.Error("Error showing dates while binding GetDatesReq uri params", "trace_id", traceID, "error", eris.ToString(err, true))
+			c.logger.Error("Error showing dates while binding GetBookingReq uri params", "trace_id", traceID, "error", eris.ToString(err, true))
 
 			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", req.BusinessPublicID))
 
@@ -278,7 +273,6 @@ func (c *WebController) GetStep3() gin.HandlerFunc {
 		}
 
 		publicID := req.BusinessPublicID
-		sessionID := req.SessionID
 
 		dto, err := c.service.ShowBooking(ctx, req)
 		if err != nil {
@@ -287,8 +281,6 @@ func (c *WebController) GetStep3() gin.HandlerFunc {
 
 				return
 			}
-
-			c.logger.Error("Error showing dates", "trace_id", traceID, "public_id", publicID, "session_id", sessionID, "error", eris.ToString(err, true))
 
 			redirectOnError(ctx, fmt.Sprintf("/booking/%s/error", publicID))
 

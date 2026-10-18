@@ -48,18 +48,32 @@ WEB SHOW SERVICES
 */
 
 func (s *Service) ShowServices(ctx context.Context, req GetServicesReq) (*BookingDTO, error) {
+	traceID := ctx.Value(middleware.TraceIDKey)
+
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing services while fetching business",
+			"trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true),
+		)
 		return nil, eris.Wrap(err, "Error showing services trying to fetch business by public ID")
 	}
 
 	sessionID, err := s.booking.InitSession(ctx, business.ID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing services while init session",
+			"trace_id", traceID, "public_id", req.BusinessPublicID, "error", eris.ToString(err, true),
+		)
 		return nil, eris.Wrapf(err, "Error creating session, to book on bussiness %d", business.ID)
 	}
 
 	catalog, err := s.business.GetServiceCatalog(ctx, business.ID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing services while fetching catalog",
+			"trace_id", traceID, "public_id", req.BusinessPublicID, "session_id", sessionID, "error", eris.ToString(err, true),
+		)
 		return nil, eris.Wrapf(err, "Error showing services trying to fetch the catalog of business %d", business.ID)
 	}
 
@@ -106,7 +120,10 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 
 	session, err := s.booking.GetCurrentSession(ctx, dto.SessionID)
 	if err != nil {
-		s.logger.Error("Error retrieving the session while storing the selected service", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		s.logger.Error(
+			"Error retrieving the session while storing the selected service",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", dto.SessionID,
+		)
 		return eris.Wrap(err, "Failed retrieving session to patch the booking")
 	}
 
@@ -117,7 +134,10 @@ func (s *Service) StoreService(ctx context.Context, dto *BookingPatchDTO) error 
 	session.ServiceID = dto.ServiceID
 
 	if err := s.booking.PatchSession(ctx, session); err != nil {
-		s.logger.Error("Error patching the session while storing the selected service", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		s.logger.Error(
+			"Error patching the session while storing the selected service",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID,
+		)
 		return eris.Wrap(err, "Error patching the session with the serviceID")
 	}
 
@@ -131,13 +151,25 @@ WEB SHOW DATES
 */
 
 func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, error) {
+	traceID := ctx.Value(middleware.TraceIDKey)
+
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing dates while fetching business",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID,
+		)
+
 		return nil, eris.Wrap(err, "Error showing dates trying to fetch business by public ID")
 	}
 
 	session, err := s.booking.GetCurrentSession(ctx, req.SessionID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing dates while fetching session",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID,
+		)
+
 		return nil, eris.Wrapf(err, "Error showing dates while fetching session, to book on bussiness %d", business.ID)
 	}
 
@@ -147,11 +179,25 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 
 	schedule, err := s.business.GetBusinessSchedule(ctx, business.ID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing dates while fetching business schedule",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID,
+		)
+
 		return nil, eris.Wrapf(err, "Error showing dates while fetching business schedule on business %d", business.ID)
 	}
 
 	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
 	if err != nil {
+		s.logger.Error(
+			"Error showing dates while fetching business service",
+			"trace_id", traceID,
+			"error", eris.ToString(err, true),
+			"session_id", req.SessionID,
+			"business_id", req.BusinessPublicID,
+			"service_id", session.ServiceID,
+		)
+
 		return nil, eris.Wrapf(err, "Error showing dates while fetching service with id %d", session.ServiceID)
 	}
 
@@ -190,6 +236,11 @@ func (s *Service) ShowDates(ctx context.Context, req GetDatesReq) (*BookingDTO, 
 
 	otherUserSessions, err := s.booking.GetSessionsOnDateByBusiness(ctx, business.ID, reqDay)
 	if err != nil {
+		s.logger.Error(
+			"Error showing dates while fetching active other user sessions",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID,
+		)
+
 		return nil, eris.Wrap(err, "Error showing dates while fetching other users sessions")
 	}
 
@@ -267,7 +318,10 @@ func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
 
 	session, err := s.booking.GetCurrentSession(ctx, dto.SessionID)
 	if err != nil {
-		s.logger.Error("Error retrieving the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", dto.SessionID)
+		s.logger.Error(
+			"Error retrieving the session while storing the selected dates",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", dto.SessionID,
+		)
 		return eris.Wrap(err, "Failed retrieving session to patch the booking dates")
 	}
 
@@ -277,7 +331,10 @@ func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
 
 	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
 	if err != nil {
-		s.logger.Error("Error retrieving the service while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		s.logger.Error(
+			"Error retrieving the service while storing the selected dates",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID,
+		)
 		return eris.Wrap(err, "Failed retrieving service to patch the booking dates")
 	}
 
@@ -292,7 +349,10 @@ func (s *Service) StoreDates(ctx context.Context, dto *BookingPatchDTO) error {
 	}
 
 	if err := s.booking.PatchSession(ctx, session); err != nil {
-		s.logger.Error("Error patching the session while storing the selected dates", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		s.logger.Error(
+			"Error patching the session while storing the selected dates",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID,
+		)
 		return eris.Wrap(err, "Error patching the session with the selected dates")
 	}
 
@@ -311,19 +371,28 @@ func (s *Service) ShowBooking(ctx context.Context, req GetBookingReq) (*BookingD
 
 	business, err := s.business.GetBusinessByPublicID(ctx, req.BusinessPublicID)
 	if err != nil {
-		logger.Error("Error retrieving the business while showing booking", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID)
+		logger.Error(
+			"Error retrieving the business while showing booking",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID,
+		)
 		return nil, eris.Wrap(err, "Error showing booking trying to fetch business by public ID")
 	}
 
 	session, err := s.booking.GetCurrentSession(ctx, req.SessionID)
 	if err != nil {
-		logger.Error("Error retrieving the session while showing booking", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID)
+		logger.Error(
+			"Error retrieving the session while showing booking",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", req.SessionID, "business_id", req.BusinessPublicID,
+		)
 		return nil, eris.Wrap(err, "Error retrieving the session")
 	}
 
 	service, err := s.business.GetServiceByID(ctx, session.ServiceID)
 	if err != nil {
-		logger.Error("Error retrieving the service while showing booking", "trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID)
+		logger.Error(
+			"Error retrieving the service while showing booking",
+			"trace_id", traceID, "error", eris.ToString(err, true), "session_id", session.ID, "business_id", session.BusinessID,
+		)
 		return nil, eris.Wrap(err, "Error retrieving the service")
 	}
 
