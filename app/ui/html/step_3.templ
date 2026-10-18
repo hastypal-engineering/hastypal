@@ -26,11 +26,10 @@ templ Step3(dto *web.BookingDTO) {
 						<h2 class="step__title">Your Details</h2>
 						<p class="step__instruction">We'll use this to confirm your appointment.</p>
 					</div>
-
 					<div class="booking-summary">
 						<div class="booking-summary__head">
 							<p class="booking-summary__title">Booking summary</p>
-							<span class="booking-summary__price">{ dto.SelectedService.Price }</span>
+							<span class="booking-summary__price">{ dto.SelectedService.Price } USD</span>
 						</div>
 						<p class="booking-summary__service">{ dto.SelectedService.Name }</p>
 						<p class="booking-summary__meta">{ dto.SelectedService.Duration } · no cat</p>
@@ -52,26 +51,19 @@ templ Step3(dto *web.BookingDTO) {
 							</div>
 						</div>
 					</div>
-
 					<form id="bookingForm" class="details-form" action={ fmt.Sprintf("/booking/%s/session/%s/step-3", dto.Business.PublicID, dto.SessionID) } method="POST">
 						<input type="hidden" name="sessionID" value={ dto.SessionID }/>
-						<div class="details-form__row">
-							<div class="details-form__field">
-								<label class="details-form__label" for="firstName">First Name</label>
-								<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" autocomplete="given-name"/>
-							</div>
-							<div class="details-form__field">
-								<label class="details-form__label" for="lastName">Last Name</label>
-								<input class="details-form__input" id="lastName" name="lastName" type="text" placeholder="Okafor" autocomplete="family-name"/>
-							</div>
+						<div class="details-form__field">
+							<label class="details-form__label" for="firstName">Name</label>
+							<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" autocomplete="given-name"/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="email">Email Address</label>
-							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com"  autocomplete="email" inputmode="email"/>
+							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com" autocomplete="email" inputmode="email"/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="phone">Phone Number</label>
-							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456"  autocomplete="tel" inputmode="tel"/>
+							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456" autocomplete="tel" inputmode="tel"/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="notes">Notes <span class="details-form__optional">(optional)</span></label>

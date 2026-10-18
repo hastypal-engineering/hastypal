@@ -88,12 +88,6 @@
     max-width: 32rem;
   }
 
-  .details-form__row {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-3);
-  }
-
   .details-form__field {
     min-width: 0;
   }

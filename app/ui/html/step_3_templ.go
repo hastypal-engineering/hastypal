@@ -77,20 +77,20 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Price)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 33, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 32, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</span></div><p class=\"booking-summary__service\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, " USD</span></div><p class=\"booking-summary__service\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 35, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 34, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -103,7 +103,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Duration)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 36, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 35, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -116,7 +116,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedDate.Format("Mon, Jan 2"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 44, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 43, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -129,7 +129,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedDate.Format(time.Kitchen))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 51, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 50, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -142,7 +142,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var9 templ.SafeURL
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("/booking/%s/session/%s/step-3", dto.Business.PublicID, dto.SessionID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 56, Col: 140}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 54, Col: 140}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -155,13 +155,13 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.SessionID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 57, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 55, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><div class=\"details-form__row\"><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"firstName\">First Name</label> <input class=\"details-form__input\" id=\"firstName\" name=\"firstName\" type=\"text\" placeholder=\"Amara\" autocomplete=\"given-name\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"lastName\">Last Name</label> <input class=\"details-form__input\" id=\"lastName\" name=\"lastName\" type=\"text\" placeholder=\"Okafor\" autocomplete=\"family-name\"></div></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"email\">Email Address</label> <input class=\"details-form__input\" id=\"email\" name=\"email\" type=\"email\" placeholder=\"amara@example.com\" autocomplete=\"email\" inputmode=\"email\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"phone\">Phone Number</label> <input class=\"details-form__input\" id=\"phone\" name=\"phone\" type=\"tel\" placeholder=\"+1 (555) 012-3456\" autocomplete=\"tel\" inputmode=\"tel\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"notes\">Notes <span class=\"details-form__optional\">(optional)</span></label> <textarea class=\"details-form__input details-form__textarea\" id=\"notes\" name=\"notes\" rows=\"3\" placeholder=\"Any health concerns or preferences...\"></textarea></div></form></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"firstName\">Name</label> <input class=\"details-form__input\" id=\"firstName\" name=\"firstName\" type=\"text\" placeholder=\"Amara\" autocomplete=\"given-name\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"email\">Email Address</label> <input class=\"details-form__input\" id=\"email\" name=\"email\" type=\"email\" placeholder=\"amara@example.com\" autocomplete=\"email\" inputmode=\"email\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"phone\">Phone Number</label> <input class=\"details-form__input\" id=\"phone\" name=\"phone\" type=\"tel\" placeholder=\"+1 (555) 012-3456\" autocomplete=\"tel\" inputmode=\"tel\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"notes\">Notes <span class=\"details-form__optional\">(optional)</span></label> <textarea class=\"details-form__input details-form__textarea\" id=\"notes\" name=\"notes\" rows=\"3\" placeholder=\"Any health concerns or preferences...\"></textarea></div></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
