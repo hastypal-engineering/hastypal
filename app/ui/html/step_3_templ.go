@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/adriein/hastypal/internal/web"
+	"time"
 )
 
 func Step3(dto *web.BookingDTO) templ.Component {
@@ -42,7 +43,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Business.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 14, Col: 29}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 15, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -63,7 +64,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Step)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 24, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 25, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -76,7 +77,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Price)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 32, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 33, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -89,7 +90,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 34, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 35, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -102,143 +103,65 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Duration)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 35, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 36, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " · ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, " · no cat</p><div class=\"booking-summary__divider\"></div><div class=\"booking-summary__schedule\"><div class=\"booking-summary__schedule-item\"><svg class=\"booking-summary__schedule-icon\" width=\"14\" height=\"14\" viewBox=\"0 0 14 14\" fill=\"none\" aria-hidden=\"true\"><rect x=\"1.25\" y=\"2.25\" width=\"11.5\" height=\"10.5\" rx=\"1.5\" stroke=\"currentColor\" stroke-width=\"1.2\"></rect> <path d=\"M1.5 5.25H12.5M4 1V3.5M10 1V3.5\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></svg><p class=\"booking-summary__schedule-text\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedService.Category)
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedDate.Format("Mon, Jan 2"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 35, Col: 105}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 44, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</p><div class=\"booking-summary__divider\"></div><div class=\"booking-summary__schedule\"><div class=\"booking-summary__schedule-item\"><svg class=\"booking-summary__schedule-icon\" width=\"14\" height=\"14\" viewBox=\"0 0 14 14\" fill=\"none\" aria-hidden=\"true\"><rect x=\"1.25\" y=\"2.25\" width=\"11.5\" height=\"10.5\" rx=\"1.5\" stroke=\"currentColor\" stroke-width=\"1.2\"></rect> <path d=\"M1.5 5.25H12.5M4 1V3.5M10 1V3.5\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\"></path></svg><p class=\"booking-summary__schedule-text\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</p></div><div class=\"booking-summary__schedule-item\"><svg class=\"booking-summary__schedule-icon\" width=\"14\" height=\"14\" viewBox=\"0 0 14 14\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"5.5\" stroke=\"currentColor\" stroke-width=\"1.2\"></circle> <path d=\"M7 4V7L9 8.25\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><p class=\"booking-summary__schedule-text\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Dates.SelectedDay.Format("Mon, Jan 2"))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedDate.Format(time.Kitchen))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 43, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 51, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p></div><div class=\"booking-summary__schedule-item\"><svg class=\"booking-summary__schedule-icon\" width=\"14\" height=\"14\" viewBox=\"0 0 14 14\" fill=\"none\" aria-hidden=\"true\"><circle cx=\"7\" cy=\"7\" r=\"5.5\" stroke=\"currentColor\" stroke-width=\"1.2\"></circle> <path d=\"M7 4V7L9 8.25\" stroke=\"currentColor\" stroke-width=\"1.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg><p class=\"booking-summary__schedule-text\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</p></div></div></div><form id=\"bookingForm\" class=\"details-form\" action=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(dto.SelectedTime)
+		var templ_7745c5c3_Var9 templ.SafeURL
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("/booking/%s/session/%s/step-3", dto.Business.PublicID, dto.SessionID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 50, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 56, Col: 140}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</p></div></div></div><form id=\"bookingForm\" class=\"details-form\" action=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\" method=\"POST\"><input type=\"hidden\" name=\"sessionID\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 templ.SafeURL
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("/booking/%s/session/%s/step-3", dto.Business.PublicID, dto.SessionID))
+		var templ_7745c5c3_Var10 string
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.SessionID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 55, Col: 140}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 57, Col: 65}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\" method=\"POST\"><input type=\"hidden\" name=\"sessionID\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var10)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.SessionID)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 56, Col: 65}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var11)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><div class=\"details-form__row\"><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"firstName\">First Name</label> <input class=\"details-form__input\" id=\"firstName\" name=\"firstName\" type=\"text\" placeholder=\"Amara\" value=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.Customer.FirstName)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 60, Col: 137}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var12)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" autocomplete=\"given-name\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"lastName\">Last Name</label> <input class=\"details-form__input\" id=\"lastName\" name=\"lastName\" type=\"text\" placeholder=\"Okafor\" value=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.Customer.LastName)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 64, Col: 135}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var13)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" autocomplete=\"family-name\"></div></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"email\">Email Address</label> <input class=\"details-form__input\" id=\"email\" name=\"email\" type=\"email\" placeholder=\"amara@example.com\" value=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var14 string
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.Customer.Email)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 69, Col: 137}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\" autocomplete=\"email\" inputmode=\"email\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"phone\">Phone Number</label> <input class=\"details-form__input\" id=\"phone\" name=\"phone\" type=\"tel\" placeholder=\"+1 (555) 012-3456\" value=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.ResolveAttributeValue(dto.Customer.Phone)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 73, Col: 135}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var15)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" autocomplete=\"tel\" inputmode=\"tel\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"notes\">Notes <span class=\"details-form__optional\">(optional)</span></label> <textarea class=\"details-form__input details-form__textarea\" id=\"notes\" name=\"notes\" rows=\"3\" placeholder=\"Any health concerns or preferences...\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var16 string
-		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(dto.Customer.Notes)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/ui/html/step_3.templ`, Line: 77, Col: 173}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</textarea></div></form></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><div class=\"details-form__row\"><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"firstName\">First Name</label> <input class=\"details-form__input\" id=\"firstName\" name=\"firstName\" type=\"text\" placeholder=\"Amara\" autocomplete=\"given-name\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"lastName\">Last Name</label> <input class=\"details-form__input\" id=\"lastName\" name=\"lastName\" type=\"text\" placeholder=\"Okafor\" autocomplete=\"family-name\"></div></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"email\">Email Address</label> <input class=\"details-form__input\" id=\"email\" name=\"email\" type=\"email\" placeholder=\"amara@example.com\" autocomplete=\"email\" inputmode=\"email\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"phone\">Phone Number</label> <input class=\"details-form__input\" id=\"phone\" name=\"phone\" type=\"tel\" placeholder=\"+1 (555) 012-3456\" autocomplete=\"tel\" inputmode=\"tel\"></div><div class=\"details-form__field\"><label class=\"details-form__label\" for=\"notes\">Notes <span class=\"details-form__optional\">(optional)</span></label> <textarea class=\"details-form__input details-form__textarea\" id=\"notes\" name=\"notes\" rows=\"3\" placeholder=\"Any health concerns or preferences...\"></textarea></div></form></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -246,7 +169,7 @@ func Step3(dto *web.BookingDTO) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</main></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

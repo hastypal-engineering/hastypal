@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/adriein/hastypal/internal/web"
+	"time"
 )
 
 templ Step3(dto *web.BookingDTO) {
@@ -32,7 +33,7 @@ templ Step3(dto *web.BookingDTO) {
 							<span class="booking-summary__price">{ dto.SelectedService.Price }</span>
 						</div>
 						<p class="booking-summary__service">{ dto.SelectedService.Name }</p>
-						<p class="booking-summary__meta">{ dto.SelectedService.Duration } · { dto.SelectedService.Category }</p>
+						<p class="booking-summary__meta">{ dto.SelectedService.Duration } · no cat</p>
 						<div class="booking-summary__divider"></div>
 						<div class="booking-summary__schedule">
 							<div class="booking-summary__schedule-item">
@@ -40,14 +41,14 @@ templ Step3(dto *web.BookingDTO) {
 									<rect x="1.25" y="2.25" width="11.5" height="10.5" rx="1.5" stroke="currentColor" stroke-width="1.2"></rect>
 									<path d="M1.5 5.25H12.5M4 1V3.5M10 1V3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"></path>
 								</svg>
-								<p class="booking-summary__schedule-text">{ dto.Dates.SelectedDay.Format("Mon, Jan 2") }</p>
+								<p class="booking-summary__schedule-text">{ dto.SelectedDate.Format("Mon, Jan 2") }</p>
 							</div>
 							<div class="booking-summary__schedule-item">
 								<svg class="booking-summary__schedule-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
 									<circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.2"></circle>
 									<path d="M7 4V7L9 8.25" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"></path>
 								</svg>
-								<p class="booking-summary__schedule-text">{ dto.SelectedTime }</p>
+								<p class="booking-summary__schedule-text">{ dto.SelectedDate.Format(time.Kitchen) }</p>
 							</div>
 						</div>
 					</div>
@@ -57,24 +58,24 @@ templ Step3(dto *web.BookingDTO) {
 						<div class="details-form__row">
 							<div class="details-form__field">
 								<label class="details-form__label" for="firstName">First Name</label>
-								<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" value={ dto.Customer.FirstName } autocomplete="given-name"/>
+								<input class="details-form__input" id="firstName" name="firstName" type="text" placeholder="Amara" autocomplete="given-name"/>
 							</div>
 							<div class="details-form__field">
 								<label class="details-form__label" for="lastName">Last Name</label>
-								<input class="details-form__input" id="lastName" name="lastName" type="text" placeholder="Okafor" value={ dto.Customer.LastName } autocomplete="family-name"/>
+								<input class="details-form__input" id="lastName" name="lastName" type="text" placeholder="Okafor" autocomplete="family-name"/>
 							</div>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="email">Email Address</label>
-							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com" value={ dto.Customer.Email } autocomplete="email" inputmode="email"/>
+							<input class="details-form__input" id="email" name="email" type="email" placeholder="amara@example.com"  autocomplete="email" inputmode="email"/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="phone">Phone Number</label>
-							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456" value={ dto.Customer.Phone } autocomplete="tel" inputmode="tel"/>
+							<input class="details-form__input" id="phone" name="phone" type="tel" placeholder="+1 (555) 012-3456"  autocomplete="tel" inputmode="tel"/>
 						</div>
 						<div class="details-form__field">
 							<label class="details-form__label" for="notes">Notes <span class="details-form__optional">(optional)</span></label>
-							<textarea class="details-form__input details-form__textarea" id="notes" name="notes" rows="3" placeholder="Any health concerns or preferences...">{ dto.Customer.Notes }</textarea>
+							<textarea class="details-form__input details-form__textarea" id="notes" name="notes" rows="3" placeholder="Any health concerns or preferences..."></textarea>
 						</div>
 					</form>
 				</div>

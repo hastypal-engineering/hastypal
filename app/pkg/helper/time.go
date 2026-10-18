@@ -65,6 +65,15 @@ func TimeToMinFromMidnight(t time.Time) int {
 	return t.Hour()*60 + t.Minute()
 }
 
+// TimeFromDuration returns a time from a duration
+func TimeFromDuration(d time.Duration, loc *time.Location) time.Time {
+	now := time.Now().In(loc)
+
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+
+	return midnight.Add(d)
+}
+
 // TimeFromInt returns time.Time from an int representing minutes from midnight
 func TimeFromInt(m int) (time.Time, error) {
 	if m < 0 || m >= 1440 {

@@ -20,6 +20,11 @@ type GetDatesReq struct {
 	Day              time.Time
 }
 
+type GetBookingReq struct {
+	BusinessPublicID string `uri:"publicID" binding:"required"`
+	SessionID        string `uri:"sessionID" binding:"required"`
+}
+
 type ServiceDTO struct {
 	ID          int
 	Name        string
@@ -44,6 +49,8 @@ type BookingDTO struct {
 	Services  []*ServiceDTO
 	Business  *BusinessDTO
 	Dates     *BookingDatesDTO
+	SelectedService *ServiceDTO
+	SelectedDate *time.Time
 }
 
 type BookingPatchDTO struct {
